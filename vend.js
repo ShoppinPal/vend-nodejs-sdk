@@ -5,17 +5,14 @@ var Vend = (function() {
   var request = require('request-promise');
   var _ = require('underscore');
 
-  var nconf = require('nconf');
-  nconf.argv()
-    .env()
-    .file({ file: 'config/' + process.env.NODE_ENV + '.json' });
-
-  function Vend(subdomain) {
+  function Vend(subdomain, username, password) {
     this.subdomain = subdomain;
+    this.username = username;
+    this.password = password;
     this.url = 'https://'
-      + encodeURIComponent(nconf.get('username')) + ':' + encodeURIComponent(nconf.get('password')) + '@'
+      + encodeURIComponent(this.username) + ':' + encodeURIComponent(this.password) + '@'
       + this.subdomain + '.vendhq.com';
-    console.log(this.url);
+    //console.log(this.url);
   }
 
   function RateLimitingError(e) {

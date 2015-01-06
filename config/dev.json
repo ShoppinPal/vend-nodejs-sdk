@@ -1,4 +1,5 @@
 {
+  "subdomain":"mystore",
   "username":"sample",
   "password":"secret"
 }
