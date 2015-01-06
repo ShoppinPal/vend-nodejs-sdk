@@ -1,0 +1,27 @@
+{
+  "name": "vend-nodejs-sdk",
+  "version": "1.0.0",
+  "description": "Aims to provides a rich set of client-side functionality for Vend's public APIs",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ShoppinPal/vend-nodejs-sdk.git"
+  },
+  "keywords": [
+    "vend"
+  ],
+  "author": "Pulkit Singhal",
+  "license": "Apache 2",
+  "bugs": {
+    "url": "https://github.com/ShoppinPal/vend-nodejs-sdk/issues"
+  },
+  "homepage": "https://github.com/ShoppinPal/vend-nodejs-sdk",
+  "dependencies": {
+    "bluebird": "^2.6.0",
+    "nconf": "^0.7.1",
+    "request-promise": "^0.3.2",
+    "underscore": "^1.7.0"
+  }
+}
