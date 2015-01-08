@@ -3,6 +3,11 @@ vend-js-sdk
 
 Aims to provides a rich set of client-side functionality for Vend's public APIs
 
+Open Discussion
+===============
+
+[![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/ShoppinPal/vend-nodejs-sdk)
+
 Simple-Legal-Speak
 ==================
 
