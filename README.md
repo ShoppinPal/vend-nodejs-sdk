@@ -1,6 +1,8 @@
 vend-js-sdk
 ===========
 
+[![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/ShoppinPal/vend-nodejs-sdk?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 Aims to provides a rich set of client-side functionality for Vend's public APIs
 
 Simple-Legal-Speak
