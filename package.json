@@ -2,6 +2,7 @@
   "name": "vend-nodejs-sdk",
   "version": "1.0.0",
   "description": "Aims to provides a rich set of client-side functionality for Vend's public APIs",
+  "main": "vend.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
