@@ -1,5 +1,4 @@
 {
-  "subdomain":"mystore",
-  "username":"sample",
-  "password":"secret"
+  "domain_prefix":"",
+  "access_token": ""
 }

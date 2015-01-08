@@ -2,16 +2,14 @@ var Vend = (function() {
   'use strict';
 
   //var Promise = require('bluebird');
-  var request = require('request-promise');
   var _ = require('underscore');
+  var request = require('request-promise');
+  //request.debug = true;
 
-  function Vend(subdomain, username, password) {
-    this.subdomain = subdomain;
-    this.username = username;
-    this.password = password;
-    this.url = 'https://'
-      + encodeURIComponent(this.username) + ':' + encodeURIComponent(this.password) + '@'
-      + this.subdomain + '.vendhq.com';
+  function Vend(domainPrefix, accessToken) {
+    this.domainPrefix = domainPrefix;
+    this.accessToken = accessToken;
+    this.url = 'https://' + this.domainPrefix + '.vendhq.com';
     //console.log(this.url);
   }
 
@@ -25,8 +23,20 @@ var Vend = (function() {
 
   Vend.prototype.fetchProducts = function(parameters){
     var path = '/api/products';
-    var subdomain = this.subdomain;
-    request(this.url + path)
+    var authString = 'Bearer ' + this.accessToken;
+    var url = this.url + path;
+    //var domainPrefix = this.domainPrefix;
+
+    //console.log('GET ' + url);
+    //console.log('Authorization: ' + authString);
+    var options = {
+      url: url,
+      headers: {
+        'Authorization': authString
+      }
+    };
+
+    request(options)
       .then(function(response) {
         if(_.isArray(response)) {
           console.log('response is an array');
@@ -53,14 +63,15 @@ var Vend = (function() {
       .catch(ClientError, function(e) {
         console.log('A ClientError happened: '
           + e.statusCode + ' ' + e.response.body + '\n'
-          /*+ JSON.stringify(e.response.headers,null,2)*/
+          /*+ JSON.stringify(e.response.headers,null,2)
+          + JSON.stringify(e,null,2)*/
         );
         // TODO: add retry logic
         //       perhaps use: https://github.com/you21979/node-limit-request-promise
         /*Promise.delay(3000)
           .then(function() {
             console.log("3000 ms passed");
-            return new Vend(subdomain).fetchProducts(parameters);
+            return new Vend(domainPrefix).fetchProducts(parameters);
           });*/
       })
       .catch(function(e) {
