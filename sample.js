@@ -13,4 +13,7 @@ var vend = new Vend(
   nconf.get('access_token')
 );
 
-vend.fetchProducts();
+vend.fetchProducts()
+  .then(function(products){
+    console.log('products: ', products);
+  });

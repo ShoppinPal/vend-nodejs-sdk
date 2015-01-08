@@ -1,7 +1,7 @@
 var Vend = (function() {
   'use strict';
 
-  //var Promise = require('bluebird');
+  var Promise = require('bluebird');
   var _ = require('underscore');
   var request = require('request-promise');
   //request.debug = true;
@@ -36,7 +36,7 @@ var Vend = (function() {
       }
     };
 
-    request(options)
+    return request(options)
       .then(function(response) {
         if(_.isArray(response)) {
           console.log('response is an array');
@@ -47,6 +47,7 @@ var Vend = (function() {
           try{
             var responseObject = JSON.parse(response);
             console.log('Fetched ' + responseObject.products.length + ' products');
+            return Promise.resolve(responseObject);
           } catch(error){
             console.error('caught an error: ', error);
             throw error;
