@@ -15,11 +15,11 @@ Features
 1. Added sample API call for fetching product
   1. requires nothing more than a subdomain/domain-prefix and basic authN for developers to start experimenting: `NODE_ENV=dev node sample.js`
   2. *always* uses promises instead of callbacks
+2. Uses oauth for API calls.
 
 Roadmap
 =======
 
 1. Add sample API calls for all the exposed REST endpoints at https://developers.vendhq.com/documentation/api/index.html
   1. *must* handle 429 response code for rate limiting
-2. Get rid of basic authN and start using oauth before Feb 1st 2015, so that this module remains relevant.
-3. Code up a plug-&-play or drop-in utility class for OAuth w/ Vend that anyone can add to their workflow.
+2. Code up a plug-&-play or drop-in utility class for OAuth w/ Vend that anyone can add to their workflow.
