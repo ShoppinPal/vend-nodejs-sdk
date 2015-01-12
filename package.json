@@ -21,6 +21,7 @@
   "homepage": "https://github.com/ShoppinPal/vend-nodejs-sdk",
   "dependencies": {
     "bluebird": "^2.6.0",
+    "moment": "^2.9.0",
     "nconf": "^0.7.1",
     "request-promise": "^0.3.2",
     "underscore": "^1.7.0"

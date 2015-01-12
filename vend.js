@@ -1,11 +1,15 @@
 'use strict';
 
 var _ = require('underscore');
-var log = require('winston');
+var moment = require('moment');
 var Promise = require('bluebird');
 
 var request = require('request-promise');
 //request.debug = true;
+
+var log = require('winston');
+log.remove(log.transports.Console);
+log.add(log.transports.Console, {colorize: true, timestamp: false, level: 'debug'});
 
 function RateLimitingError(e) {
   return e.statusCode == 429;
@@ -35,13 +39,13 @@ var successHandler = function(response) {
   }
 };
 
-var getTokenUrl = function(tokenService, domain_prefix){
+var getTokenUrl = function(tokenService, domain_prefix) {
   var tokenUrl = tokenService.replace(/\{DOMAIN_PREFIX\}/, domain_prefix);
   log.debug('token Url: '+ tokenUrl);
   return tokenUrl;
 };
 
-var fetchProducts = function(domainPrefix, accessToken){
+var fetchProducts = function(domainPrefix, accessToken) {
   var path = '/api/products';
   var vendUrl = 'https://' + domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + accessToken;
@@ -177,6 +181,15 @@ var refreshAccessToken = function(tokenService, clientId, clientSecret, refreshT
     });
 };
 
+/**
+ * @param expiresAt - time unit from Vend is in unix epoch format
+ * @returns {*} true if the the token will be considered as expired in 2 mins from now
+ */
+var hasAccessTokenExpired = function(expiresAt) {
+  return (moment.unix(expiresAt).isBefore(moment().add(2, 'minutes')));
+};
+
+exports.hasAccessTokenExpired = hasAccessTokenExpired;
 exports.fetchProducts = fetchProducts;
 exports.getInitialAccessToken = getInitialAccessToken;
 exports.refreshAccessToken = refreshAccessToken;
