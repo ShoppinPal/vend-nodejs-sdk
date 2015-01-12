@@ -35,6 +35,12 @@ var successHandler = function(response) {
   }
 };
 
+var getTokenUrl = function(tokenService, domain_prefix){
+  var tokenUrl = tokenService.replace(/\{DOMAIN_PREFIX\}/, domain_prefix);
+  log.debug('token Url: '+ tokenUrl);
+  return tokenUrl;
+};
+
 var fetchProducts = function(domainPrefix, accessToken){
   var path = '/api/products';
   var vendUrl = 'https://' + domainPrefix + '.vendhq.com' + path;
@@ -77,9 +83,9 @@ var fetchProducts = function(domainPrefix, accessToken){
     });
 };
 
-var getInitialAccessToken = function(tokenUrl, clientId, clientSecret, redirectUri, code, domainPrefix, state) {
+var getInitialAccessToken = function(tokenService, clientId, clientSecret, redirectUri, code, domainPrefix, state) {
   // TODO: tweak winston logs to prefix method signature (like breadcrumbs) when logging?
-  log.debug('getInitialAccessToken - token Url: '+ tokenUrl);
+  log.debug('getInitialAccessToken - token_service: ' + tokenService);
   log.debug('getInitialAccessToken - client Id: ' + clientId);
   log.debug('getInitialAccessToken - client Secret: ' + clientSecret);
   log.debug('getInitialAccessToken - redirect Uri: ' +  redirectUri);
@@ -87,18 +93,62 @@ var getInitialAccessToken = function(tokenUrl, clientId, clientSecret, redirectU
   log.debug('getInitialAccessToken - domain_prefix: ' + domainPrefix);
   log.debug('getInitialAccessToken - state: ' + state);
 
+  var tokenUrl = getTokenUrl(tokenService, domainPrefix);
+
   var options = {
     url: tokenUrl,
     headers: {
       'Accept': 'application/json'
     },
     form:{
-      'code': code,
+      'grant_type': 'authorization_code',
       'client_id': clientId,
       'client_secret': clientSecret,
-      'grant_type': 'authorization_code',
-      'state': state,
-      'redirect_uri': redirectUri
+      'code': code,
+      'redirect_uri': redirectUri,
+      'state': state
+    }
+  };
+  return request.post(options)
+    .then(successHandler)
+    .catch(RateLimitingError, function(e) {
+      console.log('A RateLimitingError error like "429 Too Many Requests" happened: '
+        + e.statusCode + ' ' + e.response.body + '\n'
+        + JSON.stringify(e.response.headers,null,2));
+    })
+    .catch(ClientError, function(e) {
+      console.log('A ClientError happened: '
+          + e.statusCode + ' ' + e.response.body + '\n'
+        /*+ JSON.stringify(e.response.headers,null,2)
+         + JSON.stringify(e,null,2)*/
+      );
+      // TODO: add retry logic
+    })
+    .catch(function(e) {
+      console.error('An unexpected error occurred: ', e);
+    });
+};
+
+var refreshAccessToken = function(tokenService, clientId, clientSecret, refreshToken, domainPrefix) {
+  // TODO: tweak winston logs to prefix method signature (like breadcrumbs) when logging?
+  log.debug('refreshAccessToken - token service: ' + tokenService);
+  log.debug('refreshAccessToken - client Id: ' + clientId);
+  log.debug('refreshAccessToken - client Secret: ' + clientSecret);
+  log.debug('refreshAccessToken - refresh token: ' +  refreshToken);
+  log.debug('refreshAccessToken - domain prefix: ' + domainPrefix);
+
+  var tokenUrl = getTokenUrl(tokenService, domainPrefix);
+
+  var options = {
+    url: tokenUrl,
+    headers: {
+      'Accept': 'application/json'
+    },
+    form:{
+      'grant_type': 'refresh_token',
+      'client_id': clientId,
+      'client_secret': clientSecret,
+      'refresh_token': refreshToken
     }
   };
   return request.post(options)
@@ -129,3 +179,4 @@ var getInitialAccessToken = function(tokenUrl, clientId, clientSecret, redirectU
 
 exports.fetchProducts = fetchProducts;
 exports.getInitialAccessToken = getInitialAccessToken;
+exports.refreshAccessToken = refreshAccessToken;
