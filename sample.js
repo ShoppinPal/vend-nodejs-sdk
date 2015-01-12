@@ -4,16 +4,16 @@
 var nconf = require('nconf');
 nconf.argv()
   .env()
-  .file({ file: 'config/' + process.env.NODE_ENV + '.json' });
+  .file('config', { file: 'config/' + process.env.NODE_ENV + '.json' })
+  .file('oauth', { file: 'oauth.txt' });
 //console.log('nconf.get(): ', nconf.get());
 
-var Vend = require('./vend').Vend;
-var vend = new Vend(
+var vend = require('./vend');
+
+vend.fetchProducts(
   nconf.get('domain_prefix'),
   nconf.get('access_token')
-);
-
-vend.fetchProducts()
+)
   .then(function(products){
     console.log('products: ', products);
   });
