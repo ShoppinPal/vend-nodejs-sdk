@@ -39,13 +39,45 @@ var successHandler = function(response) {
   }
 };
 
+/**
+ * TODO: Should we reuse the following library instead of rolling our own implementation here?
+ *       https://github.com/you21979/node-limit-request-promise
+ *
+ * @param bodyObject
+ * @param domainPrefix
+ * @param accessToken
+ * @param retryCounter
+ * @param callback
+ * @returns {*|Parse.Promise}
+ */
+var retry = function(bodyObject, domainPrefix, accessToken, retryCounter, callback) {
+  if(retryCounter<3) {
+    var retryAfter = 5*60*1000; // by default Vend will never block for more than 5 minutes
+    retryAfter = Math.max(moment(bodyObject['retry-after']).diff(moment()), 0);
+    //retryAfter = 5000; // for sanity testing counter increments quickly
+    console.log('retry after: ' + retryAfter + ' ms');
+
+    return Promise.delay(retryAfter)
+      .then(function() {
+        console.log(retryAfter + ' ms have passed...');
+        return callback(domainPrefix, accessToken, ++retryCounter);
+      });
+  }
+};
+
 var getTokenUrl = function(tokenService, domain_prefix) {
   var tokenUrl = tokenService.replace(/\{DOMAIN_PREFIX\}/, domain_prefix);
   log.debug('token Url: '+ tokenUrl);
   return tokenUrl;
 };
 
-var fetchProducts = function(domainPrefix, accessToken) {
+var fetchProducts = function(domainPrefix, accessToken, retryCounter) {
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    console.log('retry # ' + retryCounter);
+  }
+
   var path = '/api/products';
   var vendUrl = 'https://' + domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + accessToken;
@@ -64,9 +96,25 @@ var fetchProducts = function(domainPrefix, accessToken) {
   return request(options)
     .then(successHandler)
     .catch(RateLimitingError, function(e) {
-      console.log('A RateLimitingError error like "429 Too Many Requests" happened: '
-        + e.statusCode + ' ' + e.response.body + '\n'
-        + JSON.stringify(e.response.headers,null,2));
+      console.log('A RateLimitingError error like "429 Too Many Requests" happened: \n'
+        + 'statusCode: ' + e.statusCode + '\n'
+        + 'body: ' + e.response.body + '\n'
+        //+ JSON.stringify(e.response.headers,null,2)
+      );
+
+      var bodyObject = JSON.parse(e.response.body);
+      console.log(bodyObject['retry-after']);
+      console.log(
+        moment(bodyObject['retry-after']).format('dddd, MMMM Do YYYY, h:mm:ss a ZZ')
+      );
+      /*successHandler(e.response.body)
+        .then(function(bodyObject){
+          console.log(bodyObject['retry-after']);
+          console.log(
+            moment(bodyObject['retry-after']).format('dddd, MMMM Do YYYY, h:mm:ss a ZZ')
+          );
+        });*/
+      return retry(bodyObject, domainPrefix, accessToken, retryCounter, fetchProducts);
     })
     .catch(ClientError, function(e) {
       console.log('A ClientError happened: '
