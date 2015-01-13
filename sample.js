@@ -15,5 +15,6 @@ vend.fetchProducts(
   nconf.get('access_token')
 )
   .then(function(products){
-    console.log('products: ', products);
+    console.log('done');
+    //console.log('products: ', products);
   });

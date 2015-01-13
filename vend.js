@@ -28,7 +28,7 @@ var successHandler = function(response) {
     console.log('response is a string');
     try{
       var responseObject = JSON.parse(response);
-      console.log(responseObject);
+      //console.log(responseObject);
       return Promise.resolve(responseObject);
     } catch(error){
       console.error('caught an error: ', error);
