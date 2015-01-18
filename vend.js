@@ -15,6 +15,14 @@ function RateLimitingError(e) {
   return e.statusCode == 429;
 }
 
+function AuthNError(e) {
+  return e.statusCode == 401;
+}
+
+function AuthZError(e) {
+  return e.statusCode == 403;
+}
+
 function ClientError(e) {
   return e.statusCode >= 400 && e.statusCode < 500;
 }
@@ -44,13 +52,12 @@ var successHandler = function(response) {
  *       https://github.com/you21979/node-limit-request-promise
  *
  * @param bodyObject
- * @param domainPrefix
- * @param accessToken
+ * @param connectionInfo - contains tokens and domainPrefix
  * @param retryCounter
  * @param callback
  * @returns {*|Parse.Promise}
  */
-var retry = function(bodyObject, domainPrefix, accessToken, retryCounter, callback) {
+var retry = function(bodyObject, connectionInfo, retryCounter, callback) {
   if(retryCounter<3) {
     var retryAfter = 5*60*1000; // by default Vend will never block for more than 5 minutes
     retryAfter = Math.max(moment(bodyObject['retry-after']).diff(moment()), 0);
@@ -60,7 +67,7 @@ var retry = function(bodyObject, domainPrefix, accessToken, retryCounter, callba
     return Promise.delay(retryAfter)
       .then(function() {
         console.log(retryAfter + ' ms have passed...');
-        return callback(domainPrefix, accessToken, ++retryCounter);
+        return callback(args, connectionInfo, ++retryCounter);
       });
   }
 };
@@ -71,7 +78,129 @@ var getTokenUrl = function(tokenService, domain_prefix) {
   return tokenUrl;
 };
 
-var fetchProducts = function(domainPrefix, accessToken, retryCounter) {
+// the API consumer will get the args and fill in the blanks
+// the SDK will pull out the non-empty values and execute the request
+var args = {
+  products: {
+    fetchById: function() {
+      return {
+        apiId: {
+          required: true,
+          value: undefined
+        }
+      };
+    },
+    fetch: function() {
+      return {
+        orderBy: {
+          required: false,
+          key: 'order_by',
+          value: undefined // updated_at (default) | id | name
+        },
+        orderDirection: {
+          required: false,
+          key: 'order_direction',
+          value: undefined // ASC (default) | DESC
+          //TODO: setup enumerations in javascript?
+        },
+        since: {
+          required: false,
+          key: 'since',
+          value: undefined
+        },
+        active: {
+          required: false,
+          key: 'active',
+          value: undefined // 0 (or no value) : returns only inactive products
+                           // 1 (or any other value) : returns only active products
+          // TODO: can we embed a transformation here?
+          //       API consumer will set true or false or 0 or 1 as the value
+          //       but SDK will get the 0 or 1 value based on a transformation
+        },
+        page: {
+          required: false,
+          key: 'page',
+          value: undefined
+        },
+        pageSize: {
+          required: false,
+          key: 'page_size',
+          value: undefined
+        }/*,
+        domainPrefix: {
+          required: true,
+          value: undefined
+        },
+        accessToken: {
+          required: true,
+          value: undefined
+        },
+        retryCounter: {
+          required: true,
+          value: undefined
+        }*/
+      };
+    }
+  }
+};
+
+var fetchProduct  = function(args, connectionInfo, retryCounter) {
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    console.log('retry # ' + retryCounter);
+  }
+
+  var path = '/api/products/' + args.apiId.value;
+  // this is an undocumented implementation by Vend
+  // the response has to be accessed like: result.products[0]
+  // which is lame ... TODO: should we unwrap it within the SDK?
+
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  console.log('Requesting vend product ' + vendUrl);
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.debug('GET ' + vendUrl);
+  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+
+  var options = {
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Accept': 'application/json'
+    }
+  };
+
+  return request(options)
+    .then(successHandler)
+    .catch(RateLimitingError, function(e) {
+      console.log('A RateLimitingError error like "429 Too Many Requests" happened: \n'
+          + 'statusCode: ' + e.statusCode + '\n'
+          + 'body: ' + e.response.body + '\n'
+        //+ JSON.stringify(e.response.headers,null,2)
+      );
+
+      var bodyObject = JSON.parse(e.response.body);
+      console.log(bodyObject['retry-after']);
+      console.log(
+        moment(bodyObject['retry-after']).format('dddd, MMMM Do YYYY, h:mm:ss a ZZ')
+      );
+      // TODO: use this instead of methodName like fetchProduct as callback value to avoid mistakes?
+      return retry(bodyObject, connectionInfo, retryCounter, fetchProduct);
+    })
+    .catch(ClientError, function(e) {
+      console.log('A ClientError happened: '
+          + e.statusCode + ' ' + e.response.body + '\n'
+        /*+ JSON.stringify(e.response.headers,null,2)
+         + JSON.stringify(e,null,2)*/
+      );
+      // TODO: add retry logic
+    })
+    .catch(function(e) {
+      console.error('An unexpected error occurred: ', e);
+    });
+};
+
+var fetchProducts = function(args, connectionInfo, retryCounter) {
   if (!retryCounter) {
     retryCounter = 0;
   } else {
@@ -79,19 +208,31 @@ var fetchProducts = function(domainPrefix, accessToken, retryCounter) {
   }
 
   var path = '/api/products';
-  var vendUrl = 'https://' + domainPrefix + '.vendhq.com' + path;
-  var authString = 'Bearer ' + accessToken;
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  var authString = 'Bearer ' + connectionInfo.accessToken;
   log.debug('GET ' + vendUrl);
-  log.debug('Authorization: ' + authString);
+  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   //var domainPrefix = this.domainPrefix;
 
   var options = {
     url: vendUrl,
     headers: {
-      'Authorization': authString
+      'Authorization': authString,
+      'Accept': 'application/json'
+    },
+    qs: {
+      order_by: args.orderBy.value,
+      order_direction: args.orderDirection.value,
+      since: args.since.value,
+      active: (args.active.value) ? 1 : 0,
+      page: args.page.value,
+      page_size: args.pageSize.value
     }
   };
+  if (args.page.value) {
+    log.debug('Requesting product page ' + args.page.value);
+  }
 
   return request(options)
     .then(successHandler)
@@ -114,7 +255,17 @@ var fetchProducts = function(domainPrefix, accessToken, retryCounter) {
             moment(bodyObject['retry-after']).format('dddd, MMMM Do YYYY, h:mm:ss a ZZ')
           );
         });*/
-      return retry(bodyObject, domainPrefix, accessToken, retryCounter, fetchProducts);
+      // TODO: use this instead of methodName like fetchProduct as callback value to avoid mistakes?
+      return retry(bodyObject, connectionInfo, retryCounter, fetchProducts);
+    })
+    .catch(AuthNError, function(e) {
+      console.log('An AuthNError happened: \n'
+          + 'statusCode: ' + e.statusCode + '\n'
+          + 'body: ' + e.response.body + '\n'
+        /*+ JSON.stringify(e.response.headers,null,2)
+         + JSON.stringify(e,null,2)*/
+      );
+      // TODO: add retry logic
     })
     .catch(ClientError, function(e) {
       console.log('A ClientError happened: '
@@ -238,6 +389,11 @@ var hasAccessTokenExpired = function(expiresAt) {
 };
 
 exports.hasAccessTokenExpired = hasAccessTokenExpired;
-exports.fetchProducts = fetchProducts;
 exports.getInitialAccessToken = getInitialAccessToken;
 exports.refreshAccessToken = refreshAccessToken;
+
+exports.args = args;
+exports.products = {
+  fetch: fetchProducts,
+  fetchById: fetchProduct
+};

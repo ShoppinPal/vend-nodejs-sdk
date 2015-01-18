@@ -8,13 +8,38 @@ nconf.argv()
   .file('oauth', { file: 'oauth.txt' });
 //console.log('nconf.get(): ', nconf.get());
 
+var _ = require('underscore');
+
 var vend = require('./vend');
 
-vend.fetchProducts(
+var args = vend.args.products.fetch();
+args.orderBy.value = 'id';
+args.page.value = 1;
+args.pageSize.value = 5;
+args.active.value = true;
+
+vend.products.fetch(
+  args,
   nconf.get('domain_prefix'),
   nconf.get('access_token')
 )
-  .then(function(products){
-    console.log('done');
-    //console.log('products: ', products);
+  .then(function(response){
+    console.log('done\n=====');
+    //console.log('response: ', response);
+    _.each(response.products, function(product){
+      console.log(product.id + ' : ' + product.name);
+    });
+
+    // fetch a product by ID
+    var args = vend.args.products.fetchById();
+    args.apiId.value = _.last(response.products).id;
+    return vend.products.fetchById(
+      args,
+      nconf.get('domain_prefix'),
+      nconf.get('access_token')
+    );
+  })
+  .then(function(response){
+    console.log('done\n=====');
+    console.log('response: ', response);
   });
