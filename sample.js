@@ -18,11 +18,12 @@ args.page.value = 1;
 args.pageSize.value = 5;
 args.active.value = true;
 
-vend.products.fetch(
-  args,
-  nconf.get('domain_prefix'),
-  nconf.get('access_token')
-)
+var connectionInfo = {
+  domainPrefix: nconf.get('domain_prefix'),
+  accessToken: nconf.get('access_token')
+};
+
+vend.products.fetch(args, connectionInfo)
   .then(function(response){
     console.log('done\n=====');
     //console.log('response: ', response);
@@ -35,8 +36,7 @@ vend.products.fetch(
     args.apiId.value = _.last(response.products).id;
     return vend.products.fetchById(
       args,
-      nconf.get('domain_prefix'),
-      nconf.get('access_token')
+      connectionInfo
     );
   })
   .then(function(response){
