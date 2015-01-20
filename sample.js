@@ -42,4 +42,7 @@ vend.products.fetch(args, connectionInfo)
   .then(function(response){
     console.log('done\n=====');
     console.log('response: ', response);
+  })
+  .catch(function(e) {
+    console.error('An unexpected error occurred: ', e);
   });

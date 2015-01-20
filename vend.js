@@ -57,7 +57,7 @@ var successHandler = function(response) {
  * @param callback
  * @returns {*|Parse.Promise}
  */
-var retry = function(bodyObject, connectionInfo, retryCounter, callback) {
+var retryWhenRateLimited = function(bodyObject, args, connectionInfo, callback, retryCounter) {
   if(retryCounter<3) {
     var retryAfter = 5*60*1000; // by default Vend will never block for more than 5 minutes
     retryAfter = Math.max(moment(bodyObject['retry-after']).diff(moment()), 0);
@@ -72,6 +72,73 @@ var retry = function(bodyObject, connectionInfo, retryCounter, callback) {
   }
 };
 
+var retryWhenAuthNFails = function(args, connectionInfo, callback, retryCounter) {
+  if(retryCounter<3) {
+    var retryAfter = 1000;
+    console.log('retry after: ' + retryAfter + ' ms');
+    // TODO: try to fetch a new access token
+
+    return Promise.delay(retryAfter)
+      .then(function() {
+        console.log(retryAfter + ' ms have passed...');
+        return callback(args, connectionInfo, ++retryCounter);
+      });
+  }
+};
+
+var sendRequest = function(options, args, connectionInfo, callback, retryCounter) {
+  return request(options)
+    .then(successHandler)
+    .catch(RateLimitingError, function(e) {
+      console.log('A RateLimitingError error like "429 Too Many Requests" happened: \n'
+          + 'statusCode: ' + e.statusCode + '\n'
+          + 'body: ' + e.response.body + '\n'
+        //+ JSON.stringify(e.response.headers,null,2)
+      );
+
+      var bodyObject = JSON.parse(e.response.body);
+      console.log(bodyObject['retry-after']);
+      console.log(
+        moment(bodyObject['retry-after']).format('dddd, MMMM Do YYYY, h:mm:ss a ZZ')
+      );
+      /*successHandler(e.response.body)
+        .then(function(bodyObject){
+          console.log(bodyObject['retry-after']);
+          console.log(
+            moment(bodyObject['retry-after']).format('dddd, MMMM Do YYYY, h:mm:ss a ZZ')
+          );
+        });*/
+      return retryWhenRateLimited(bodyObject, args, connectionInfo, callback, retryCounter);
+    })
+    .catch(AuthNError, function(e) {
+      console.log('An AuthNError happened: \n'
+          + 'statusCode: ' + e.statusCode + '\n'
+          + 'body: ' + e.response.body + '\n'
+        /*+ JSON.stringify(e.response.headers,null,2)
+         + JSON.stringify(e,null,2)*/
+      ); // TODO: add retry logic
+      return retryWhenAuthNFails(args, connectionInfo, callback, retryCounter);
+    })
+    .catch(ClientError, function(e) {
+      console.log('A ClientError happened: \n'
+          + e.statusCode + ' ' + e.response.body + '\n'
+        /*+ JSON.stringify(e.response.headers,null,2)
+         + JSON.stringify(e,null,2)*/
+      ); // TODO: add retry logic
+    })
+    .catch(function(e) {
+      console.error('An unexpected error occurred: ', e);
+    });
+};
+
+/**
+ * If tokenService already has a domainPrefix set because the API consumer passed in a full URL
+ * instead of a substitutable one ... then the replace acts as a no-op.
+ *
+ * @param tokenService
+ * @param domain_prefix
+ * @returns {*|XML|string|void}
+ */
 var getTokenUrl = function(tokenService, domain_prefix) {
   var tokenUrl = tokenService.replace(/\{DOMAIN_PREFIX\}/, domain_prefix);
   log.debug('token Url: '+ tokenUrl);
@@ -170,34 +237,7 @@ var fetchProduct  = function(args, connectionInfo, retryCounter) {
     }
   };
 
-  return request(options)
-    .then(successHandler)
-    .catch(RateLimitingError, function(e) {
-      console.log('A RateLimitingError error like "429 Too Many Requests" happened: \n'
-          + 'statusCode: ' + e.statusCode + '\n'
-          + 'body: ' + e.response.body + '\n'
-        //+ JSON.stringify(e.response.headers,null,2)
-      );
-
-      var bodyObject = JSON.parse(e.response.body);
-      console.log(bodyObject['retry-after']);
-      console.log(
-        moment(bodyObject['retry-after']).format('dddd, MMMM Do YYYY, h:mm:ss a ZZ')
-      );
-      // TODO: use this instead of methodName like fetchProduct as callback value to avoid mistakes?
-      return retry(bodyObject, connectionInfo, retryCounter, fetchProduct);
-    })
-    .catch(ClientError, function(e) {
-      console.log('A ClientError happened: '
-          + e.statusCode + ' ' + e.response.body + '\n'
-        /*+ JSON.stringify(e.response.headers,null,2)
-         + JSON.stringify(e,null,2)*/
-      );
-      // TODO: add retry logic
-    })
-    .catch(function(e) {
-      console.error('An unexpected error occurred: ', e);
-    });
+  return sendRequest(options, args, connectionInfo, fetchProduct, retryCounter);
 };
 
 var fetchProducts = function(args, connectionInfo, retryCounter) {
@@ -234,56 +274,7 @@ var fetchProducts = function(args, connectionInfo, retryCounter) {
     log.debug('Requesting product page ' + args.page.value);
   }
 
-  return request(options)
-    .then(successHandler)
-    .catch(RateLimitingError, function(e) {
-      console.log('A RateLimitingError error like "429 Too Many Requests" happened: \n'
-        + 'statusCode: ' + e.statusCode + '\n'
-        + 'body: ' + e.response.body + '\n'
-        //+ JSON.stringify(e.response.headers,null,2)
-      );
-
-      var bodyObject = JSON.parse(e.response.body);
-      console.log(bodyObject['retry-after']);
-      console.log(
-        moment(bodyObject['retry-after']).format('dddd, MMMM Do YYYY, h:mm:ss a ZZ')
-      );
-      /*successHandler(e.response.body)
-        .then(function(bodyObject){
-          console.log(bodyObject['retry-after']);
-          console.log(
-            moment(bodyObject['retry-after']).format('dddd, MMMM Do YYYY, h:mm:ss a ZZ')
-          );
-        });*/
-      // TODO: use this instead of methodName like fetchProduct as callback value to avoid mistakes?
-      return retry(bodyObject, connectionInfo, retryCounter, fetchProducts);
-    })
-    .catch(AuthNError, function(e) {
-      console.log('An AuthNError happened: \n'
-          + 'statusCode: ' + e.statusCode + '\n'
-          + 'body: ' + e.response.body + '\n'
-        /*+ JSON.stringify(e.response.headers,null,2)
-         + JSON.stringify(e,null,2)*/
-      );
-      // TODO: add retry logic
-    })
-    .catch(ClientError, function(e) {
-      console.log('A ClientError happened: '
-        + e.statusCode + ' ' + e.response.body + '\n'
-        /*+ JSON.stringify(e.response.headers,null,2)
-        + JSON.stringify(e,null,2)*/
-      );
-      // TODO: add retry logic
-      //       perhaps use: https://github.com/you21979/node-limit-request-promise
-      /*Promise.delay(3000)
-        .then(function() {
-          console.log("3000 ms passed");
-          return new Vend(domainPrefix).fetchProducts(parameters);
-        });*/
-    })
-    .catch(function(e) {
-      console.error('An unexpected error occurred: ', e);
-    });
+  return sendRequest(options, args, connectionInfo, fetchProducts, retryCounter);
 };
 
 var getInitialAccessToken = function(tokenService, clientId, clientSecret, redirectUri, code, domainPrefix, state) {
@@ -368,12 +359,6 @@ var refreshAccessToken = function(tokenService, clientId, clientSecret, refreshT
          + JSON.stringify(e,null,2)*/
       );
       // TODO: add retry logic
-      //       perhaps use: https://github.com/you21979/node-limit-request-promise
-      /*Promise.delay(3000)
-       .then(function() {
-       console.log("3000 ms passed");
-       return new Vend(domainPrefix).fetchProducts(parameters);
-       });*/
     })
     .catch(function(e) {
       console.error('An unexpected error occurred: ', e);
