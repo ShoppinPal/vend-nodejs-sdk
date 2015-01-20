@@ -30,7 +30,7 @@ var connectionInfo = {
   accessToken: nconf.get('access_token'),
   // if you want auto-reties on 401, additional data is required:
   refreshToken: nconf.get('refresh_token'), // oauth.txt
-  tokenService: nconf.get('vend:token_service'), // config/<env>.json
+  vendTokenService: nconf.get('vend:token_service'), // config/<env>.json
   vendClientId: nconf.get('vend:client_id'), // config/<env>.json
   vendClientSecret: nconf.get('vend:client_secret') // config/<env>.json
 };*/

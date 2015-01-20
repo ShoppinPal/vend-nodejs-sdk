@@ -78,7 +78,7 @@ var retryWhenRateLimited = function(bodyObject, args, connectionInfo, callback, 
 
 var retryWhenAuthNFails = function(args, connectionInfo, callback, retryCounter) {
   if(retryCounter<3) {
-    if ( !(connectionInfo.tokenService &&
+    if ( !(connectionInfo.vendTokenService &&
            connectionInfo.vendClientId &&
            connectionInfo.vendClientSecret &&
            connectionInfo.refreshToken) )
@@ -89,7 +89,7 @@ var retryWhenAuthNFails = function(args, connectionInfo, callback, retryCounter)
 
     console.log('try to fetch a new access token');
     return refreshAccessToken( //TODO: validate connectionInfo before using it for retries?
-      connectionInfo.tokenService,
+      connectionInfo.vendTokenService,
       connectionInfo.vendClientId,
       connectionInfo.vendClientSecret,
       connectionInfo.refreshToken,
