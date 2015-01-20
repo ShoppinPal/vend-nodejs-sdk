@@ -18,10 +18,30 @@ args.page.value = 1;
 args.pageSize.value = 5;
 args.active.value = true;
 
+// (a) this info is sufficient for a non-expired access_token
 var connectionInfo = {
   domainPrefix: nconf.get('domain_prefix'),
   accessToken: nconf.get('access_token')
 };
+
+// (b) simulate 401 retry by messing up access_token in the oauth.txt file and using this block
+/*var connectionInfo = {
+  domainPrefix: nconf.get('domain_prefix'),
+  accessToken: nconf.get('access_token'),
+  // if you want auto-reties on 401, additional data is required:
+  refreshToken: nconf.get('refresh_token'), // oauth.txt
+  tokenService: nconf.get('vend:token_service'), // config/<env>.json
+  vendClientId: nconf.get('vend:client_id'), // config/<env>.json
+  vendClientSecret: nconf.get('vend:client_secret') // config/<env>.json
+};*/
+
+// (c) simulate 401 retry FAILURE by messing up access_token in the oauth.txt file and using this block
+/*var connectionInfo = {
+  domainPrefix: nconf.get('domain_prefix'),
+  accessToken: nconf.get('access_token')
+};*/
+
+//console.log('connectionInfo: ', connectionInfo);
 
 vend.products.fetch(args, connectionInfo)
   .then(function(response){
@@ -44,5 +64,5 @@ vend.products.fetch(args, connectionInfo)
     console.log('response: ', response);
   })
   .catch(function(e) {
-    console.error('An unexpected error occurred: ', e);
+    console.error('sample.js - An unexpected error occurred: ', e);
   });

@@ -30,19 +30,23 @@ function ClientError(e) {
 var successHandler = function(response) {
   if(_.isArray(response)) {
     console.log('response is an array');
-  } else if(_.isObject(response)) {
+  }
+  else if(_.isObject(response)) {
     console.log('response is an object');
-  } else if(_.isString(response)) {
+  }
+  else if(_.isString(response)) {
     console.log('response is a string');
     try{
       var responseObject = JSON.parse(response);
       //console.log(responseObject);
       return Promise.resolve(responseObject);
-    } catch(error){
+    }
+    catch(error){
       console.error('caught an error: ', error);
       throw error;
     }
-  } else {
+  }
+  else {
     console.log(response);
   }
 };
@@ -74,13 +78,35 @@ var retryWhenRateLimited = function(bodyObject, args, connectionInfo, callback, 
 
 var retryWhenAuthNFails = function(args, connectionInfo, callback, retryCounter) {
   if(retryCounter<3) {
-    var retryAfter = 1000;
-    console.log('retry after: ' + retryAfter + ' ms');
-    // TODO: try to fetch a new access token
+    if ( !(connectionInfo.tokenService &&
+           connectionInfo.vendClientId &&
+           connectionInfo.vendClientSecret &&
+           connectionInfo.refreshToken) )
+    {
+      return Promise.reject('missing required arguments for retryWhenAuthNFails()');
+      // throw e; // TODO: throw unknown errors but reject well known errors?
+    }
 
-    return Promise.delay(retryAfter)
-      .then(function() {
-        console.log(retryAfter + ' ms have passed...');
+    console.log('try to fetch a new access token');
+    return refreshAccessToken( //TODO: validate connectionInfo before using it for retries?
+      connectionInfo.tokenService,
+      connectionInfo.vendClientId,
+      connectionInfo.vendClientSecret,
+      connectionInfo.refreshToken,
+      connectionInfo.domainPrefix
+    )
+      .then(function(oauthInfo) {
+        console.log('update connectionInfo w/ new token before using it again');
+        if (oauthInfo.access_token) {
+          console.log('received new access_token: ' + oauthInfo.access_token);
+          connectionInfo.accessToken = oauthInfo.access_token;
+        }
+        if (oauthInfo.refresh_token) {
+          console.log('received new refresh_token: ' + oauthInfo.refresh_token);
+          connectionInfo.refreshToken = oauthInfo.refresh_token;
+        }
+
+        console.log('retrying with new accessToken: ' + connectionInfo.accessToken);
         return callback(args, connectionInfo, ++retryCounter);
       });
   }
@@ -109,6 +135,7 @@ var sendRequest = function(options, args, connectionInfo, callback, retryCounter
           );
         });*/
       return retryWhenRateLimited(bodyObject, args, connectionInfo, callback, retryCounter);
+      // TODO: how should a catch-block respond if there is a problem within the retry?
     })
     .catch(AuthNError, function(e) {
       console.log('An AuthNError happened: \n'
@@ -116,18 +143,24 @@ var sendRequest = function(options, args, connectionInfo, callback, retryCounter
           + 'body: ' + e.response.body + '\n'
         /*+ JSON.stringify(e.response.headers,null,2)
          + JSON.stringify(e,null,2)*/
-      ); // TODO: add retry logic
+      );
       return retryWhenAuthNFails(args, connectionInfo, callback, retryCounter);
+      // TODO: how to prevent a throw or rejection from also stepping thru the other catch-blocks?
     })
     .catch(ClientError, function(e) {
       console.log('A ClientError happened: \n'
           + e.statusCode + ' ' + e.response.body + '\n'
         /*+ JSON.stringify(e.response.headers,null,2)
          + JSON.stringify(e,null,2)*/
-      ); // TODO: add retry logic
+      );
+
+      // TODO: add retry logic
+
+      return Promise.reject(e.statusCode + ' ' + e.response.body); // TODO: throw unknown errors but reject well known errors?
     })
     .catch(function(e) {
-      console.error('An unexpected error occurred: ', e);
+      console.error('vend.js - An unexpected error occurred: ', e);
+      throw e; // TODO: throw unknown errors but reject well known errors?
     });
 };
 
@@ -330,6 +363,10 @@ var refreshAccessToken = function(tokenService, clientId, clientSecret, refreshT
   log.debug('refreshAccessToken - client Secret: ' + clientSecret);
   log.debug('refreshAccessToken - refresh token: ' +  refreshToken);
   log.debug('refreshAccessToken - domain prefix: ' + domainPrefix);
+
+  if ( !(tokenService && clientId && clientSecret && refreshToken) ) {
+    return Promise.reject('missing required arguments for refreshAccessToken()');
+  }
 
   var tokenUrl = getTokenUrl(tokenService, domainPrefix);
 
