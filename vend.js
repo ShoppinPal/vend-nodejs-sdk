@@ -310,6 +310,32 @@ var fetchProducts = function(args, connectionInfo, retryCounter) {
   return sendRequest(options, args, connectionInfo, fetchProducts, retryCounter);
 };
 
+var createRegisterSale = function(body, connectionInfo, retryCounter) {
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    console.log('retry # ' + retryCounter);
+  }
+
+  var path = '/api/register_sales';
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.debug('GET ' + vendUrl);
+  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+
+  var options = {
+    method: 'POST',
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    }
+  };
+
+  return sendRequest(options, args, connectionInfo, fetchProducts, retryCounter);
+};
+
 var getInitialAccessToken = function(tokenService, clientId, clientSecret, redirectUri, code, domainPrefix, state) {
   // TODO: tweak winston logs to prefix method signature (like breadcrumbs) when logging?
   log.debug('getInitialAccessToken - token_service: ' + tokenService);
@@ -418,4 +444,7 @@ exports.args = args;
 exports.products = {
   fetch: fetchProducts,
   fetchById: fetchProduct
+};
+exports.sales = {
+  create: createRegisterSale
 };
