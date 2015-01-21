@@ -311,6 +311,7 @@ var fetchProducts = function(args, connectionInfo, retryCounter) {
 };
 
 var createRegisterSale = function(body, connectionInfo, retryCounter) {
+  log.debug('inside createRegisterSale()');
   if (!retryCounter) {
     retryCounter = 0;
   } else {
@@ -333,7 +334,7 @@ var createRegisterSale = function(body, connectionInfo, retryCounter) {
     }
   };
 
-  return sendRequest(options, args, connectionInfo, fetchProducts, retryCounter);
+  return sendRequest(options, args, connectionInfo, createRegisterSale, retryCounter);
 };
 
 var getInitialAccessToken = function(tokenService, clientId, clientSecret, redirectUri, code, domainPrefix, state) {
