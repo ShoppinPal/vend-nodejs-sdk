@@ -226,19 +226,34 @@ var args = {
           required: false,
           key: 'page_size',
           value: undefined
-        }/*,
-        domainPrefix: {
-          required: true,
+        }
+      };
+    }
+  },
+  customers: {
+    fetch: function() {
+      return {
+        apiId: {
+          required: false,
+          key: 'id', // TODO: enforce rule: cannot be used with the code or email options.
           value: undefined
         },
-        accessToken: {
-          required: true,
+        code: {
+          required: false,
+          key: 'code', // TODO: enforce rule: cannot be used with id or email options.
+          value: undefined // ASC (default) | DESC
+          //TODO: setup enumerations in javascript?
+        },
+        email: {
+          required: false,
+          key: 'email', // TODO: enforce rule: cannot be used with the id or code options.
           value: undefined
         },
-        retryCounter: {
-          required: true,
-          value: undefined
-        }*/
+        since: {
+          required: false,
+          key: 'since',
+          value: undefined // should be in UTC and formatted according to ISO 8601
+        }
       };
     }
   }
@@ -308,6 +323,45 @@ var fetchProducts = function(args, connectionInfo, retryCounter) {
   }
 
   return sendRequest(options, args, connectionInfo, fetchProducts, retryCounter);
+};
+
+var fetchCustomerByEmail = function(email, connectionInfo, retryCounter) {
+  log.debug('inside fetchCustomerByEmail()');
+  var args = args.customers.fetch();
+  args.email.value = email;
+  fetchCustomers(args, connectionInfo, retryCounter);
+};
+
+var fetchCustomers = function(args, connectionInfo, retryCounter) {
+  log.debug('inside fetchCustomers()');
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    console.log('retry # ' + retryCounter);
+  }
+
+  var path = '/api/customers';
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.debug('GET ' + vendUrl);
+  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+
+  var options = {
+    method: 'GET',
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Accept': 'application/json'
+    },
+    qs: {
+      id: args.apiId.value,
+      code: args.code.value,
+      email: args.email.value, // TODO: does this need to be explicitly url-encoded? or is it taken care of automagically?
+      since: args.since.value
+    }
+  };
+
+  return sendRequest(options, args, connectionInfo, fetchCustomers, retryCounter);
 };
 
 var createRegisterSale = function(body, connectionInfo, retryCounter) {
@@ -448,4 +502,8 @@ exports.products = {
 };
 exports.sales = {
   create: createRegisterSale
+};
+exports.customers = {
+  fetch: fetchCustomers,
+  fetchByEmail: fetchCustomerByEmail
 };
