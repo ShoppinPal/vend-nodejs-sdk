@@ -25,3 +25,29 @@ Roadmap
 
 1. Add sample API calls for all the exposed REST endpoints at https://developers.vendhq.com/documentation/api/index.html
 2. Code up a plug-&-play or drop-in utility class for OAuth w/ Vend that anyone can add to their workflow.
+
+Usage
+=====
+```
+// this module isn't published to NPM yet, so you have to clone it to the node_modules folder in your machine, beforehand
+var vendSdk = require('vend-nodejs-sdk')({}); 
+
+var args = vendSdk.args.products.fetch();
+args.orderBy.value = 'id';
+args.page.value = 1;
+args.pageSize.value = 5;
+args.active.value = true;
+
+var connectionInfo = {
+  domainPrefix: nconf.get('domain_prefix'),
+  accessToken: nconf.get('access_token')
+};
+
+vendSdk.products.fetch(args, connectionInfo);
+  .then(function(response){
+    _.each(response.products, function(product){
+      console.log(product.id + ' : ' + product.name);
+    });
+  });
+
+```
