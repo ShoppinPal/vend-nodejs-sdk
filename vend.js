@@ -256,6 +256,60 @@ var args = {
         }
       };
     }
+  },
+  sales: {
+    fetch: function() {
+      return {
+        since: {
+          deprecated: true,
+          notes: 'Deprecated since version 1.0: ' +
+            'If you need to be notified of register sales, ' +
+            'and modifications to register sales, ' +
+            'use a register_sale.update webhook instead.\n' +
+            '' +
+            'http://support.vendhq.com/hc/en-us/requests/32281\n' +
+            '' +
+            'The deprecation notice was added by one of our sysadmins trying to reduce database load. ' +
+            'Feel free to ignore this deprecation and I\'ll remove it.\n' +
+            'We will eventually be deprecating a time-based "since" ' +
+            'but not until we replace it with real alternative ' +
+            '(likely to be some sort of incrementing integer value ' +
+            '- so same effect, but nicer on the database).\n' +
+            'Thanks,\n' +
+            'Keri Henare\n' +
+            'Senior Developer Evangelist @ Vend',
+          required: false,
+          key: 'since',
+          value: undefined
+        },
+        outletApiId: {
+          required: false,
+          key: 'outlet_id',
+          value: undefined // returns only register sales made for the given outlet
+        },
+        tag: {
+          required: false,
+          key: 'tag',
+          value: undefined
+        },
+        // TODO: docs are a bit odd, don't want to introduce this until docs make sense
+        /*status: {
+          required: false,
+          key: 'status[]',
+          value: undefined
+        },*/
+        page: {
+          required: false,
+          key: 'page',
+          value: undefined
+        },
+        pageSize: {
+          required: false,
+          key: 'page_size',
+          value: undefined
+        }
+      };
+    }
   }
 };
 
@@ -362,6 +416,38 @@ var fetchCustomers = function(args, connectionInfo, retryCounter) {
   };
 
   return sendRequest(options, args, connectionInfo, fetchCustomers, retryCounter);
+};
+
+var fetchRegisterSales = function(args, connectionInfo, retryCounter) {
+  log.debug('inside fetchRegisterSales()');
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    console.log('retry # ' + retryCounter);
+  }
+
+  var path = '/api/register_sales';
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.debug('GET ' + vendUrl);
+  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+
+  var options = {
+    method: 'GET',
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Accept': 'application/json'
+    },
+    qs: {
+      since: args.since.value,
+      outlet_id: args.outletApiId.value,
+      page: args.page.value,
+      page_size: args.pageSize.value
+    }
+  };
+
+  return sendRequest(options, args, connectionInfo, fetchRegisterSales, retryCounter);
 };
 
 var createRegisterSale = function(body, connectionInfo, retryCounter) {
@@ -501,7 +587,8 @@ exports.products = {
   fetchById: fetchProduct
 };
 exports.sales = {
-  create: createRegisterSale
+  create: createRegisterSale,
+  fetch: fetchRegisterSales
 };
 exports.customers = {
   fetch: fetchCustomers,
