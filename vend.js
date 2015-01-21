@@ -33,6 +33,7 @@ var successHandler = function(response) {
   }
   else if(_.isObject(response)) {
     console.log('response is an object');
+    return Promise.resolve(response);
   }
   else if(_.isString(response)) {
     console.log('response is a string');
