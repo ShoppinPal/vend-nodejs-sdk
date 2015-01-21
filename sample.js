@@ -1,4 +1,7 @@
-// To run via terminal use: NODE_ENV=dev node sample.js
+// To run via terminal from within vend-oauth-example, use:
+//   NODE_ENV=development node node_modules/vend-nodejs-sdk/sample.js
+// To run via terminal from within vend-nodejs-sdk, use:
+//   NODE_ENV=dev node sample.js
 
 //console.log('process.env.NODE_ENV', process.env.NODE_ENV);
 var nconf = require('nconf');
@@ -19,13 +22,13 @@ args.pageSize.value = 5;
 args.active.value = true;
 
 // (a) this info is sufficient for a non-expired access_token
-var connectionInfo = {
+/*var connectionInfo = {
   domainPrefix: nconf.get('domain_prefix'),
   accessToken: nconf.get('access_token')
-};
+};*/
 
-// (b) simulate 401 retry by messing up access_token in the oauth.txt file and using this block
-/*var connectionInfo = {
+// (b) you may simulate 401 retry by messing up access_token in the oauth.txt file and using this block
+var connectionInfo = {
   domainPrefix: nconf.get('domain_prefix'),
   accessToken: nconf.get('access_token'),
   // if you want auto-reties on 401, additional data is required:
@@ -33,9 +36,9 @@ var connectionInfo = {
   vendTokenService: nconf.get('vend:token_service'), // config/<env>.json
   vendClientId: nconf.get('vend:client_id'), // config/<env>.json
   vendClientSecret: nconf.get('vend:client_secret') // config/<env>.json
-};*/
+};
 
-// (c) simulate 401 retry FAILURE by messing up access_token in the oauth.txt file and using this block
+// (c) you may simulate 401 retry FAILURE by messing up access_token in the oauth.txt file and using this block
 /*var connectionInfo = {
   domainPrefix: nconf.get('domain_prefix'),
   accessToken: nconf.get('access_token')
@@ -56,6 +59,17 @@ vend.products.fetch(args, connectionInfo)
     args.apiId.value = _.last(response.products).id;
     return vend.products.fetchById(
       args,
+      connectionInfo
+    );
+  })
+  .then(function(response){
+    // create a dummy customer
+    return vend.customers.create(
+      {
+        'first_name': 'boy',
+        'last_name': 'blue',
+        'email': 'boy1@blue.com'
+      },
       connectionInfo
     );
   })

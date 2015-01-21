@@ -451,6 +451,34 @@ var fetchRegisterSales = function(args, connectionInfo, retryCounter) {
   return sendRequest(options, args, connectionInfo, fetchRegisterSales, retryCounter);
 };
 
+var createCustomer = function(body, connectionInfo, retryCounter) {
+  log.debug('inside createCustomer()');
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    console.log('retry # ' + retryCounter);
+  }
+
+  var path = '/api/customers';
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+
+  var options = {
+    method: 'POST',
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    },
+    json: body
+  };
+  log.debug(options.method + ' ' + options.url);
+
+  return sendRequest(options, body, connectionInfo, createCustomer, retryCounter);
+};
+
 var createRegisterSale = function(body, connectionInfo, retryCounter) {
   log.debug('inside createRegisterSale()');
   if (!retryCounter) {
@@ -462,7 +490,6 @@ var createRegisterSale = function(body, connectionInfo, retryCounter) {
   var path = '/api/register_sales';
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
-  log.debug('GET ' + vendUrl);
   log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   var options = {
@@ -472,10 +499,12 @@ var createRegisterSale = function(body, connectionInfo, retryCounter) {
       'Authorization': authString,
       'Content-Type': 'application/json',
       'Accept': 'application/json'
-    }
+    },
+    json: body
   };
+  log.debug(options.method + ' ' + options.url);
 
-  return sendRequest(options, args, connectionInfo, createRegisterSale, retryCounter);
+  return sendRequest(options, body, connectionInfo, createRegisterSale, retryCounter);
 };
 
 var getInitialAccessToken = function(tokenService, clientId, clientSecret, redirectUri, code, domainPrefix, state) {
@@ -592,6 +621,7 @@ exports.sales = {
   fetch: fetchRegisterSales
 };
 exports.customers = {
+  create: createCustomer,
   fetch: fetchCustomers,
   fetchByEmail: fetchCustomerByEmail
 };
