@@ -607,21 +607,40 @@ var hasAccessTokenExpired = function(expiresAt) {
   return (moment.unix(expiresAt).isBefore(moment().add(2, 'minutes')));
 };
 
-exports.hasAccessTokenExpired = hasAccessTokenExpired;
-exports.getInitialAccessToken = getInitialAccessToken;
-exports.refreshAccessToken = refreshAccessToken;
+module.exports = function(dependencies) {
+  // (1) initialize dependencies such that code can be reused both on client and server side
+  var _ = dependencies.underscore || require('underscore');
+  var moment = dependencies.moment || require('moment');
+  var Promise = dependencies.bluebird || require('bluebird');
 
-exports.args = args;
-exports.products = {
-  fetch: fetchProducts,
-  fetchById: fetchProduct
-};
-exports.sales = {
-  create: createRegisterSale,
-  fetch: fetchRegisterSales
-};
-exports.customers = {
-  create: createCustomer,
-  fetch: fetchCustomers,
-  fetchByEmail: fetchCustomerByEmail
+  var request = dependencies['request-promise'] || require('request-promise');
+  //request.debug = true;
+
+  var log = dependencies.winston || require('winston');
+  log.remove(log.transports.Console);
+  log.add(log.transports.Console, {colorize: true, timestamp: false, level: 'debug'});
+
+  // (2) initialize any module-scoped variables which need the dependencies
+  // ...
+
+  // (3) expose the SDK
+  return {
+    args: args,
+    products: {
+      fetch: fetchProducts,
+      fetchById: fetchProduct
+    },
+    sales: {
+      create: createRegisterSale,
+      fetch: fetchRegisterSales
+    },
+    customers: {
+      create: createCustomer,
+      fetch: fetchCustomers,
+      fetchByEmail: fetchCustomerByEmail
+    },
+    hasAccessTokenExpired: hasAccessTokenExpired,
+    getInitialAccessToken: getInitialAccessToken,
+    refreshAccessToken: refreshAccessToken
+  };
 };

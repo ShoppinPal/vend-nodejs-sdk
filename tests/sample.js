@@ -1,7 +1,7 @@
 // To run via terminal from within vend-oauth-example, use:
-//   NODE_ENV=development node node_modules/vend-nodejs-sdk/sample.js
+//   NODE_ENV=development node node_modules/vend-nodejs-sdk/tests/sample.js
 // To run via terminal from within vend-nodejs-sdk, use:
-//   NODE_ENV=dev node sample.js
+//   NODE_ENV=dev node tests/sample.js
 
 //console.log('process.env.NODE_ENV', process.env.NODE_ENV);
 var nconf = require('nconf');
@@ -13,9 +13,9 @@ nconf.argv()
 
 var _ = require('underscore');
 
-var vend = require('./vend');
+var vendSdk = require('./../vend')({});
 
-var args = vend.args.products.fetch();
+var args = vendSdk.args.products.fetch();
 args.orderBy.value = 'id';
 args.page.value = 1;
 args.pageSize.value = 5;
@@ -46,7 +46,7 @@ var connectionInfo = {
 
 //console.log('connectionInfo: ', connectionInfo);
 
-vend.products.fetch(args, connectionInfo)
+vendSdk.products.fetch(args, connectionInfo)
   .then(function(response){
     console.log('done\n=====');
     //console.log('response: ', response);
@@ -55,16 +55,16 @@ vend.products.fetch(args, connectionInfo)
     });
 
     // fetch a product by ID
-    var args = vend.args.products.fetchById();
+    var args = vendSdk.args.products.fetchById();
     args.apiId.value = _.last(response.products).id;
-    return vend.products.fetchById(
+    return vendSdk.products.fetchById(
       args,
       connectionInfo
     );
   })
   .then(function(response){
     // create a dummy customer
-    return vend.customers.create(
+    return vendSdk.customers.create(
       {
         'first_name': 'boy',
         'last_name': 'blue',
