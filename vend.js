@@ -604,14 +604,14 @@ var hasAccessTokenExpired = function(expiresAt) {
 
 module.exports = function(dependencies) {
   // (1) initialize dependencies such that code can be reused both on client and server side
-  var _ = dependencies.underscore || require('underscore');
-  var moment = dependencies.moment || require('moment');
-  var Promise = dependencies.bluebird || require('bluebird');
+  _ = dependencies.underscore || require('underscore');
+  moment = dependencies.moment || require('moment');
+  Promise = dependencies.bluebird || require('bluebird');
 
-  var request = dependencies['request-promise'] || require('request-promise');
+  request = dependencies['request-promise'] || require('request-promise');
   //request.debug = true;
 
-  var log = dependencies.winston || require('winston');
+  log = dependencies.winston || require('winston');
   log.remove(log.transports.Console);
   log.add(log.transports.Console, {colorize: true, timestamp: false, level: 'debug'});
 
