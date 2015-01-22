@@ -1,15 +1,10 @@
 'use strict';
 
-var _ = require('underscore');
-var moment = require('moment');
-var Promise = require('bluebird');
-
-var request = require('request-promise');
-//request.debug = true;
-
-var log = require('winston');
-log.remove(log.transports.Console);
-log.add(log.transports.Console, {colorize: true, timestamp: false, level: 'debug'});
+var _ = null;
+var moment = null;
+var Promise = null;
+var request = null;
+var log = null;
 
 function RateLimitingError(e) {
   return e.statusCode == 429;
