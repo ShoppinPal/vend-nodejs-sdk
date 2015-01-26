@@ -43,7 +43,7 @@ var connectionInfo = {
   accessToken: nconf.get('access_token')
 };
 
-vendSdk.products.fetch(args, connectionInfo);
+vendSdk.products.fetch(args, connectionInfo)
   .then(function(response){
     _.each(response.products, function(product){
       console.log(product.id + ' : ' + product.name);
