@@ -109,6 +109,9 @@ var retryWhenAuthNFails = function(args, connectionInfo, callback, retryCounter)
 };
 
 var sendRequest = function(options, args, connectionInfo, callback, retryCounter) {
+  if ( !(connectionInfo && connectionInfo.accessToken && connectionInfo.domainPrefix) ) {
+    return Promise.reject('missing required arguments for sendRequest()');
+  }
   return request(options)
     .then(successHandler)
     .catch(RateLimitingError, function(e) {
@@ -486,6 +489,14 @@ var createRegisterSale = function(body, connectionInfo, retryCounter) {
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
   log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+
+  try {
+    body = _.isObject(body) ? body : JSON.parse(body);
+  }
+  catch(exception) {
+    console.log(exception);
+    return Promise.reject('inside createRegisterSale() - failed to parse the sale body');
+  }
 
   var options = {
     method: 'POST',
