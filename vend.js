@@ -705,8 +705,8 @@ module.exports = function(dependencies) {
       fetch: fetchCustomers,
       fetchByEmail: fetchCustomerByEmail
     },
-    consignment: {
-      stockOrder: {
+    consignments: {
+      stockOrders: {
         fetch: fetchStockOrderForSuppliers
       },
       products: {
