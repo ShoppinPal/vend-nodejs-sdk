@@ -312,6 +312,66 @@ var args = {
   }
 };
 
+var fetchStockOrderForSuppliers = function(args, connectionInfo, retryCounter) {
+  log.debug('inside fetchStockOrderForSuppliers()');
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    console.log('retry # ' + retryCounter);
+  }
+
+  var path = '/api/consignment';
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.debug('GET ' + vendUrl);
+  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+
+  var options = {
+    method: 'GET',
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Accept': 'application/json'
+    },
+    qs: {
+      page: args.page.value,
+      page_size: args.pageSize.value
+    }
+  };
+
+  return sendRequest(options, args, connectionInfo, fetchStockOrderForSuppliers, retryCounter);
+};
+
+var fetchProductsByConsignment  = function(args, connectionInfo, retryCounter) {
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    console.log('retry # ' + retryCounter);
+  }
+
+  var path = '/api/consignment_product';
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  console.log('Requesting vend product ' + vendUrl);
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.debug('GET ' + vendUrl);
+  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+
+  var options = {
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Accept': 'application/json'
+    },
+    qs: {
+      consignment_id: args.consignmentId.value,
+      page: args.page.value,
+      page_size: args.pageSize.value
+    }
+  };
+
+  return sendRequest(options, args, connectionInfo, fetchProductsByConsignment, retryCounter);
+};
+
 var fetchProduct  = function(args, connectionInfo, retryCounter) {
   if (!retryCounter) {
     retryCounter = 0;
@@ -644,6 +704,14 @@ module.exports = function(dependencies) {
       create: createCustomer,
       fetch: fetchCustomers,
       fetchByEmail: fetchCustomerByEmail
+    },
+    consignment: {
+      stockOrder: {
+        fetch: fetchStockOrderForSuppliers
+      },
+      products: {
+        fetch: fetchProductsByConsignment
+      }
     },
     hasAccessTokenExpired: hasAccessTokenExpired,
     getInitialAccessToken: getInitialAccessToken,
