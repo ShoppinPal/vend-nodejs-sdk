@@ -185,11 +185,11 @@ function processPagesRecursively(args, connectionInfo, fetchSinglePage, processP
       // HACK - until Vend responses become consistent
       if (result && result.results && !result.pagination) {
         result.pagination = {
-          "results": result.results,
-          "page": result.page,
-          "page_size": result.page_size,
-          "pages": result.pages,
-        };
+          'results': result.results,
+          'page': result.page,
+          'page_size': result.page_size,
+          'pages': result.pages,
+        }; // NOTE: if the first page has all the results, this block won't run then either
       }
 
       if(result.pagination && result.pagination.pages > args.page.value) {
@@ -202,8 +202,7 @@ function processPagesRecursively(args, connectionInfo, fetchSinglePage, processP
           });
       }
       else {
-        console.log('Processing last page. ' +
-          'Page # ' + args.page.value + ' of ' + result.pagination.pages);
+        console.log('Processing last page. Page # ' + args.page.value);
         return processPagedResults(result, previousProcessedResults);
       }
     });
