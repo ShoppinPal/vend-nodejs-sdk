@@ -177,6 +177,38 @@ var getTokenUrl = function(tokenService, domain_prefix) {
   return tokenUrl;
 };
 
+function processPagesRecursively(args, connectionInfo, fetchSinglePage, processPagedResults, previousProcessedResults){
+  'use strict';
+  return fetchSinglePage(args, connectionInfo)
+    .then(function(result){
+
+      // HACK - until Vend responses become consistent
+      if (result && result.results && !result.pagination) {
+        result.pagination = {
+          "results": result.results,
+          "page": result.page,
+          "page_size": result.page_size,
+          "pages": result.pages,
+        };
+      }
+
+      if(result.pagination && result.pagination.pages > args.page.value) {
+        console.log('# of products returned: ' + result.pagination.results);
+        console.log('Page # ' + args.page.value + ' of ' + result.pagination.pages);
+        return processPagedResults(result, previousProcessedResults)
+          .then(function(newlyProcessedResults){
+            args.page.value = args.page.value+1;
+            return processPagesRecursively(args, connectionInfo, fetchSinglePage, processPagedResults, newlyProcessedResults);
+          });
+      }
+      else {
+        console.log('Processing last page. ' +
+          'Page # ' + args.page.value + ' of ' + result.pagination.pages);
+        return processPagedResults(result, previousProcessedResults);
+      }
+    });
+}
+
 // the API consumer will get the args and fill in the blanks
 // the SDK will pull out the non-empty values and execute the request
 var args = {
@@ -340,6 +372,25 @@ var fetchStockOrdersForSuppliers = function(args, connectionInfo, retryCounter) 
   };
 
   return sendRequest(options, args, connectionInfo, fetchStockOrdersForSuppliers, retryCounter);
+};
+
+var fetchAllStockOrdersForSuppliers = function(connectionInfo, processPagedResults) {
+  var args = {
+    page: {value: 1},//{value: 25},
+    pageSize: {value: 200}
+  };
+  // set a default function if none is provided
+  if (!processPagedResults) {
+    processPagedResults = function(pagedData, previousData){
+      if (previousData && previousData.length>0 && pagedData.consignments.length>0) {
+        console.log('previousData: ', previousData.length);
+        pagedData.consignments = pagedData.consignments.concat(previousData);
+        console.log('combined: ', pagedData.consignments.length);
+      }
+      return Promise.resolve(pagedData.consignments);
+    }
+  }
+  return processPagesRecursively(args, connectionInfo, fetchStockOrdersForSuppliers, processPagedResults);
 };
 
 var fetchProductsByConsignment  = function(args, connectionInfo, retryCounter) {
@@ -708,6 +759,7 @@ module.exports = function(dependencies) {
     consignments: {
       stockOrders: {
         fetch: fetchStockOrdersForSuppliers,
+        fetchAll: fetchAllStockOrdersForSuppliers
       },
       products: {
         fetch: fetchProductsByConsignment
