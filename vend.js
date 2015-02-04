@@ -460,7 +460,8 @@ var defaultMethod_ForProcessingPagedResults_ForConsignmentProducts = function(pa
         pagedData.consignment_products = pagedData.consignment_products.concat(previousData);
         console.log('combined: ', pagedData.consignment_products.length);
       }
-  console.log('finalData: ', pagedData.consignment_products);
+  //console.log('finalData: ', pagedData.consignment_products);
+  console.log('finalData.length: ', pagedData.consignment_products.length);
       return Promise.resolve(pagedData.consignment_products);
 };
 

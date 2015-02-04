@@ -90,7 +90,9 @@ vendSdk.consignments.stockOrders.fetch({ // (1) example: fetch a single consignm
         console.log('pagedData: ', pagedData.consignments.length);
         var moment = require('moment');
         var consignmentsAfterDateX = _.filter(pagedData.consignments, function(consignment){
-          return moment(consignment.received_at).isAfter('2015-01-25') && consignment.type === 'SUPPLIER';
+          return consignment.received_at &&
+            moment(consignment.received_at).isAfter('2015-01-25')
+            && consignment.type === 'SUPPLIER';
           // TODO: will eventually have an end of the week date range comaprison, too
         });
         console.log('consignmentsAfterDateX: ', consignmentsAfterDateX.length);
@@ -103,20 +105,52 @@ vendSdk.consignments.stockOrders.fetch({ // (1) example: fetch a single consignm
         }
         return Promise.resolve(consignmentsAfterDateX); // why do we need a promise?
       });
-      })
-      .then(function(allConsignmentsAfterDateX){
-        //console.log('allConsignmentsAfterDateX: ', allConsignmentsAfterDateX);
-        console.log('allConsignmentsAfterDateX.length: ', allConsignmentsAfterDateX.length);
-        console.log('====done with example 3====');
+  })
+  .then(function(allConsignmentsAfterDateX){
+    //console.log('allConsignmentsAfterDateX: ', allConsignmentsAfterDateX);
+    console.log('allConsignmentsAfterDateX.length: ', allConsignmentsAfterDateX.length);
+    console.log('====done with example 3====');
 
+    // (4) example: fetch all products for a given consigment id
+    /*return vendSdk.consignments.products.fetchAllByConsignment({
+        consignmentId: {value: allConsignmentsAfterDateX[0].id}
+      },
+      connectionInfo
+    )*/
+
+    // (5) example: iterate through a collection of consignments and get consignment products for all of them together
     return vendSdk.consignments.products.fetchAllForConsignments({
         consignmentIds: {value: _.pluck(allConsignmentsAfterDateX, 'id')}
       },
       connectionInfo
     )
-      .then(function(response){
+      .then(function(allProductsForConsignments){
         console.log('====done with example 4====');
-        console.log('response: ', response);
+        //console.log('response: ', allProductsForConsignments);
+
+        var consignmentsMap = _.object(_.map(allConsignmentsAfterDateX, function(consignment) {
+          return [consignment.id, consignment]
+        }));
+
+        var costPerOutletPerSupplier = {};
+
+        // NOTE: each consignment is mapped to exactly one supplier_id and one outlet_id
+
+        // sum the costs per outlet per supplier
+        _.each(allProductsForConsignments, function(consignmentProduct){
+          var outletId = consignmentsMap[consignmentProduct.consignment_id].outlet_id;
+          var supplierId = consignmentsMap[consignmentProduct.consignment_id].supplier_id;
+          console.log('outletId: ' + outletId + ' supplier_id: ' + supplierId);
+          if (!costPerOutletPerSupplier[outletId]) {
+            costPerOutletPerSupplier[outletId] = {};
+          }
+          if (!costPerOutletPerSupplier[outletId][supplierId]) {
+            costPerOutletPerSupplier[outletId][supplierId] = 0.0;
+          }
+          var cost = consignmentProduct.cost * Math.abs(consignmentProduct.received);
+          costPerOutletPerSupplier[outletId][supplierId] += cost;
+        });
+        console.log(costPerOutletPerSupplier);
       });
   })
   .catch(function(e) {
