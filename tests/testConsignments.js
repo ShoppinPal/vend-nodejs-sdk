@@ -12,6 +12,7 @@ nconf.argv()
 //console.log('nconf.get(): ', nconf.get());
 
 var _ = require('underscore');
+var Promise = require('bluebird');
 
 var vendSdk = require('./../vend')({});
 
@@ -46,45 +47,66 @@ var connectionInfo = {
 
 //console.log('connectionInfo: ', connectionInfo);
 
-var pageSize = 10;
-vendSdk.consignments.stockOrders.fetch({
+var pageSize = 2;
+vendSdk.consignments.stockOrders.fetch({ // (1) example: fetch a single consignment
     page: {value: 1},
-    pageSize: {value: 1}/*,
-    orderBy: {value: 'updated_at'},
-    orderDirection: {value: 'DESC'}*/
+    pageSize: {value: 1}
   },
   connectionInfo
 )
-  .then(function(response){
-    console.log('done111\n=====');
+  .then(function(response) {
     //console.log('response: ', response);
     console.log(response.results);
     console.log(response.page);
     console.log(response.page_size);
     console.log(response.pages);
-    console.log(Math.ceil(response.results/pageSize));
-    return vendSdk.consignments.stockOrders.fetch({
-        page: {value: Math.ceil(response.results/pageSize)},
+    console.log(Math.ceil(response.results / pageSize));
+
+    console.log('====done with example 1====');
+    return Promise.resolve(Math.ceil(response.results / pageSize)); // helps with next example
+  })
+  .then(function(lastPageNumber) {
+    return vendSdk.consignments.stockOrders.fetch({ // (2) example: fetch the last page of consignments
+        page: lastPageNumber,
         pageSize: {value: pageSize}
       },
       connectionInfo
     )
       .then(function(response){
-        console.log('done222\n=====');
         console.log(response.results);
         console.log(response.page);
         console.log(response.page_size);
         console.log(response.pages);
-        console.log('response: ', response.consignments.length);
-        var moment = require('moment');
-        var consignmentsAfterDateX = _.filter(response.consignments, function(consignment){
-          return moment(consignment.received_at).isAfter('2015-01-25') && consignment.type === 'SUPPLIER';
+        console.log('response.consignments.length: ', response.consignments.length);
 
-          // will eventually need this limit it to the end of the week to (date ranges really)
+        console.log('====done with example 2====');
+        return Promise.resolve(); // continue the promise chain
+      });
+  })
+  .then(function(){ // (3) example: fetch all SUPPLIER consigments that were received after 2015-01-25
+    return vendSdk.consignments.stockOrders.fetchAll(
+      connectionInfo,
+      function(pagedData, previousData){ // example of how to REDUCE paged data in a custom fashion
+        console.log('pagedData: ', pagedData.consignments.length);
+        var moment = require('moment');
+        var consignmentsAfterDateX = _.filter(pagedData.consignments, function(consignment){
+          return moment(consignment.received_at).isAfter('2015-01-25') && consignment.type === 'SUPPLIER';
+          // TODO: will eventually have an end of the week date range comaprison, too
         });
         console.log('consignmentsAfterDateX: ', consignmentsAfterDateX.length);
-        console.log('consignmentsAfterDateX: ', consignmentsAfterDateX);
+        //console.log('consignmentsAfterDateX: ', consignmentsAfterDateX);
 
+        if (previousData && previousData.length>0 && consignmentsAfterDateX.length>0) {
+          console.log('previousData: ', previousData.length);
+          consignmentsAfterDateX = consignmentsAfterDateX.concat(previousData);
+          console.log('combined: ', consignmentsAfterDateX.length);
+        }
+        return Promise.resolve(consignmentsAfterDateX);
+      })
+      .then(function(allConsignmentsAfterDateX){
+        //console.log('allConsignmentsAfterDateX: ', allConsignmentsAfterDateX);
+        console.log('allConsignmentsAfterDateX.length: ', allConsignmentsAfterDateX.length);
+        console.log('====done with example 3====');
       });
   })
   .catch(function(e) {
