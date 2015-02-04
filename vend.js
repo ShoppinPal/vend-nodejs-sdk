@@ -312,7 +312,7 @@ var args = {
   }
 };
 
-var fetchStockOrderForSuppliers = function(args, connectionInfo, retryCounter) {
+var fetchStockOrdersForSuppliers = function(args, connectionInfo, retryCounter) {
   log.debug('inside fetchStockOrderForSuppliers()');
   if (!retryCounter) {
     retryCounter = 0;
@@ -339,7 +339,7 @@ var fetchStockOrderForSuppliers = function(args, connectionInfo, retryCounter) {
     }
   };
 
-  return sendRequest(options, args, connectionInfo, fetchStockOrderForSuppliers, retryCounter);
+  return sendRequest(options, args, connectionInfo, fetchStockOrdersForSuppliers, retryCounter);
 };
 
 var fetchProductsByConsignment  = function(args, connectionInfo, retryCounter) {
@@ -707,7 +707,7 @@ module.exports = function(dependencies) {
     },
     consignments: {
       stockOrders: {
-        fetch: fetchStockOrderForSuppliers
+        fetch: fetchStockOrdersForSuppliers,
       },
       products: {
         fetch: fetchProductsByConsignment
