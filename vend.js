@@ -422,6 +422,23 @@ var fetchProductsByConsignment  = function(args, connectionInfo, retryCounter) {
   return sendRequest(options, args, connectionInfo, fetchProductsByConsignment, retryCounter);
 };
 
+var fetchAllProductsByConsignment = function(args, connectionInfo, processPagedResults) {
+  args.page = {value: 1};
+  args.pageSize = {value: 200};
+  // set a default function if none is provided
+  if (!processPagedResults) {
+    processPagedResults = function(pagedData, previousData){
+      if (previousData && previousData.length>0 && pagedData.consignment_products.length>0) {
+        console.log('previousData: ', previousData.length);
+        pagedData.consignment_products = pagedData.consignment_products.concat(previousData);
+        console.log('combined: ', pagedData.consignment_products.length);
+      }
+      return Promise.resolve(pagedData.consignment_products);
+    }
+  }
+  return processPagesRecursively(args, connectionInfo, fetchProductsByConsignment, processPagedResults);
+};
+
 var fetchProduct  = function(args, connectionInfo, retryCounter) {
   if (!retryCounter) {
     retryCounter = 0;
@@ -761,7 +778,8 @@ module.exports = function(dependencies) {
         fetchAll: fetchAllStockOrdersForSuppliers
       },
       products: {
-        fetch: fetchProductsByConsignment
+        fetch: fetchProductsByConsignment,
+        fetchAll: fetchAllProductsByConsignment
       }
     },
     hasAccessTokenExpired: hasAccessTokenExpired,
