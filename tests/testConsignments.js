@@ -101,12 +101,22 @@ vendSdk.consignments.stockOrders.fetch({ // (1) example: fetch a single consignm
           consignmentsAfterDateX = consignmentsAfterDateX.concat(previousData);
           console.log('combined: ', consignmentsAfterDateX.length);
         }
-        return Promise.resolve(consignmentsAfterDateX);
+        return Promise.resolve(consignmentsAfterDateX); // why do we need a promise?
+      });
       })
       .then(function(allConsignmentsAfterDateX){
         //console.log('allConsignmentsAfterDateX: ', allConsignmentsAfterDateX);
         console.log('allConsignmentsAfterDateX.length: ', allConsignmentsAfterDateX.length);
         console.log('====done with example 3====');
+
+    return vendSdk.consignments.products.fetchAllForConsignments({
+        consignmentIds: {value: _.pluck(allConsignmentsAfterDateX, 'id')}
+      },
+      connectionInfo
+    )
+      .then(function(response){
+        console.log('====done with example 4====');
+        console.log('response: ', response);
       });
   })
   .catch(function(e) {

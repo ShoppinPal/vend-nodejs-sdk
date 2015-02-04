@@ -208,6 +208,38 @@ function processPagesRecursively(args, connectionInfo, fetchSinglePage, processP
     });
 }
 
+var processPromisesSerially = function(aArray, aArrayIndex, args, mergeStrategy, setupNext, executeNext, aPreviousResults){
+  if (aArrayIndex < aArray.length) {
+    console.log('processPromisesSerially for aArrayIndex # ' + aArrayIndex);
+    return executeNext(args)
+      .then(function(executedResults){
+        //console.log('executedResults ', executedResults);
+        console.log('executedResults.length ', executedResults.length);
+        return mergeStrategy(executedResults, aPreviousResults)
+          .then(function(mergedResults){
+            console.log('mergedResults.length ', mergedResults.length);
+            //console.log('before: ', args);
+            args = setupNext(args);
+            //console.log('after: ', args);
+            return processPromisesSerially(
+              args.consignmentIds.value,
+              args.consignmentIdIndex.value,
+              args,
+              mergeStrategy,
+              setupNext,
+              executeNext,
+              mergedResults
+            );
+          });
+      });
+  }
+  else {
+    console.log('aPreviousResults.length ', aPreviousResults.length);
+    console.log('processPromisesSerially() finished');
+    return Promise.resolve(aPreviousResults);
+  }
+};
+
 // the API consumer will get the args and fill in the blanks
 // the SDK will pull out the non-empty values and execute the request
 var args = {
@@ -422,21 +454,69 @@ var fetchProductsByConsignment  = function(args, connectionInfo, retryCounter) {
   return sendRequest(options, args, connectionInfo, fetchProductsByConsignment, retryCounter);
 };
 
-var fetchAllProductsByConsignment = function(args, connectionInfo, processPagedResults) {
-  args.page = {value: 1};
-  args.pageSize = {value: 200};
-  // set a default function if none is provided
-  if (!processPagedResults) {
-    processPagedResults = function(pagedData, previousData){
+var defaultMethod_ForProcessingPagedResults_ForConsignmentProducts = function(pagedData, previousData){
       if (previousData && previousData.length>0 && pagedData.consignment_products.length>0) {
         console.log('previousData: ', previousData.length);
         pagedData.consignment_products = pagedData.consignment_products.concat(previousData);
         console.log('combined: ', pagedData.consignment_products.length);
       }
+  console.log('finalData: ', pagedData.consignment_products);
       return Promise.resolve(pagedData.consignment_products);
-    }
+};
+
+var fetchAllProductsByConsignment = function(args, connectionInfo, processPagedResults) {
+  args.page = {value: 1};
+  args.pageSize = {value: 200};
+  // set a default function if none is provided
+  if (!processPagedResults) {
+    processPagedResults = defaultMethod_ForProcessingPagedResults_ForConsignmentProducts;
   }
   return processPagesRecursively(args, connectionInfo, fetchProductsByConsignment, processPagedResults);
+};
+
+var fetchAllProductsByConsignments = function(args, connectionInfo, processPagedResults) {
+  // args.consignmentIds.value MUST already be set
+  args.page = {value: 1};
+  args.pageSize = {value: 200};
+  args.consignmentIdIndex = {value: 0};
+  args.consignmentId = {value: args.consignmentIds.value[args.consignmentIdIndex.value]};
+
+  // TODO: iterate serially through a promise chain for all args.consignmentIds.value
+  return processPromisesSerially(
+    args.consignmentIds.value,
+    args.consignmentIdIndex.value,
+    args,
+    function mergeStrategy(newData, previousData){
+      console.log('inside mergeStrategy()');
+      //console.log('newData ', newData);
+      //console.log('previousData ', previousData);
+      if (previousData && previousData.length>0 && newData.length>0) {
+        console.log('previousData.length: ', previousData.length);
+        newData = newData.concat(previousData);
+        console.log('combinedData.length: ', newData.length);
+      }
+      //console.log('finalData ', newData);
+      console.log('finalData.length ', newData.length);
+      return Promise.resolve(newData); // why do we need a promise?
+    },
+    function setupNext(updateArgs){
+      updateArgs.consignmentIdIndex.value = updateArgs.consignmentIdIndex.value + 1;
+      if (updateArgs.consignmentIdIndex.value < updateArgs.consignmentIds.value.length) {
+        updateArgs.consignmentId.value = updateArgs.consignmentIds.value[updateArgs.consignmentIdIndex.value];
+        console.log('next is consignmentId: ' + updateArgs.consignmentId.value);
+      }
+      else {
+        updateArgs.consignmentId.value = null;
+        console.log('finished iterating through all the consignmentIds');
+      }
+      return updateArgs;
+    },
+    function executeNext(updatedArgs){
+      console.log('executing for consignmentId: ' + updatedArgs.consignmentId.value);
+      console.log('updatedArgs: ', updatedArgs);
+      return fetchAllProductsByConsignment(updatedArgs, connectionInfo);
+    }
+  );
 };
 
 var fetchProduct  = function(args, connectionInfo, retryCounter) {
@@ -779,7 +859,8 @@ module.exports = function(dependencies) {
       },
       products: {
         fetch: fetchProductsByConsignment,
-        fetchAll: fetchAllProductsByConsignment
+        fetchAllByConsignment: fetchAllProductsByConsignment,
+        fetchAllForConsignments: fetchAllProductsByConsignments
       }
     },
     hasAccessTokenExpired: hasAccessTokenExpired,
