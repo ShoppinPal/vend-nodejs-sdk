@@ -98,11 +98,17 @@ vendSdk.consignments.stockOrders.fetch({ // (1) example: fetch a single consignm
         console.log('consignmentsAfterDateX: ', consignmentsAfterDateX.length);
         //console.log('consignmentsAfterDateX: ', consignmentsAfterDateX);
 
-        if (previousData && previousData.length>0 && consignmentsAfterDateX.length>0) {
-          console.log('previousData: ', previousData.length);
+        if (previousData && previousData.length>0){
+          if (consignmentsAfterDateX.length>0) {
+            console.log('customProcessPagedResults - previousData.length: ', previousData.length);
           consignmentsAfterDateX = consignmentsAfterDateX.concat(previousData);
-          console.log('combined: ', consignmentsAfterDateX.length);
+            console.log('customProcessPagedResults - combinedData.length: ', consignmentsAfterDateX.length);
+          }
+          else {
+            consignmentsAfterDateX = previousData;
         }
+        }
+        console.log('customProcessPagedResults - finalData.length: ', consignmentsAfterDateX.length);
         return Promise.resolve(consignmentsAfterDateX); // why do we need a promise?
       });
   })

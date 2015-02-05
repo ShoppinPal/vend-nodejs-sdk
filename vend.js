@@ -415,10 +415,15 @@ var fetchAllStockOrdersForSuppliers = function(connectionInfo, processPagedResul
   // set a default function if none is provided
   if (!processPagedResults) {
     processPagedResults = function(pagedData, previousData){
-      if (previousData && previousData.length>0 && pagedData.consignments.length>0) {
+      if (previousData && previousData.length>0) {
+        if (pagedData.consignments.length>0) {
         console.log('previousData: ', previousData.length);
         pagedData.consignments = pagedData.consignments.concat(previousData);
         console.log('combined: ', pagedData.consignments.length);
+      }
+        else {
+          pagedData.consignments = previousData;
+        }
       }
       return Promise.resolve(pagedData.consignments);
     }
@@ -457,11 +462,16 @@ var fetchProductsByConsignment  = function(args, connectionInfo, retryCounter) {
 };
 
 var defaultMethod_ForProcessingPagedResults_ForConsignmentProducts = function(pagedData, previousData){
-      if (previousData && previousData.length>0 && pagedData.consignment_products.length>0) {
+  if (previousData && previousData.length>0) {
+    if (pagedData.consignment_products.length>0) {
         console.log('previousData: ', previousData.length);
         pagedData.consignment_products = pagedData.consignment_products.concat(previousData);
         console.log('combined: ', pagedData.consignment_products.length);
       }
+    else {
+      pagedData.consignment_products = previousData;
+    }
+  }
   //console.log('finalData: ', pagedData.consignment_products);
   console.log('finalData.length: ', pagedData.consignment_products.length);
       return Promise.resolve(pagedData.consignment_products);
@@ -493,10 +503,15 @@ var fetchAllProductsByConsignments = function(args, connectionInfo, processPaged
       console.log('inside mergeStrategy()');
       //console.log('newData ', newData);
       //console.log('previousData ', previousData);
-      if (previousData && previousData.length>0 && newData.length>0) {
+      if (previousData && previousData.length>0) {
+        if (newData.length>0) {
         console.log('previousData.length: ', previousData.length);
         newData = newData.concat(previousData);
         console.log('combinedData.length: ', newData.length);
+      }
+        else {
+          newData = previousData;
+        }
       }
       //console.log('finalData ', newData);
       console.log('finalData.length ', newData.length);
