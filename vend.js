@@ -659,6 +659,38 @@ var fetchRegisterSales = function(args, connectionInfo, retryCounter) {
   return sendRequest(options, args, connectionInfo, fetchRegisterSales, retryCounter);
 };
 
+//TODO: maybe reorder as: (connectionInfo, args, retryCounter) ... ?
+var fetchOutlets = function(args, connectionInfo, retryCounter) {
+  log.debug('inside fetchOutlets()');
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    console.log('retry # ' + retryCounter);
+  }
+
+  var path = '/api/outlets';
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.debug('GET ' + vendUrl);
+  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+
+  var options = {
+    method: 'GET',
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Accept': 'application/json'
+    }/*,
+    qs: {
+      page: args.page.value,
+      page_size: args.pageSize.value
+    }*/
+    // NOTE: page and page_size are NOT implemented on Vend server side! For ex: page=1,page_size=1 doesn't work
+  };
+
+  return sendRequest(options, args, connectionInfo, fetchOutlets, retryCounter);
+};
+
 var createCustomer = function(body, connectionInfo, retryCounter) {
   log.debug('inside createCustomer()');
   if (!retryCounter) {
@@ -865,6 +897,9 @@ module.exports = function(dependencies) {
         fetchAllByConsignment: fetchAllProductsByConsignment,
         fetchAllForConsignments: fetchAllProductsByConsignments
       }
+    },
+    outlets:{
+      fetch: fetchOutlets, // no need for fetchAll since hardly any Vend customers have more than 200 outlets
     },
     hasAccessTokenExpired: hasAccessTokenExpired,
     getInitialAccessToken: getInitialAccessToken,
