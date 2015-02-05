@@ -111,12 +111,12 @@ vendSdk.consignments.stockOrders.fetch({ // (1) example: fetch a single consignm
         if (previousData && previousData.length>0){
           if (consignmentsAfterDateX.length>0) {
             console.log('customProcessPagedResults - previousData.length: ', previousData.length);
-          consignmentsAfterDateX = consignmentsAfterDateX.concat(previousData);
+            consignmentsAfterDateX = consignmentsAfterDateX.concat(previousData);
             console.log('customProcessPagedResults - combinedData.length: ', consignmentsAfterDateX.length);
           }
           else {
             consignmentsAfterDateX = previousData;
-        }
+          }
         }
         console.log('customProcessPagedResults - finalData.length: ', consignmentsAfterDateX.length);
         return Promise.resolve(consignmentsAfterDateX); // why do we need a promise?
@@ -182,8 +182,74 @@ vendSdk.consignments.stockOrders.fetch({ // (1) example: fetch a single consignm
             costPerOutletPerSupplier[outletId][supplierId]['products']++;
           }
         });
-        console.log(costPerOutletPerSupplier);
+        //console.log(consignmentsMap);
+        // TODO: add names for outlets
+        //console.log(costPerOutletPerSupplier);
+        return Promise.resolve(costPerOutletPerSupplier);
       });
+  })
+  .then(function(costPerOutletPerSupplier){
+    return vendSdk.outlets.fetch({}, connectionInfo)
+      .then(function(outletsResponse) {
+        //console.log('outletsResponse: ', outletsResponse);
+        console.log('outletsResponse.outlets.length: ', outletsResponse.outlets.length);
+        var outletsMap = _.object(_.map(outletsResponse.outlets, function(outlet) {
+          return [outlet.id, outlet];
+        }));
+        console.log('outletsMap: ' + JSON.stringify(outletsMap,null,2));
+
+        console.log('====done with outlets fetch====');
+        var args = {
+          page:{value: 1},
+          pageSize:{value: 200}
+        }
+        return vendSdk.suppliers.fetch(args, connectionInfo)
+          .then(function(suppliersResponse) {
+            //console.log('suppliersResponse: ', suppliersResponse);
+            console.log('suppliersResponse.suppliers.length: ', suppliersResponse.suppliers.length);
+            var suppliersMap = _.object(_.map(suppliersResponse.suppliers, function(supplier) {
+              return [supplier.id, supplier];
+            }));
+
+            //pagination info, if any
+            console.log('suppliersResponse.results: ' + suppliersResponse.results);
+            console.log('suppliersResponse.page: ' + suppliersResponse.page);
+            console.log('suppliersResponse.page_size: ' + suppliersResponse.page_size);
+            console.log('suppliersResponse.pages: ' + suppliersResponse.pages);
+            // TODO: fetchAll suppliers, not piece-meal, otherwise you're just looking at the first 200
+            console.log('====done with suppliers fetch====');
+
+            //TODO: cross reference IDs with friendly-names for outlets and suppliers
+            /*_.each(costPerOutletPerSupplier, function(outletWithSuppliers, outletId, list){
+              outletWithSuppliers.name = outletsMap[outletId].name;
+              _.each(outletWithSuppliers, function(supplierWithCosts, supplierId, list){
+                if (supplierId && suppliersMap[supplierId]) { // null sneaks in somehow?
+                  supplierWithCosts.name = suppliersMap[supplierId].name;
+                }
+                else {
+                  console.error('cannot lookup supplier: ' + supplierId);
+                }
+              });
+            });
+            console.log(JSON.stringify(costPerOutletPerSupplier,null,2));*/
+
+            var newCostPerOutletPerSupplier = {};
+            _.each(costPerOutletPerSupplier, function(outletWithSuppliers, outletId, list){
+              newCostPerOutletPerSupplier[outletsMap[outletId].name] = {};
+              _.each(outletWithSuppliers, function(supplierWithCosts, supplierId, list){
+                if (supplierId && suppliersMap[supplierId]) { // null sneaks in somehow?
+                  //supplierWithCosts.name = suppliersMap[supplierId].name;
+                  newCostPerOutletPerSupplier[outletsMap[outletId].name][suppliersMap[supplierId].name] = supplierWithCosts;
+                }
+                else {
+                  console.error('cannot lookup supplier: ' + supplierId);
+                  newCostPerOutletPerSupplier[outletsMap[outletId].name][supplierId] = supplierWithCosts;
+                }
+              });
+            });
+            console.log(JSON.stringify(newCostPerOutletPerSupplier,null,2));
+          })
+      })
   })
   .catch(function(e) {
     console.error('testConsignments.js - An unexpected error occurred: ', e);
