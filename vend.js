@@ -531,7 +531,7 @@ var fetchAllProductsByConsignments = function(args, connectionInfo, processPaged
     },
     function executeNext(updatedArgs){
       console.log('executing for consignmentId: ' + updatedArgs.consignmentId.value);
-      console.log('updatedArgs: ', updatedArgs);
+      //console.log('updatedArgs: ', updatedArgs);
       return fetchAllProductsByConsignment(updatedArgs, connectionInfo);
     }
   );
