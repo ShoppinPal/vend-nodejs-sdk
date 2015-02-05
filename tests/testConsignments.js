@@ -86,16 +86,26 @@ vendSdk.consignments.stockOrders.fetch({ // (1) example: fetch a single consignm
   .then(function(){ // (3) example: fetch all SUPPLIER consigments that were received after 2015-01-25
     return vendSdk.consignments.stockOrders.fetchAll(
       connectionInfo,
-      function(pagedData, previousData){ // example of how to REDUCE paged data in a custom fashion
-        console.log('pagedData: ', pagedData.consignments.length);
+      function customProcessPagedResults(pagedData, previousData){ // example of how to REDUCE paged data in a custom fashion
+        console.log('customProcessPagedResults - pagedData.consignments.length: ', pagedData.consignments.length);
+        console.log('customProcessPagedResults - pagedData.consignments.length: ', pagedData.consignments.length);
         var moment = require('moment');
+        var startDate = moment.utc('2015-01-25', 'YYYY-MM-DD');
+        var endDate = moment.utc('2015-01-25', 'YYYY-MM-DD').add(7, 'days');
+        console.log('customProcessPagedResults - startDate: ', startDate.format());
+        console.log('customProcessPagedResults - endDate: ', endDate.format());
         var consignmentsAfterDateX = _.filter(pagedData.consignments, function(consignment){
+          if(consignment.received_at) {
+            console.log('customProcessPagedResults - consignment.received_at: ', consignment.received_at);
+            var receivedAt = moment.utc(consignment.received_at);
+            console.log('customProcessPagedResults - receivedAt: ', receivedAt.format());
+          }
           return consignment.received_at &&
-            moment(consignment.received_at).isAfter('2015-01-25')
-            && consignment.type === 'SUPPLIER';
-          // TODO: will eventually have an end of the week date range comaprison, too
+            receivedAt.isAfter(startDate) &&
+            receivedAt.isBefore(endDate) &&
+            consignment.type === 'SUPPLIER'; //&& consignment.supplier_id;
         });
-        console.log('consignmentsAfterDateX: ', consignmentsAfterDateX.length);
+        console.log('customProcessPagedResults - consignmentsAfterDateX: ', consignmentsAfterDateX.length);
         //console.log('consignmentsAfterDateX: ', consignmentsAfterDateX);
 
         if (previousData && previousData.length>0){
