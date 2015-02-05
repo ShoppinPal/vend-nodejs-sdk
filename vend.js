@@ -234,7 +234,9 @@ var processPromisesSerially = function(aArray, aArrayIndex, args, mergeStrategy,
       });
   }
   else {
+    if(aPreviousResults) {
     console.log('aPreviousResults.length ', aPreviousResults.length);
+    }
     console.log('processPromisesSerially() finished');
     return Promise.resolve(aPreviousResults);
   }
