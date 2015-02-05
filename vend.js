@@ -621,7 +621,7 @@ var fetchCustomers = function(args, connectionInfo, retryCounter) {
       code: args.code.value,
       email: args.email.value, // TODO: does this need to be explicitly url-encoded? or is it taken care of automagically?
       since: args.since.value
-    }
+    } //TODO: add page & page_size?
   };
 
   return sendRequest(options, args, connectionInfo, fetchCustomers, retryCounter);
@@ -681,11 +681,10 @@ var fetchOutlets = function(args, connectionInfo, retryCounter) {
       'Authorization': authString,
       'Accept': 'application/json'
     }/*,
-    qs: {
+    qs: { // NOTE: page and page_size are NOT implemented on Vend server side! For ex: page=1,page_size=1 doesn't work
       page: args.page.value,
       page_size: args.pageSize.value
     }*/
-    // NOTE: page and page_size are NOT implemented on Vend server side! For ex: page=1,page_size=1 doesn't work
   };
 
   return sendRequest(options, args, connectionInfo, fetchOutlets, retryCounter);
