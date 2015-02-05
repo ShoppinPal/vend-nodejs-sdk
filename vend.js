@@ -691,6 +691,68 @@ var fetchOutlets = function(args, connectionInfo, retryCounter) {
   return sendRequest(options, args, connectionInfo, fetchOutlets, retryCounter);
 };
 
+var fetchSupplier = function(args, connectionInfo, retryCounter) {
+  log.debug('inside fetchSuppliers()');
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    console.log('retry # ' + retryCounter);
+  }
+
+  var path = '/api/supplier/' + args.apiId.value;
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.debug('GET ' + vendUrl);
+  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+
+  var options = {
+    method: 'GET',
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Accept': 'application/json'
+    }
+  };
+
+  return sendRequest(options, args, connectionInfo, fetchSuppliers, retryCounter);
+};
+
+var fetchSuppliers = function(args, connectionInfo, retryCounter) {
+  log.debug('inside fetchSuppliers()');
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    console.log('retry # ' + retryCounter);
+  }
+
+  var path = '/api/supplier';
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.debug('GET ' + vendUrl);
+  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+
+  var options = {
+    method: 'GET',
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Accept': 'application/json'
+    }
+  };
+  if (args.page && args.pageSize){
+    // NOTE: page and page_size work! For ex: page=1,page_size=1 return just one result in response.suppliers
+    options.qs = {
+      page: args.page.value,
+      page_size: args.pageSize.value
+    }
+    console.log(options);
+    // NOTE: BUT for this endpoint, the paging properties in the response are part of the immediate response,
+    //       instead of being nested one-level-down under the response.pagination structure!
+  }
+
+  return sendRequest(options, args, connectionInfo, fetchSuppliers, retryCounter);
+};
+
 var createCustomer = function(body, connectionInfo, retryCounter) {
   log.debug('inside createCustomer()');
   if (!retryCounter) {
@@ -900,6 +962,10 @@ module.exports = function(dependencies) {
     },
     outlets:{
       fetch: fetchOutlets, // no need for fetchAll since hardly any Vend customers have more than 200 outlets
+    },
+    suppliers:{
+      fetchById: fetchSupplier,
+      fetch: fetchSuppliers
     },
     hasAccessTokenExpired: hasAccessTokenExpired,
     getInitialAccessToken: getInitialAccessToken,
