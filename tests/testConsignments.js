@@ -161,10 +161,26 @@ vendSdk.consignments.stockOrders.fetch({ // (1) example: fetch a single consignm
             costPerOutletPerSupplier[outletId] = {};
           }
           if (!costPerOutletPerSupplier[outletId][supplierId]) {
-            costPerOutletPerSupplier[outletId][supplierId] = 0.0;
+            costPerOutletPerSupplier[outletId][supplierId] = {
+              products: 0
+            };
           }
-          var cost = consignmentProduct.cost * Math.abs(consignmentProduct.received);
-          costPerOutletPerSupplier[outletId][supplierId] += cost;
+          if (!costPerOutletPerSupplier[outletId][supplierId]['cost']) {
+            costPerOutletPerSupplier[outletId][supplierId]['cost'] = 0.0;
+          }
+          if (!costPerOutletPerSupplier[outletId][supplierId]['reverseOrdersCost']) {
+            costPerOutletPerSupplier[outletId][supplierId]['reverseOrdersCost'] = 0.0;
+          }
+          if(consignmentProduct.received < 0) {
+            var reverseOrdersCost = consignmentProduct.cost * consignmentProduct.received;
+            costPerOutletPerSupplier[outletId][supplierId]['reverseOrdersCost'] += reverseOrdersCost;
+            costPerOutletPerSupplier[outletId][supplierId]['products']++;
+          }
+          else {
+            var cost = consignmentProduct.cost * consignmentProduct.received;
+            costPerOutletPerSupplier[outletId][supplierId]['cost'] += cost;
+            costPerOutletPerSupplier[outletId][supplierId]['products']++;
+          }
         });
         console.log(costPerOutletPerSupplier);
       });
