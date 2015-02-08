@@ -44,7 +44,7 @@ var vendSdk = require('./../vend')({});
 var args = {
   page:{value: 1},
   pageSize:{value: 200}
-}
+};
 vendSdk.suppliers.fetch(args, connectionInfo) // (1) example: fetch suppliers
   .then(function(response) {
     //console.log('response: ', response);
@@ -67,7 +67,7 @@ vendSdk.suppliers.fetch(args, connectionInfo) // (1) example: fetch suppliers
   .then(function(supplierId) { // (2) example: fetch a supplier by id
     var args = {
       apiId:{value: supplierId}
-    }
+    };
     return vendSdk.suppliers.fetchById(args, connectionInfo)
       .then(function(response) {
         console.log('response: ', response);
