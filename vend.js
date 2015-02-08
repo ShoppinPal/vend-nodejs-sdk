@@ -931,6 +931,21 @@ var hasAccessTokenExpired = function(expiresAt) {
   return (moment.unix(expiresAt).isBefore(moment().add(2, 'minutes')));
 };
 
+var replacer = function(key, value) {
+  if(value !== undefined  && value !== null) {
+    if(typeof value === 'string') {
+      if(value.trim().length>0) {
+        return value;
+      }
+      else {
+        return undefined;
+      }
+    }
+    return value;
+  }
+  return undefined; // returning this removes properties
+};
+
 module.exports = function(dependencies) {
   // (1) initialize dependencies such that code can be reused both on client and server side
   _ = dependencies.underscore || require('underscore');
@@ -983,6 +998,7 @@ module.exports = function(dependencies) {
     },
     hasAccessTokenExpired: hasAccessTokenExpired,
     getInitialAccessToken: getInitialAccessToken,
-    refreshAccessToken: refreshAccessToken
+    refreshAccessToken: refreshAccessToken,
+    replacer: replacer
   };
 };
