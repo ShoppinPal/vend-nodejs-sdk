@@ -214,16 +214,16 @@ var processPromisesSerially = function(aArray, aArrayIndex, args, mergeStrategy,
     return executeNext(args)
       .then(function(executedResults){
         //console.log('executedResults ', executedResults);
-        console.log('executedResults.length ', executedResults.length);
-        return mergeStrategy(executedResults, aPreviousResults)
+        //console.log('executedResults.length ', executedResults.length); // .length may not be valid everytime
+        return mergeStrategy(executedResults, aPreviousResults, args)
           .then(function(mergedResults){
             console.log('mergedResults.length ', mergedResults.length);
             //console.log('before: ', args);
             args = setupNext(args);
             //console.log('after: ', args);
             return processPromisesSerially(
-              args.consignmentIds.value,
-              args.consignmentIdIndex.value,
+              args.getArray(), //args.consignmentIds.value,
+              args.getArrayIndex(), //args.consignmentIdIndex.value,
               args,
               mergeStrategy,
               setupNext,
@@ -244,7 +244,7 @@ var processPromisesSerially = function(aArray, aArrayIndex, args, mergeStrategy,
 
 // the API consumer will get the args and fill in the blanks
 // the SDK will pull out the non-empty values and execute the request
-var args = {
+var argsForInput = {
   products: {
     fetchById: function() {
       return {
@@ -493,8 +493,14 @@ var fetchAllProductsByConsignments = function(args, connectionInfo, processPaged
   args.pageSize = {value: 200};
   args.consignmentIdIndex = {value: 0};
   args.consignmentId = {value: args.consignmentIds.value[args.consignmentIdIndex.value]};
+  args.getArray = function(){
+    return this.consignmentIds.value;
+  };
+  args.getArrayIndex = function(){
+    return this.consignmentIdIndex.value;
+  };
 
-  // TODO: iterate serially through a promise chain for all args.consignmentIds.value
+  // iterate serially through a promise chain for all args.consignmentIds.value
   return processPromisesSerially(
     args.consignmentIds.value,
     args.consignmentIdIndex.value,
@@ -533,6 +539,59 @@ var fetchAllProductsByConsignments = function(args, connectionInfo, processPaged
       console.log('executing for consignmentId: ' + updatedArgs.consignmentId.value);
       //console.log('updatedArgs: ', updatedArgs);
       return fetchAllProductsByConsignment(updatedArgs, connectionInfo);
+    }
+  );
+};
+
+var resolveMissingSuppliers = function(args, connectionInfo) {
+  // args.consignmentIdToProductIdMap.value MUST already be set by the caller
+  // args.consignmentProductId.value MUST be set for the very first call
+  args.arrayIndex = {value: 0};
+  args.consignmentProductId = {value: args.consignmentIdToProductIdMap.value[args.arrayIndex.value].productId};
+  args.getArray = function(){
+    return this.consignmentIdToProductIdMap.value;
+  };
+  args.getArrayIndex = function(){
+    return this.arrayIndex.value;
+  };
+
+  // iterate serially through a promise chain for all args.consignmentIds.value
+  return processPromisesSerially(
+    args.getArray(),
+    args.getArrayIndex(),
+    args,
+    function mergeStrategy(newData, previousData, args){
+      console.log('resolveMissingSuppliers - inside mergeStrategy()');
+      var product = newData.products[0];
+      //console.log('newData: ', newData);
+      //console.log('product: ', product);
+      var updateMe = args.getArray()[args.getArrayIndex()];
+      updateMe.supplier = product.supplier_name || product.supplier_code;
+      console.log('updated consignmentIdToProductIdMap: ', args.getArray()[args.getArrayIndex()]);
+
+      previousData = args.getArray();
+      return Promise.resolve(previousData); // why do we need a promise?
+    },
+    function setupNext(updateArgs){
+      console.log('resolveMissingSuppliers - inside setupNext()');
+      updateArgs.arrayIndex.value = updateArgs.getArrayIndex() + 1;
+      if (updateArgs.getArrayIndex() < updateArgs.getArray().length) {
+        updateArgs.consignmentProductId.value = updateArgs.getArray()[updateArgs.getArrayIndex()].productId;
+        console.log('resolveMissingSuppliers - next is consignmentId: ' + updateArgs.consignmentProductId.value);
+      }
+      else {
+        updateArgs.consignmentProductId.value = null;
+        console.log('resolveMissingSuppliers - finished iterating through all the consignmentIds');
+      }
+      return updateArgs;
+    },
+    function executeNext(updatedArgs){
+      console.log('resolveMissingSuppliers - inside executeNext()');
+      console.log('resolveMissingSuppliers - executing for consignmentProductId: ' + updatedArgs.consignmentProductId.value);
+      //console.log('updatedArgs: ', updatedArgs);
+      var args = argsForInput.products.fetchById();
+      args.apiId.value = updatedArgs.consignmentProductId.value;
+      return fetchProduct(args, connectionInfo);
     }
   );
 };
@@ -964,7 +1023,7 @@ module.exports = function(dependencies) {
 
   // (3) expose the SDK
   return {
-    args: args,
+    args: argsForInput,
     products: {
       fetch: fetchProducts,
       fetchById: fetchProduct
@@ -981,7 +1040,8 @@ module.exports = function(dependencies) {
     consignments: {
       stockOrders: {
         fetch: fetchStockOrdersForSuppliers,
-        fetchAll: fetchAllStockOrdersForSuppliers
+        fetchAll: fetchAllStockOrdersForSuppliers,
+        resolveMissingSuppliers: resolveMissingSuppliers
       },
       products: {
         fetch: fetchProductsByConsignment,
