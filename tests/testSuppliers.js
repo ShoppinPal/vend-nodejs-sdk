@@ -75,5 +75,5 @@ vendSdk.suppliers.fetch(args, connectionInfo) // (1) example: fetch suppliers
       });
   })
   .catch(function(e) {
-    console.error('testConsignments.js - An unexpected error occurred: ', e);
+    console.error('testSuppliers.js - An unexpected error occurred: ', e);
   });
