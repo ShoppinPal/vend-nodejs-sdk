@@ -663,6 +663,34 @@ var fetchProducts = function(args, connectionInfo, retryCounter) {
   return sendRequest(options, args, connectionInfo, fetchProducts, retryCounter);
 };
 
+var fetchAllProducts = function(connectionInfo, processPagedResults) {
+  var args = argsForInput.products.fetch();
+  args.orderBy.value = 'id';
+  args.page.value = 1;
+  args.pageSize.value = 200;
+  args.active.value = true;
+
+  // set a default function if none is provided
+  if (!processPagedResults) {
+    processPagedResults = function processPagedResults(pagedData, previousData){
+      log.debug('fetchAllProducts - default processPagedResults()');
+      if (previousData && previousData.length>0) {
+        console.log(pagedData.products);
+        if (pagedData.products && pagedData.products.length>0) {
+          console.log('previousData: ', previousData.length);
+          pagedData.products = pagedData.products.concat(previousData);
+          console.log('combined: ', pagedData.products.length);
+        }
+        else {
+          pagedData.products = previousData;
+        }
+      }
+      return Promise.resolve(pagedData.products);
+    }
+  }
+  return processPagesRecursively(args, connectionInfo, fetchProducts, processPagedResults);
+};
+
 var fetchCustomerByEmail = function(email, connectionInfo, retryCounter) {
   log.debug('inside fetchCustomerByEmail()');
   var args = args.customers.fetch();
@@ -1027,7 +1055,8 @@ module.exports = function(dependencies) {
     args: argsForInput,
     products: {
       fetch: fetchProducts,
-      fetchById: fetchProduct
+      fetchById: fetchProduct,
+      fetchAll: fetchAllProducts
     },
     sales: {
       create: createRegisterSale,
