@@ -596,6 +596,7 @@ var resolveMissingSuppliers = function(args, connectionInfo) {
   );
 };
 
+// TODO: instead of returning response, return the value of response.products[0] directly?
 var fetchProduct  = function(args, connectionInfo, retryCounter) {
   if (!retryCounter) {
     retryCounter = 0;
