@@ -193,8 +193,8 @@ function processPagesRecursively(args, connectionInfo, fetchSinglePage, processP
       }
 
       if(result.pagination && result.pagination.pages > args.page.value) {
-        console.log('# of products returned: ' + result.pagination.results);
-        console.log('Page # ' + args.page.value + ' of ' + result.pagination.pages);
+        log.info('# of products returned: ' + result.pagination.results);
+        log.info('Page # ' + args.page.value + ' of ' + result.pagination.pages);
         return processPagedResults(result, previousProcessedResults)
           .then(function(newlyProcessedResults){
             args.page.value = args.page.value+1;
@@ -202,7 +202,7 @@ function processPagesRecursively(args, connectionInfo, fetchSinglePage, processP
           });
       }
       else {
-        console.log('Processing last page. Page # ' + args.page.value);
+        log.info('Processing last page. Page # ' + args.page.value);
         return processPagedResults(result, previousProcessedResults);
       }
     });
@@ -675,7 +675,7 @@ var fetchAllProducts = function(connectionInfo, processPagedResults) {
     processPagedResults = function processPagedResults(pagedData, previousData){
       log.debug('fetchAllProducts - default processPagedResults()');
       if (previousData && previousData.length>0) {
-        console.log(pagedData.products);
+        //log.verbose(JSON.stringify(pagedData.products,replacer,2));
         if (pagedData.products && pagedData.products.length>0) {
           console.log('previousData: ', previousData.length);
           pagedData.products = pagedData.products.concat(previousData);
