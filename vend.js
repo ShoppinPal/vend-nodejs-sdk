@@ -626,6 +626,80 @@ var fetchProduct  = function(args, connectionInfo, retryCounter) {
   return sendRequest(options, args, connectionInfo, fetchProduct, retryCounter);
 };
 
+// TODO: instead of returning response, return the value of response.products[0] directly?
+var fetchProductByHandle  = function(args, connectionInfo, retryCounter) {
+  if ( !(args && args.handle && args.handle.value) ) {
+    return Promise.reject('missing required arguments for fetchProductByHandle()');
+  }
+
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    console.log('retry # ' + retryCounter);
+  }
+
+  var path = '/api/products';
+  // this is an undocumented implementation by Vend
+  // the response has to be accessed like: result.products[0]
+  // which is lame ... TODO: should we unwrap it within the SDK?
+
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  console.log('Requesting vend product ' + vendUrl);
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.debug('GET ' + vendUrl);
+  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+
+  var options = {
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Accept': 'application/json'
+    },
+    qs: {
+      handle: args.handle.value
+    }
+  };
+
+  return sendRequest(options, args, connectionInfo, fetchProduct, retryCounter);
+};
+
+// TODO: instead of returning response, return the value of response.products[0] directly?
+var fetchProductBySku  = function(args, connectionInfo, retryCounter) {
+  if ( !(args && args.sku && args.sku.value) ) {
+    return Promise.reject('missing required arguments for fetchProductByHandle()');
+  }
+
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    console.log('retry # ' + retryCounter);
+  }
+
+  var path = '/api/products';
+  // this is an undocumented implementation by Vend
+  // the response has to be accessed like: result.products[0]
+  // which is lame ... TODO: should we unwrap it within the SDK?
+
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  console.log('Requesting vend product ' + vendUrl);
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.debug('GET ' + vendUrl);
+  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+
+  var options = {
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Accept': 'application/json'
+    },
+    qs: {
+      sku: args.sku.value
+    }
+  };
+
+  return sendRequest(options, args, connectionInfo, fetchProduct, retryCounter);
+};
+
 var fetchProducts = function(args, connectionInfo, retryCounter) {
   if (!retryCounter) {
     retryCounter = 0;
@@ -1056,6 +1130,8 @@ module.exports = function(dependencies) {
     products: {
       fetch: fetchProducts,
       fetchById: fetchProduct,
+      fetchByHandle: fetchProductByHandle,
+      fetchBySku: fetchProductBySku,
       fetchAll: fetchAllProducts
     },
     sales: {
