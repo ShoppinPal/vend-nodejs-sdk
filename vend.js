@@ -374,6 +374,22 @@ var argsForInput = {
         }
       };
     }
+  },
+  suppliers: {
+    fetchAll: function() {
+      return {
+        page: {
+          required: false,
+          key: 'page',
+          value: undefined
+        },
+        pageSize: {
+          required: false,
+          key: 'page_size',
+          value: undefined
+        }
+      };
+    }
   }
 };
 
@@ -475,6 +491,22 @@ var defaultMethod_ForProcessingPagedResults_ForConsignmentProducts = function(pa
   //console.log('finalData: ', pagedData.consignment_products);
   console.log('finalData.length: ', pagedData.consignment_products.length);
       return Promise.resolve(pagedData.consignment_products);
+};
+
+var defaultMethod_ForProcessingPagedResults_ForSuppliers = function processPagedResults(pagedData, previousData){
+  log.debug('defaultMethod_ForProcessingPagedResults_ForSuppliers');
+  if (previousData && previousData.length>0) {
+    //log.verbose(JSON.stringify(pagedData.suppliers,replacer,2));
+    if (pagedData.suppliers && pagedData.suppliers.length>0) {
+      log.debug('previousData: ', previousData.length);
+      pagedData.suppliers = pagedData.suppliers.concat(previousData);
+      log.debug('combined: ', pagedData.suppliers.length);
+    }
+    else {
+      pagedData.suppliers = previousData;
+    }
+  }
+  return Promise.resolve(pagedData.suppliers);
 };
 
 var fetchAllProductsByConsignment = function(args, connectionInfo, processPagedResults) {
@@ -929,6 +961,18 @@ var fetchSuppliers = function(args, connectionInfo, retryCounter) {
   return sendRequest(options, args, connectionInfo, fetchSuppliers, retryCounter);
 };
 
+var fetchAllSuppliers = function(connectionInfo, processPagedResults) {
+  var args = argsForInput.suppliers.fetchAll();
+  args.page.value = 1;
+  args.pageSize.value = 200;
+
+  // set a default function if none is provided
+  if (!processPagedResults) {
+    processPagedResults = defaultMethod_ForProcessingPagedResults_ForSuppliers;
+  }
+  return processPagesRecursively(args, connectionInfo, fetchSuppliers, processPagedResults);
+};
+
 var createCustomer = function(body, connectionInfo, retryCounter) {
   log.debug('inside createCustomer()');
   if (!retryCounter) {
@@ -1160,7 +1204,8 @@ module.exports = function(dependencies) {
     },
     suppliers:{
       fetchById: fetchSupplier,
-      fetch: fetchSuppliers
+      fetch: fetchSuppliers,
+      fetchAll: fetchAllSuppliers,
     },
     hasAccessTokenExpired: hasAccessTokenExpired,
     getInitialAccessToken: getInitialAccessToken,
