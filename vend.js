@@ -158,7 +158,7 @@ var sendRequest = function(options, args, connectionInfo, callback, retryCounter
       return Promise.reject(e.statusCode + ' ' + e.response.body); // TODO: throw unknown errors but reject well known errors?
     })
     .catch(function(e) {
-      console.error('vend.js - An unexpected error occurred: ', e);
+      console.error('vend.js - sendRequest - An unexpected error occurred: ', e);
       throw e; // TODO: throw unknown errors but reject well known errors?
     });
 };
@@ -692,7 +692,7 @@ var fetchProductByHandle  = function(args, connectionInfo, retryCounter) {
     }
   };
 
-  return sendRequest(options, args, connectionInfo, fetchProduct, retryCounter);
+  return sendRequest(options, args, connectionInfo, fetchProductByHandle, retryCounter);
 };
 
 // TODO: instead of returning response, return the value of response.products[0] directly?
@@ -729,7 +729,7 @@ var fetchProductBySku  = function(args, connectionInfo, retryCounter) {
     }
   };
 
-  return sendRequest(options, args, connectionInfo, fetchProduct, retryCounter);
+  return sendRequest(options, args, connectionInfo, fetchProductBySku, retryCounter);
 };
 
 var fetchProducts = function(args, connectionInfo, retryCounter) {
