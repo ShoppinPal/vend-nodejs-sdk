@@ -246,9 +246,45 @@ var processPromisesSerially = function(aArray, aArrayIndex, args, mergeStrategy,
   }
 };
 
+var argsAreValid = function(args){
+  var arrayOfRequiredArgs = _.filter(args, function(object, key){
+    return object.required;
+  });
+  var arrayOfRequiredValues = _.pluck(arrayOfRequiredArgs, 'value');
+  return !_.contains(arrayOfRequiredValues, undefined);
+};
+
 // the API consumer will get the args and fill in the blanks
 // the SDK will pull out the non-empty values and execute the request
 var argsForInput = {
+  consignments: {
+    stockOrders: {
+      create: function() {
+        return {
+          name: {
+            required: true,
+            key: 'name',
+            value: undefined
+          },
+          outletId: {
+            required: true,
+            key: 'outlet_id',
+            value: undefined
+          },
+          supplierId: {
+            required: true, // can be null according to Vend, but we decided to make it mandatory, hmmm...
+            key: 'supplier_id',
+            value: undefined
+          },
+          dueAt: {
+            required: false, // can be null, ok by Vend
+            key: 'due_at',
+            value: undefined
+          }
+        };
+      }
+    }
+  },
   products: {
     fetchById: function() {
       return {
@@ -980,6 +1016,48 @@ var fetchAllSuppliers = function(connectionInfo, processPagedResults) {
   return processPagesRecursively(args, connectionInfo, fetchSuppliers, processPagedResults);
 };
 
+var createStockOrder = function(args, connectionInfo, retryCounter) {
+  log.debug('inside createStockOrder()');
+
+  if ( !(args && argsAreValid(args)) ) {
+    return Promise.reject('missing required arguments for createStockOrder()');
+  }
+
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    console.log('retry # ' + retryCounter);
+  }
+
+  var path = '/api/consignment';
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+
+  var body = {
+    'type': 'SUPPLIER',
+    'status': 'OPEN',
+    'name': args.name.value,
+    'date': moment().format('YYYY-MM-DD HH:mm:ss'), //'2010-01-01 14:01:01',
+    'due_at': args.dueAt.value,
+    'outlet_id': args.outletId.value,
+    'supplier_id': args.supplierId.value
+  };
+  var options = {
+    method: 'POST',
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    },
+    json: body
+  };
+  log.debug(options.method + ' ' + options.url);
+
+  return sendRequest(options, body, connectionInfo, createStockOrder, retryCounter);
+};
+
 var createCustomer = function(body, connectionInfo, retryCounter) {
   log.debug('inside createCustomer()');
   if (!retryCounter) {
@@ -1196,6 +1274,7 @@ module.exports = function(dependencies) {
     },
     consignments: {
       stockOrders: {
+        create: createStockOrder,
         fetch: fetchStockOrdersForSuppliers,
         fetchAll: fetchAllStockOrdersForSuppliers,
         resolveMissingSuppliers: resolveMissingSuppliers
