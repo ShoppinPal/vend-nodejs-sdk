@@ -147,8 +147,12 @@ var sendRequest = function(options, args, connectionInfo, callback, retryCounter
       // TODO: how to prevent a throw or rejection from also stepping thru the other catch-blocks?
     })
     .catch(ClientError, function(e) {
+      var message = e.response.body;
+      if(_.isObject(message)) {
+        message = JSON.stringify(message,null,2);
+      }
       console.log('A ClientError happened: \n'
-          + e.statusCode + ' ' + e.response.body + '\n'
+          + e.statusCode + ' ' + message + '\n'
         /*+ JSON.stringify(e.response.headers,null,2)
          + JSON.stringify(e,null,2)*/
       );
@@ -478,11 +482,13 @@ var fetchProductsByConsignment  = function(args, connectionInfo, retryCounter) {
 };
 
 var defaultMethod_ForProcessingPagedResults_ForConsignmentProducts = function(pagedData, previousData){
+  log.debug('defaultMethod_ForProcessingPagedResults_ForConsignmentProducts');
   if (previousData && previousData.length>0) {
-    if (pagedData.consignment_products.length>0) {
-        console.log('previousData: ', previousData.length);
+    //log.verbose(JSON.stringify(pagedData.consignment_products,replacer,2));
+    if (pagedData.consignment_products && pagedData.consignment_products.length>0) {
+      log.debug('previousData: ', previousData.length);
         pagedData.consignment_products = pagedData.consignment_products.concat(previousData);
-        console.log('combined: ', pagedData.consignment_products.length);
+      log.debug('combined: ', pagedData.consignment_products.length);
       }
     else {
       pagedData.consignment_products = previousData;
@@ -628,6 +634,7 @@ var resolveMissingSuppliers = function(args, connectionInfo) {
   );
 };
 
+// WARN: if the ID is incorrect, the vend api the first 50 products which can totally throw folks off their mark!
 // TODO: instead of returning response, return the value of response.products[0] directly?
 var fetchProduct  = function(args, connectionInfo, retryCounter) {
   if (!retryCounter) {
