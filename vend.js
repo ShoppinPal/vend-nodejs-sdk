@@ -197,7 +197,7 @@ function processPagesRecursively(args, connectionInfo, fetchSinglePage, processP
       }
 
       if(result.pagination && result.pagination.pages > args.page.value) {
-        log.info('# of products returned: ' + result.pagination.results);
+        log.info('# of entries returned: ' + result.pagination.results);
         log.info('Page # ' + args.page.value + ' of ' + result.pagination.pages);
         return processPagedResults(result, previousProcessedResults)
           .then(function(newlyProcessedResults){
@@ -903,12 +903,41 @@ var fetchRegisterSales = function(args, connectionInfo, retryCounter) {
     qs: {
       since: args.since.value,
       outlet_id: args.outletApiId.value,
+      tag: args.tag.value,
       page: args.page.value,
       page_size: args.pageSize.value
     }
   };
 
   return sendRequest(options, args, connectionInfo, fetchRegisterSales, retryCounter);
+};
+
+var fetchAllRegisterSales = function(args, connectionInfo, processPagedResults) {
+  if (!args) {
+    args = argsForInput.sales.fetch();
+  };
+  args.page = {value:1};
+  args.pageSize = {value:200};
+
+  // set a default function if none is provided
+  if (!processPagedResults) {
+    processPagedResults = function processPagedResults(pagedData, previousData){
+      log.debug('fetchAllRegisterSales - default processPagedResults()');
+      if (previousData && previousData.length>0) {
+        //log.verbose(JSON.stringify(pagedData.products,replacer,2));
+        if (pagedData.register_sales && pagedData.register_sales.length>0) {
+          console.log('previousData: ', previousData.length);
+          pagedData.register_sales = pagedData.register_sales.concat(previousData);
+          console.log('combined: ', pagedData.register_sales.length);
+        }
+        else {
+          pagedData.register_sales = previousData;
+        }
+      }
+      return Promise.resolve(pagedData.register_sales);
+    }
+  }
+  return processPagesRecursively(args, connectionInfo, fetchRegisterSales, processPagedResults);
 };
 
 //TODO: maybe reorder as: (connectionInfo, args, retryCounter) ... ?
@@ -1265,7 +1294,8 @@ module.exports = function(dependencies) {
     },
     sales: {
       create: createRegisterSale,
-      fetch: fetchRegisterSales
+      fetch: fetchRegisterSales,
+      fetchAll: fetchAllRegisterSales
     },
     customers: {
       create: createCustomer,
