@@ -258,6 +258,42 @@ var argsAreValid = function(args){
 // the SDK will pull out the non-empty values and execute the request
 var argsForInput = {
   consignments: {
+    products: {
+      create: function() {
+        return {
+          consignmentId: {
+            required: true,
+            key: 'consignment_id',
+            value: undefined
+          },
+          productId: {
+            required: true,
+            key: 'product_id',
+            value: undefined
+          },
+          count: {
+            required: true,
+            key: 'count',
+            value: undefined
+          },
+          cost: {
+            required: true,
+            key: 'cost',
+            value: undefined
+          },
+          sequenceNumber: {
+            required: false,
+            key: 'sequence_number',
+            value: undefined
+          },
+          received: {
+            required: false,
+            key: 'received',
+            value: undefined
+          }
+        };
+      }
+    },
     stockOrders: {
       create: function() {
         return {
@@ -1045,6 +1081,54 @@ var fetchAllSuppliers = function(connectionInfo, processPagedResults) {
   return processPagesRecursively(args, connectionInfo, fetchSuppliers, processPagedResults);
 };
 
+var createConsignmentProduct = function(args, connectionInfo, retryCounter) {
+  log.debug('inside createConsignmentProduct()');
+
+  var body = null;
+  if (args && args.body) {
+    body = args.body;
+  }
+  else {
+    if ( !(args && argsAreValid(args)) ) {
+      return Promise.reject('missing required arguments for createConsignmentProduct()');
+    }
+    body = {
+      'consignment_id': args.consignmentId.value,
+      'product_id': args.productId.value,
+      'count': args.count.value,
+      'cost': args.cost.value,
+      'sequence_number': args.sequenceNumber.value,
+      'received': args.received.value,
+    };
+  }
+
+
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    console.log('retry # ' + retryCounter);
+  }
+
+  var path = '/api/consignment_product';
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+
+  var options = {
+    method: 'POST',
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    },
+    json: body
+  };
+  log.debug(options.method + ' ' + options.url);
+
+  return sendRequest(options, args, connectionInfo, createConsignmentProduct, retryCounter);
+};
+
 var createStockOrder = function(args, connectionInfo, retryCounter) {
   log.debug('inside createStockOrder()');
 
@@ -1310,6 +1394,7 @@ module.exports = function(dependencies) {
         resolveMissingSuppliers: resolveMissingSuppliers
       },
       products: {
+        create: createConsignmentProduct,
         fetch: fetchProductsByConsignment,
         fetchAllByConsignment: fetchAllProductsByConsignment,
         fetchAllForConsignments: fetchAllProductsByConsignments
