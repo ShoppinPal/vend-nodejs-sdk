@@ -1235,6 +1235,42 @@ var createRegisterSale = function(body, connectionInfo, retryCounter) {
   return sendRequest(options, body, connectionInfo, createRegisterSale, retryCounter);
 };
 
+var deleteStockOrder = function(args, connectionInfo, retryCounter) {
+  log.debug('inside deleteStockOrder()');
+
+  console.log(args);
+  if ( !(args && argsAreValid(args)) ) {
+    return Promise.reject('missing required arguments for deleteStockOrder()');
+  }
+  console.log(args);
+
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    console.log('retry # ' + retryCounter);
+  }
+
+  console.log(args.apiId.value);
+  var path = '/api/consignment/' + args.apiId.value;
+  console.log(path);
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+
+  var options = {
+    method: 'DELETE',
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    }
+  };
+  log.debug(options.method + ' ' + options.url);
+
+  return sendRequest(options, args, connectionInfo, deleteStockOrder, retryCounter);
+};
+
 var getInitialAccessToken = function(tokenService, clientId, clientSecret, redirectUri, code, domainPrefix, state) {
   // TODO: tweak winston logs to prefix method signature (like breadcrumbs) when logging?
   log.debug('getInitialAccessToken - token_service: ' + tokenService);
@@ -1391,7 +1427,8 @@ module.exports = function(dependencies) {
         create: createStockOrder,
         fetch: fetchStockOrdersForSuppliers,
         fetchAll: fetchAllStockOrdersForSuppliers,
-        resolveMissingSuppliers: resolveMissingSuppliers
+        resolveMissingSuppliers: resolveMissingSuppliers,
+        remove: deleteStockOrder
       },
       products: {
         create: createConsignmentProduct,
