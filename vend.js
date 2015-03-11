@@ -413,6 +413,54 @@ var argsForInput = {
       };
     }
   },
+  outlets: {
+    fetch: function() {
+      return {
+        page: {
+          required: false,
+          key: 'page',
+          value: undefined
+        },
+        pageSize: {
+          required: false,
+          key: 'page_size',
+          value: undefined
+        }
+      };
+    }
+  },
+  paymentTypes: {
+    fetch: function() {
+      return {
+        page: {
+          required: false,
+          key: 'page',
+          value: undefined
+        },
+        pageSize: {
+          required: false,
+          key: 'page_size',
+          value: undefined
+        }
+      };
+    }
+  },
+  taxes: {
+    fetch: function() {
+      return {
+        page: {
+          required: false,
+          key: 'page',
+          value: undefined
+        },
+        pageSize: {
+          required: false,
+          key: 'page_size',
+          value: undefined
+        }
+      };
+    }
+  },
   sales: {
     fetch: function() {
       return {
@@ -985,6 +1033,58 @@ var fetchAllRegisters = function(args, connectionInfo, processPagedResults) {
   return processPagesRecursively(args, connectionInfo, fetchRegisters, processPagedResults);
 };
 
+var fetchPaymentTypes = function(args, connectionInfo, retryCounter) {
+  log.debug('inside fetchPaymentTypes()');
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    console.log('retry # ' + retryCounter);
+  }
+
+  var path = '/api/payment_types';
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.debug('GET ' + vendUrl);
+  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+
+  var options = {
+    method: 'GET',
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Accept': 'application/json'
+    }
+  };
+
+  return sendRequest(options, args, connectionInfo, fetchPaymentTypes, retryCounter);
+};
+
+var fetchTaxes = function(args, connectionInfo, retryCounter) {
+  log.debug('inside fetchTaxes()');
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    console.log('retry # ' + retryCounter);
+  }
+
+  var path = '/api/taxes';
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.debug('GET ' + vendUrl);
+  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+
+  var options = {
+    method: 'GET',
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Accept': 'application/json'
+    }
+  };
+
+  return sendRequest(options, args, connectionInfo, fetchTaxes, retryCounter);
+};
+
 var fetchRegisterSales = function(args, connectionInfo, retryCounter) {
   log.debug('inside fetchRegisterSales()');
   if (!retryCounter) {
@@ -1485,6 +1585,12 @@ module.exports = function(dependencies) {
     registers: {
       fetch: fetchRegisters,
       fetchAll: fetchAllRegisters
+    },
+    paymentTypes: {
+      fetch: fetchPaymentTypes
+    },
+    taxes: {
+      fetch: fetchTaxes
     },
     sales: {
       create: createRegisterSale,
