@@ -397,6 +397,22 @@ var argsForInput = {
       };
     }
   },
+  registers: {
+    fetch: function() {
+      return {
+        page: {
+          required: false,
+          key: 'page',
+          value: undefined
+        },
+        pageSize: {
+          required: false,
+          key: 'page_size',
+          value: undefined
+        }
+      };
+    }
+  },
   sales: {
     fetch: function() {
       return {
@@ -915,6 +931,60 @@ var fetchCustomers = function(args, connectionInfo, retryCounter) {
   return sendRequest(options, args, connectionInfo, fetchCustomers, retryCounter);
 };
 
+var fetchRegisters = function(args, connectionInfo, retryCounter) {
+  log.debug('inside fetchRegisters()');
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    console.log('retry # ' + retryCounter);
+  }
+
+  var path = '/api/registers';
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.debug('GET ' + vendUrl);
+  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+
+  var options = {
+    method: 'GET',
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Accept': 'application/json'
+    }
+  };
+
+  return sendRequest(options, args, connectionInfo, fetchRegisters, retryCounter);
+};
+
+var fetchAllRegisters = function(args, connectionInfo, processPagedResults) {
+  if (!args) {
+    args = argsForInput.registers.fetch();
+  };
+  args.page = {value:1};
+  args.pageSize = {value:200};
+
+  // set a default function if none is provided
+  if (!processPagedResults) {
+    processPagedResults = function processPagedResults(pagedData, previousData){
+      log.debug('fetchAllRegisters - default processPagedResults()');
+      if (previousData && previousData.length>0) {
+        //log.verbose(JSON.stringify(pagedData.products,replacer,2));
+        if (pagedData.registers && pagedData.registers.length>0) {
+          console.log('previousData: ', previousData.length);
+          pagedData.registers = pagedData.registers.concat(previousData);
+          console.log('combined: ', pagedData.registers.length);
+        }
+        else {
+          pagedData.registers = previousData;
+        }
+      }
+      return Promise.resolve(pagedData.registers);
+    }
+  }
+  return processPagesRecursively(args, connectionInfo, fetchRegisters, processPagedResults);
+};
+
 var fetchRegisterSales = function(args, connectionInfo, retryCounter) {
   log.debug('inside fetchRegisterSales()');
   if (!retryCounter) {
@@ -1411,6 +1481,10 @@ module.exports = function(dependencies) {
       fetchByHandle: fetchProductByHandle,
       fetchBySku: fetchProductBySku,
       fetchAll: fetchAllProducts
+    },
+    registers: {
+      fetch: fetchRegisters,
+      fetchAll: fetchAllRegisters
     },
     sales: {
       create: createRegisterSale,
