@@ -1200,7 +1200,7 @@ var fetchSupplier = function(args, connectionInfo, retryCounter) {
     }
   };
 
-  return sendRequest(options, args, connectionInfo, fetchSuppliers, retryCounter);
+  return sendRequest(options, args, connectionInfo, fetchSupplier, retryCounter);
 };
 
 var fetchSuppliers = function(args, connectionInfo, retryCounter) {
