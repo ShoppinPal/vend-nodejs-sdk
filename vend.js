@@ -809,11 +809,12 @@ var fetchProduct  = function(args, connectionInfo, retryCounter) {
   return sendRequest(options, args, connectionInfo, fetchProduct, retryCounter);
 };
 
-//update product by product Id. Product Id is passed in the body as a json object along with other parameters instead of passing it in the url as querystring
-//That's how an update happens in Vend
+/**
+ * This method updates a product by product Id.
+ * The product's id is passed in the `body` as a json object along with other parameters
+ * instead of passing it in the url as querystring. That's how an update happens in Vend.
+ */
 var updateProductById = function(args, connectionInfo, retryCounter) {
-  log.debug('inside updateProductById()');
-
   if ( !(args && argsAreValid(args)) ) {
     return Promise.reject('missing required arguments for updateProductById()');
   }
@@ -842,7 +843,7 @@ var updateProductById = function(args, connectionInfo, retryCounter) {
   };
   log.debug(options.method + ' ' + options.url);
 
-  return sendRequest(options, body, connectionInfo, updateProductById, retryCounter);
+  return sendRequest(options, args, connectionInfo, updateProductById, retryCounter);
 };
 
 // TODO: instead of returning response, return the value of response.products[0] directly?
