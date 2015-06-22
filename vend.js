@@ -330,6 +330,14 @@ var argsForInput = {
         }
       };
     },
+    update: function() {
+      return {
+        body: {
+          required: true,
+          value: undefined
+        }
+      };
+    },
     fetch: function() {
       return {
         orderBy: {
@@ -801,6 +809,43 @@ var fetchProduct  = function(args, connectionInfo, retryCounter) {
   return sendRequest(options, args, connectionInfo, fetchProduct, retryCounter);
 };
 
+/**
+ * This method updates a product by product Id.
+ * The product's id is passed in the `body` as a json object along with other parameters
+ * instead of passing it in the url as querystring. That's how an update happens in Vend.
+ */
+var updateProductById = function(args, connectionInfo, retryCounter) {
+  if ( !(args && argsAreValid(args)) ) {
+    return Promise.reject('missing required arguments for updateProductById()');
+  }
+
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    console.log('retry # ' + retryCounter);
+  }
+
+  var path = '/api/products';
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+  var body = args.body.value;
+
+  var options = {
+    method: 'POST',
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    },
+    json: body
+  };
+  log.debug(options.method + ' ' + options.url);
+
+  return sendRequest(options, args, connectionInfo, updateProductById, retryCounter);
+};
+
 // TODO: instead of returning response, return the value of response.products[0] directly?
 var fetchProductByHandle  = function(args, connectionInfo, retryCounter) {
   if ( !(args && args.handle && args.handle.value) ) {
@@ -1008,7 +1053,7 @@ var fetchRegisters = function(args, connectionInfo, retryCounter) {
 var fetchAllRegisters = function(args, connectionInfo, processPagedResults) {
   if (!args) {
     args = argsForInput.registers.fetch();
-  };
+  }
   args.page = {value:1};
   args.pageSize = {value:200};
 
@@ -1121,7 +1166,7 @@ var fetchRegisterSales = function(args, connectionInfo, retryCounter) {
 var fetchAllRegisterSales = function(args, connectionInfo, processPagedResults) {
   if (!args) {
     args = argsForInput.sales.fetch();
-  };
+  }
   args.page = {value:1};
   args.pageSize = {value:200};
 
@@ -1230,7 +1275,7 @@ var fetchSuppliers = function(args, connectionInfo, retryCounter) {
     options.qs = {
       page: args.page.value,
       page_size: args.pageSize.value
-    }
+    };
     console.log(options);
     // NOTE: BUT for this endpoint, the paging properties in the response are part of the immediate response,
     //       instead of being nested one-level-down under the response.pagination structure!
@@ -1580,7 +1625,8 @@ module.exports = function(dependencies) {
       fetchById: fetchProduct,
       fetchByHandle: fetchProductByHandle,
       fetchBySku: fetchProductBySku,
-      fetchAll: fetchAllProducts
+      fetchAll: fetchAllProducts,
+      update: updateProductById
     },
     registers: {
       fetch: fetchRegisters,
@@ -1618,12 +1664,12 @@ module.exports = function(dependencies) {
       }
     },
     outlets:{
-      fetch: fetchOutlets, // no need for fetchAll since hardly any Vend customers have more than 200 outlets
+      fetch: fetchOutlets // no need for fetchAll since hardly any Vend customers have more than 200 outlets
     },
     suppliers:{
       fetchById: fetchSupplier,
       fetch: fetchSuppliers,
-      fetchAll: fetchAllSuppliers,
+      fetchAll: fetchAllSuppliers
     },
     hasAccessTokenExpired: hasAccessTokenExpired,
     getInitialAccessToken: getInitialAccessToken,
