@@ -1,6 +1,6 @@
 {
   "name": "vend-nodejs-sdk",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Aims to provides a rich set of client-side functionality for Vend's public APIs",
   "main": "vend.js",
   "scripts": {
@@ -11,7 +11,9 @@
     "url": "https://github.com/ShoppinPal/vend-nodejs-sdk.git"
   },
   "keywords": [
-    "vend"
+    "vend",
+    "nodejs",
+    "sdk"
   ],
   "author": "Pulkit Singhal",
   "license": "Apache 2",
