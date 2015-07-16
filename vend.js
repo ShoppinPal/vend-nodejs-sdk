@@ -1383,7 +1383,7 @@ var createStockOrder = function(args, connectionInfo, retryCounter) {
   };
   log.debug(options.method + ' ' + options.url);
 
-  return sendRequest(options, body, connectionInfo, createStockOrder, retryCounter);
+  return sendRequest(options, args, connectionInfo, createStockOrder, retryCounter);
 };
 
 var createCustomer = function(body, connectionInfo, retryCounter) {
