@@ -1563,6 +1563,42 @@ var markStockOrderAsSent = function(args, connectionInfo, retryCounter) {
   return sendRequest(options, args, connectionInfo, markStockOrderAsSent, retryCounter);
 };
 
+var markStockOrderAsReceived = function(args, connectionInfo, retryCounter) {
+  log.debug('inside markStockOrderAsReceived()', args);
+
+  if ( !(args && argsAreValid(args)) ) {
+    return Promise.reject('missing required arguments for markStockOrderAsReceived()');
+  }
+
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    console.log('retry # ' + retryCounter);
+  }
+
+  var path = '/api/consignment/' + args.apiId.value;
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+  var body = args.body.value;
+  body.status = 'RECEIVED';
+
+  var options = {
+    method: 'PUT',
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    },
+    json: body
+  };
+  log.debug(options.method, options.url);
+  log.debug('body:', options.json);
+
+  return sendRequest(options, args, connectionInfo, markStockOrderAsReceived, retryCounter);
+};
+
 var deleteStockOrder = function(args, connectionInfo, retryCounter) {
   log.debug('inside deleteStockOrder()');
 
@@ -1765,6 +1801,7 @@ module.exports = function(dependencies) {
       stockOrders: {
         create: createStockOrder,
         markAsSent: markStockOrderAsSent,
+        markAsReceived: markStockOrderAsReceived,
         fetch: fetchStockOrdersForSuppliers,
         fetchAll: fetchAllStockOrdersForSuppliers,
         resolveMissingSuppliers: resolveMissingSuppliers,
