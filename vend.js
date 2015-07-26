@@ -307,6 +307,15 @@ var argsForInput = {
           }
         };
       },
+      remove: function() {
+        return {
+          apiId: {
+            required: true,
+            //id: undefined, // does not travel as a key/value property in the JSON payload
+            value: undefined
+          }
+        };
+      }
     },
     stockOrders: {
       create: function() {
@@ -361,6 +370,15 @@ var argsForInput = {
           }
         };
       },
+      remove: function() {
+        return {
+          apiId: {
+            required: true,
+            //id: undefined, // does not travel as a key/value property in the JSON payload
+            value: undefined
+          }
+        };
+      }
     }
   },
   products: {
@@ -1635,6 +1653,40 @@ var deleteStockOrder = function(args, connectionInfo, retryCounter) {
   return sendRequest(options, args, connectionInfo, deleteStockOrder, retryCounter);
 };
 
+var deleteConsignmentProduct = function(args, connectionInfo, retryCounter) {
+  log.debug('inside deleteConsignmentProduct()');
+
+  log.debug(args);
+  if ( !(args && argsAreValid(args)) ) {
+    return Promise.reject('missing required arguments for deleteStockOrder()');
+  }
+
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    log.debug('retry # ' + retryCounter);
+  }
+
+  log.debug('args.apiId.value: ' + args.apiId.value);
+  var path = '/api/consignment_product/' + args.apiId.value;
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+
+  var options = {
+    method: 'DELETE',
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    }
+  };
+  log.debug(options.method + ' ' + options.url);
+
+  return sendRequest(options, args, connectionInfo, deleteConsignmentProduct, retryCounter);
+};
+
 var getInitialAccessToken = function(tokenService, clientId, clientSecret, redirectUri, code, domainPrefix, state) {
   // TODO: tweak winston logs to prefix method signature (like breadcrumbs) when logging?
   log.debug('getInitialAccessToken - token_service: ' + tokenService);
@@ -1812,7 +1864,8 @@ module.exports = function(dependencies) {
         update: updateConsignmentProduct,
         fetch: fetchProductsByConsignment,
         fetchAllByConsignment: fetchAllProductsByConsignment,
-        fetchAllForConsignments: fetchAllProductsByConsignments
+        fetchAllForConsignments: fetchAllProductsByConsignments,
+        remove: deleteConsignmentProduct
       }
     },
     outlets:{
