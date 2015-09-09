@@ -92,10 +92,14 @@ var retryWhenAuthNFails = function(args, connectionInfo, callback, retryCounter)
       connectionInfo.domainPrefix
     )
       .then(function(oauthInfo) {
-        console.log('update connectionInfo w/ new token before using it again');
+        console.log('update connectionInfo w/ new token before using it again', oauthInfo);
+        var waitFor = Promise.resolve();
         if (oauthInfo.access_token) {
           console.log('received new access_token: ' + oauthInfo.access_token);
           connectionInfo.accessToken = oauthInfo.access_token;
+          if(_.isFunction(connectionInfo.updateAccessToken)) {
+            waitFor = connectionInfo.updateAccessToken(connectionInfo);
+          }
         }
         if (oauthInfo.refresh_token) {
           console.log('received new refresh_token: ' + oauthInfo.refresh_token);
@@ -103,7 +107,9 @@ var retryWhenAuthNFails = function(args, connectionInfo, callback, retryCounter)
         }
 
         console.log('retrying with new accessToken: ' + connectionInfo.accessToken);
-        return callback(args, connectionInfo, ++retryCounter);
+        return waitFor.then(function(){
+          return callback(args, connectionInfo, ++retryCounter);
+        });
       });
   }
 };
