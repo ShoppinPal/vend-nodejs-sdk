@@ -264,6 +264,14 @@ var argsAreValid = function(args){
 // the SDK will pull out the non-empty values and execute the request
 var argsForInput = {
   consignments: {
+    fetchById: function() {
+      return {
+        apiId: {
+          required: true,
+          value: undefined
+        }
+      };
+    },
     products: {
       create: function() {
         return {
@@ -1051,6 +1059,31 @@ var fetchAllProducts = function(connectionInfo, processPagedResults) {
   return processPagesRecursively(args, connectionInfo, fetchProducts, processPagedResults);
 };
 
+var fetchPaginationInfo = function(connectionInfo){
+
+  var args = argsForInput.products.fetch();
+  args.orderBy.value = 'id';
+  args.page.value = 1;
+  args.pageSize.value = 2;
+  args.active.value = true;
+
+  return fetchProducts(args, connectionInfo)
+    .then(function(result){
+
+      // HACK - until Vend responses become consistent
+      if (result && result.results && !result.pagination) {
+        result.pagination = {
+          'results': result.results,
+          'page': result.page,
+          'page_size': result.page_size,
+          'pages': result.pages,
+        }; // NOTE: if the first page has all the results, this block won't run then either
+      }
+
+      return (result && result.pagination) ? Promise.resolve(result.pagination) : Promise.resolve();
+    });
+};
+
 var fetchCustomerByEmail = function(email, connectionInfo, retryCounter) {
   log.debug('inside fetchCustomerByEmail()');
   var args = args.customers.fetch();
@@ -1360,6 +1393,31 @@ var fetchAllSuppliers = function(connectionInfo, processPagedResults) {
     processPagedResults = defaultMethod_ForProcessingPagedResults_ForSuppliers;
   }
   return processPagesRecursively(args, connectionInfo, fetchSuppliers, processPagedResults);
+};
+
+var fetchConsignment  = function(args, connectionInfo, retryCounter) {
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    console.log('retry # ' + retryCounter);
+  }
+
+  var path = '/api/1.0/consignment/' + args.apiId.value;
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  console.log('Requesting vend consignment ' + vendUrl);
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.debug('GET ' + vendUrl);
+  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+
+  var options = {
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Accept': 'application/json'
+    }
+  };
+
+  return sendRequest(options, args, connectionInfo, fetchConsignment, retryCounter);
 };
 
 var createConsignmentProduct = function(args, connectionInfo, retryCounter) {
@@ -1833,6 +1891,7 @@ module.exports = function(dependencies) {
       fetchByHandle: fetchProductByHandle,
       fetchBySku: fetchProductBySku,
       fetchAll: fetchAllProducts,
+      fetchPaginationInfo: fetchPaginationInfo,
       update: updateProductById
     },
     registers: {
@@ -1856,6 +1915,7 @@ module.exports = function(dependencies) {
       fetchByEmail: fetchCustomerByEmail
     },
     consignments: {
+      fetchById: fetchConsignment,
       stockOrders: {
         create: createStockOrder,
         markAsSent: markStockOrderAsSent,
