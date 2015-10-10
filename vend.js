@@ -1060,15 +1060,9 @@ var fetchAllProducts = function(connectionInfo, processPagedResults) {
 };
 
 var fetchPaginationInfo = function(args, connectionInfo){
-
-  var argsDefaults = argsForInput.products.fetch();
-  args.orderBy.value = 'id';
-  args.page.value = 1;
-  args.pageSize.value = 200;
-  args.active.value = true;
-
-  _.defaults(args, argsDefaults);
-
+  if ( !(args && argsAreValid(args)) ) {
+    return Promise.reject('missing required arguments for fetchPaginationInfo()');
+  }
   return fetchProducts(args, connectionInfo)
     .then(function(result){
 
