@@ -1059,13 +1059,15 @@ var fetchAllProducts = function(connectionInfo, processPagedResults) {
   return processPagesRecursively(args, connectionInfo, fetchProducts, processPagedResults);
 };
 
-var fetchPaginationInfo = function(connectionInfo){
+var fetchPaginationInfo = function(args, connectionInfo){
 
-  var args = argsForInput.products.fetch();
+  var argsDefaults = argsForInput.products.fetch();
   args.orderBy.value = 'id';
   args.page.value = 1;
-  args.pageSize.value = 2;
+  args.pageSize.value = 200;
   args.active.value = true;
+
+  _.defaults(args, argsDefaults);
 
   return fetchProducts(args, connectionInfo)
     .then(function(result){
