@@ -329,6 +329,25 @@ var argsForInput = {
             value: undefined
           }
         };
+      },
+      fetchAllByConsignment: function() {
+        return {
+          consignmentId: {
+            required: true,
+            key: 'consignment_id',
+            value: undefined
+          },
+          page: {
+            required: false,
+            key: 'page',
+            value: undefined
+          },
+          pageSize: {
+            required: false,
+            key: 'page_size',
+            value: undefined
+          }
+        };
       }
     },
     stockOrders: {
