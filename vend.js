@@ -920,6 +920,42 @@ var updateProductById = function(args, connectionInfo, retryCounter) {
   return sendRequest(options, args, connectionInfo, updateProductById, retryCounter);
 };
 
+
+var deleteProductById = function(args, connectionInfo, retryCounter) {
+  log.debug('inside deleteProductById()');
+
+  log.debug(args);
+  if ( !(args && argsAreValid(args)) ) {
+    return Promise.reject('missing required arguments for deleteProductById()');
+  }
+
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    log.debug('retry # ' + retryCounter);
+  }
+
+  log.debug('args.apiId.value: ' + args.apiId.value);
+  var path = '/api/products/' + args.apiId.value;
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+
+  var options = {
+    method: 'DELETE',
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    }
+  };
+  log.debug(options.method + ' ' + options.url);
+
+  return sendRequest(options, args, connectionInfo, deleteProductById, retryCounter);
+};
+
+
 // TODO: instead of returning response, return the value of response.products[0] directly?
 var fetchProductByHandle  = function(args, connectionInfo, retryCounter) {
   if ( !(args && args.handle && args.handle.value) ) {
@@ -1888,7 +1924,8 @@ module.exports = function(dependencies) {
       fetchBySku: fetchProductBySku,
       fetchAll: fetchAllProducts,
       fetchPaginationInfo: fetchPaginationInfo,
-      update: updateProductById
+      update: updateProductById,
+      delete: deleteProductById
     },
     registers: {
       fetch: fetchRegisters,
