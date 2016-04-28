@@ -118,6 +118,9 @@ var sendRequest = function(options, args, connectionInfo, callback, retryCounter
   if ( !(connectionInfo && connectionInfo.accessToken && connectionInfo.domainPrefix) ) {
     return Promise.reject('missing required arguments for sendRequest()');
   }
+  if (options.headers) {
+    options.headers['User-Agent'] = process.env['User-Agent'] + '.vend-nodejs-sdk';
+  }
   return request(options)
     .then(successHandler)
     .catch(RateLimitingError, function(e) {
