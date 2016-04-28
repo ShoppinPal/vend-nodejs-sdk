@@ -1,6 +1,6 @@
 {
   "name": "vend-nodejs-sdk",
-  "version": "1.0.17",
+  "version": "1.0.18",
   "description": "Aims to provides a rich set of client-side functionality for Vend's public APIs",
   "main": "vend.js",
   "scripts": {
