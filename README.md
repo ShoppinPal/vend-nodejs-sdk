@@ -5,6 +5,11 @@ vend-js-sdk
 
 Aims to provides a rich set of client-side functionality for Vend's public APIs
 
+If you don't use nodejs, please be aware that there are still other libraries out there! Hopefully, one that works with your preferred language is already present:
+
+1. https://github.com/pzurek/go-vend
+2. https://github.com/ShoppinPal/vend-php-tools
+
 Simple-Legal-Speak
 ==================
 
