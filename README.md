@@ -9,6 +9,8 @@ If you don't use nodejs, please be aware that there are still other libraries ou
 
 1. https://github.com/pzurek/go-vend
 2. https://github.com/ShoppinPal/vend-php-tools
+3. https://github.com/chipwillman/VendAPI.Net
+4. https://github.com/wso2-extensions/esb-connector-vend
 
 Simple-Legal-Speak
 ==================
