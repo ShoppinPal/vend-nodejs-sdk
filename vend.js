@@ -434,6 +434,14 @@ var argsForInput = {
         }
       };
     },
+    create: function() {
+      return {
+        body: {
+          required: true,
+          value: undefined
+        }
+      };
+    },
     fetch: function() {
       return {
         orderBy: {
@@ -630,6 +638,14 @@ var argsForInput = {
         pageSize: {
           required: false,
           key: 'page_size',
+          value: undefined
+        }
+      };
+    },
+    create: function () {
+      return {
+        body: {
+          required: true,
           value: undefined
         }
       };
@@ -976,6 +992,39 @@ var deleteProductById = function(args, connectionInfo, retryCounter) {
 
   return sendRequest(options, args, connectionInfo, deleteProductById, retryCounter);
 };
+
+var createProduct = function(args, connectionInfo, retryCounter) {
+  if ( !(args && argsAreValid(args)) ) {
+    return Promise.reject('missing required arguments for createProduct()');
+  }
+
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    console.log('retry # ' + retryCounter);
+  }
+
+  var path = '/api/products';
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+  var body = args.body.value;
+
+  var options = {
+    method: 'POST',
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    },
+    json: body
+  };
+  log.debug(options.method + ' ' + options.url);
+
+  return sendRequest(options, args, connectionInfo, createProduct, retryCounter);
+};
+
 
 
 // TODO: instead of returning response, return the value of response.products[0] directly?
@@ -1447,6 +1496,38 @@ var fetchAllSuppliers = function(connectionInfo, processPagedResults) {
     processPagedResults = defaultMethod_ForProcessingPagedResults_ForSuppliers;
   }
   return processPagesRecursively(args, connectionInfo, fetchSuppliers, processPagedResults);
+};
+
+var createSupplier = function(args, connectionInfo, retryCounter) {
+  if ( !(args && argsAreValid(args)) ) {
+    return Promise.reject('missing required arguments for createSupplier()');
+  }
+
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    console.log('retry # ' + retryCounter);
+  }
+
+  var path = '/api/supplier';
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+  var body = args.body.value;
+  
+  var options = {
+    method: 'POST',
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    },
+    json: body
+  };
+  log.debug(options.method + ' ' + options.url);
+
+  return sendRequest(options, args, connectionInfo, createSupplier, retryCounter);
 };
 
 var fetchConsignment  = function(args, connectionInfo, retryCounter) {
@@ -1947,7 +2028,8 @@ module.exports = function(dependencies) {
       fetchAll: fetchAllProducts,
       fetchPaginationInfo: fetchPaginationInfo,
       update: updateProductById,
-      delete: deleteProductById
+      delete: deleteProductById,
+      create: createProduct
     },
     registers: {
       fetch: fetchRegisters,
@@ -1995,7 +2077,8 @@ module.exports = function(dependencies) {
     suppliers:{
       fetchById: fetchSupplier,
       fetch: fetchSuppliers,
-      fetchAll: fetchAllSuppliers
+      fetchAll: fetchAllSuppliers,
+      create: createSupplier
     },
     hasAccessTokenExpired: hasAccessTokenExpired,
     getInitialAccessToken: getInitialAccessToken,
