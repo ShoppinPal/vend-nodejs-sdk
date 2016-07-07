@@ -1338,7 +1338,7 @@ var fetchProductTypes = function(args, connectionInfo, retryCounter) {
     console.log('retry # ' + retryCounter);
   }
 
-  var path = '/api/1.0/product_type';
+  var path = '/api/2.0/product_types';
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
   log.debug('GET ' + vendUrl);
