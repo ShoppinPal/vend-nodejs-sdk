@@ -571,6 +571,14 @@ var argsForInput = {
           value: undefined
         }
       };
+    },
+    create: function () {
+      return {
+        body: {
+          required: true,
+          value: undefined
+        }
+      };
     }
   },
   taxes: {
@@ -1356,6 +1364,38 @@ var fetchProductTypes = function(args, connectionInfo, retryCounter) {
   return sendRequest(options, args, connectionInfo, fetchProductTypes, retryCounter);
 };
 
+var createProductTypes = function(args, connectionInfo, retryCounter) {
+  if ( !(args && argsAreValid(args)) ) {
+    return Promise.reject('missing required arguments for createProductTypes()');
+  }
+
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    console.log('retry # ' + retryCounter);
+  }
+
+  var path = '/api/2.0/product_types';
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+  var body = args.body.value;
+
+  var options = {
+    method: 'POST',
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    },
+    json: body
+  };
+  log.debug(options.method + ' ' + options.url);
+
+  return sendRequest(options, args, connectionInfo, createProductTypes, retryCounter);
+};
+
 var fetchTaxes = function(args, connectionInfo, retryCounter) {
   log.debug('inside fetchTaxes()');
   if (!retryCounter) {
@@ -2121,7 +2161,8 @@ module.exports = function(dependencies) {
       fetch: fetchPaymentTypes
     },
     productTypes: {
-      fetch: fetchProductTypes
+      fetch: fetchProductTypes,
+      create: createProductTypes
     },
     taxes: {
       fetch: fetchTaxes,
