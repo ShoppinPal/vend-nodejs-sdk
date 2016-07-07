@@ -539,6 +539,14 @@ var argsForInput = {
           value: undefined
         }
       };
+    },
+    fetchById: function() {
+      return {
+        apiId: {
+          required: true,
+          value: undefined
+        }
+      };
     }
   },
   paymentTypes: {
@@ -1628,6 +1636,31 @@ var fetchOutlets = function(args, connectionInfo, retryCounter) {
   return sendRequest(options, args, connectionInfo, fetchOutlets, retryCounter);
 };
 
+var fetchOutlet  = function(args, connectionInfo, retryCounter) {
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    console.log('retry # ' + retryCounter);
+  }
+
+  var path = '/api/2.0/outlets/' + args.apiId.value;
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  console.log('Requesting vend outlet ' + vendUrl);
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.debug('GET ' + vendUrl);
+  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+
+  var options = {
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Accept': 'application/json'
+    }
+  };
+
+  return sendRequest(options, args, connectionInfo, fetchOutlet, retryCounter);
+};
+
 var fetchSupplier = function(args, connectionInfo, retryCounter) {
   log.debug('inside fetchSuppliers()');
   if (!retryCounter) {
@@ -2285,7 +2318,8 @@ module.exports = function(dependencies) {
       }
     },
     outlets:{
-      fetch: fetchOutlets // no need for fetchAll since hardly any Vend customers have more than 200 outlets
+      fetch: fetchOutlets, // no need for fetchAll since hardly any Vend customers have more than 200 outlets
+      fetchById: fetchOutlet
     },
     suppliers:{
       fetchById: fetchSupplier,
