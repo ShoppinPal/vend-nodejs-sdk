@@ -557,6 +557,22 @@ var argsForInput = {
       };
     }
   },
+  productTypes: {
+    fetch: function() {
+      return {
+        page: {
+          required: false,
+          key: 'page',
+          value: undefined
+        },
+        pageSize: {
+          required: false,
+          key: 'page_size',
+          value: undefined
+        }
+      };
+    }
+  },
   taxes: {
     fetch: function() {
       return {
@@ -568,6 +584,14 @@ var argsForInput = {
         pageSize: {
           required: false,
           key: 'page_size',
+          value: undefined
+        }
+      };
+    },
+    create: function () {
+      return {
+        body: {
+          required: true,
           value: undefined
         }
       };
@@ -1306,6 +1330,32 @@ var fetchPaymentTypes = function(args, connectionInfo, retryCounter) {
   return sendRequest(options, args, connectionInfo, fetchPaymentTypes, retryCounter);
 };
 
+var fetchProductTypes = function(args, connectionInfo, retryCounter) {
+  log.debug('inside fetchProductTypes()');
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    console.log('retry # ' + retryCounter);
+  }
+
+  var path = '/api/1.0/product_type';
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.debug('GET ' + vendUrl);
+  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+
+  var options = {
+    method: 'GET',
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Accept': 'application/json'
+    }
+  };
+
+  return sendRequest(options, args, connectionInfo, fetchProductTypes, retryCounter);
+};
+
 var fetchTaxes = function(args, connectionInfo, retryCounter) {
   log.debug('inside fetchTaxes()');
   if (!retryCounter) {
@@ -1330,6 +1380,38 @@ var fetchTaxes = function(args, connectionInfo, retryCounter) {
   };
 
   return sendRequest(options, args, connectionInfo, fetchTaxes, retryCounter);
+};
+
+var createTaxe = function(args, connectionInfo, retryCounter) {
+  if ( !(args && argsAreValid(args)) ) {
+    return Promise.reject('missing required arguments for createTaxe()');
+  }
+
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    console.log('retry # ' + retryCounter);
+  }
+
+  var path = '/api/taxes';
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+  var body = args.body.value;
+
+  var options = {
+    method: 'POST',
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    },
+    json: body
+  };
+  log.debug(options.method + ' ' + options.url);
+
+  return sendRequest(options, args, connectionInfo, createTaxe, retryCounter);
 };
 
 var fetchRegisterSales = function(args, connectionInfo, retryCounter) {
@@ -2038,8 +2120,12 @@ module.exports = function(dependencies) {
     paymentTypes: {
       fetch: fetchPaymentTypes
     },
+    productTypes: {
+      fetch: fetchProductTypes
+    },
     taxes: {
-      fetch: fetchTaxes
+      fetch: fetchTaxes,
+      create: createTaxe
     },
     sales: {
       create: createRegisterSale,
