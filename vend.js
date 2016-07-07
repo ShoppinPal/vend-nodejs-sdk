@@ -605,6 +605,30 @@ var argsForInput = {
       };
     }
   },
+  brands: {
+    fetch: function() {
+      return {
+        page: {
+          required: false,
+          key: 'page',
+          value: undefined
+        },
+        pageSize: {
+          required: false,
+          key: 'page_size',
+          value: undefined
+        }
+      };
+    },
+    create: function () {
+      return {
+        body: {
+          required: true,
+          value: undefined
+        }
+      };
+    }
+  },
   sales: {
     fetch: function() {
       return {
@@ -1454,6 +1478,64 @@ var createTaxe = function(args, connectionInfo, retryCounter) {
   return sendRequest(options, args, connectionInfo, createTaxe, retryCounter);
 };
 
+var fetchBrands = function(args, connectionInfo, retryCounter) {
+  log.debug('inside fetchBrands()');
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    console.log('retry # ' + retryCounter);
+  }
+
+  var path = '/api/2.0/brands';
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.debug('GET ' + vendUrl);
+  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+
+  var options = {
+    method: 'GET',
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Accept': 'application/json'
+    }
+  };
+
+  return sendRequest(options, args, connectionInfo, fetchBrands, retryCounter);
+};
+
+var createBrand = function(args, connectionInfo, retryCounter) {
+  if ( !(args && argsAreValid(args)) ) {
+    return Promise.reject('missing required arguments for createBrand()');
+  }
+
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    console.log('retry # ' + retryCounter);
+  }
+
+  var path = '/api/2.0/brands';
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+  var body = args.body.value;
+
+  var options = {
+    method: 'POST',
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    },
+    json: body
+  };
+  log.debug(options.method + ' ' + options.url);
+
+  return sendRequest(options, args, connectionInfo, createBrand, retryCounter);
+};
+
 var fetchRegisterSales = function(args, connectionInfo, retryCounter) {
   log.debug('inside fetchRegisterSales()');
   if (!retryCounter) {
@@ -2167,6 +2249,10 @@ module.exports = function(dependencies) {
     taxes: {
       fetch: fetchTaxes,
       create: createTaxe
+    },
+    brands: {
+      fetch: fetchBrands,
+      create: createBrand
     },
     sales: {
       create: createRegisterSale,
