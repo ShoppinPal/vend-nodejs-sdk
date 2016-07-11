@@ -171,8 +171,9 @@ var sendRequest = function(options, args, connectionInfo, callback, retryCounter
       return Promise.reject(e.statusCode + ' ' + e.response.body); // TODO: throw unknown errors but reject well known errors?
     })
     .catch(function(e) {
-      console.error('vend.js - sendRequest - An unexpected error occurred: ', e);
-      throw e; // TODO: throw unknown errors but reject well known errors?
+      //console.error('vend.js - sendRequest - An unexpected error occurred: ', e);
+      return Promise.reject(e.statusCode + ' ' + e.response.body);
+      //throw e; // TODO: throw unknown errors but reject well known errors?
     });
 };
 
@@ -442,6 +443,18 @@ var argsForInput = {
         }
       };
     },
+    uploadImage: function() {
+      return {
+        apiId: {
+          required: true,
+          value: undefined
+        },
+        image: {
+          required: true,
+          value: undefined
+        }
+      };
+    },
     fetch: function() {
       return {
         orderBy: {
@@ -510,6 +523,14 @@ var argsForInput = {
     }
   },
   registers: {
+    fetchById: function() {
+      return {
+        apiId: {
+          required: true,
+          value: undefined
+        }
+      };
+    },
     fetch: function() {
       return {
         page: {
@@ -614,6 +635,30 @@ var argsForInput = {
     }
   },
   brands: {
+    fetch: function() {
+      return {
+        page: {
+          required: false,
+          key: 'page',
+          value: undefined
+        },
+        pageSize: {
+          required: false,
+          key: 'page_size',
+          value: undefined
+        }
+      };
+    },
+    create: function () {
+      return {
+        body: {
+          required: true,
+          value: undefined
+        }
+      };
+    }
+  },
+  tags: {
     fetch: function() {
       return {
         page: {
@@ -1089,7 +1134,37 @@ var createProduct = function(args, connectionInfo, retryCounter) {
   return sendRequest(options, args, connectionInfo, createProduct, retryCounter);
 };
 
+var uploadProductImage = function(args, connectionInfo, retryCounter) {
+  if ( !(args && argsAreValid(args)) ) {
+    return Promise.reject('missing required arguments for uploadProductImage()');
+  }
 
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    console.log('retry # ' + retryCounter);
+  }
+
+  var path = '/api/2.0/products/' + args.apiId.value + '/actions/image_upload';
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+  var body = args.image.value;
+
+  var options = {
+    method: 'POST',
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    },
+    json: body
+  };
+  log.debug(options.method + ' ' + options.url);
+
+  return sendRequest(options, args, connectionInfo, uploadProductImage, retryCounter);
+};
 
 // TODO: instead of returning response, return the value of response.products[0] directly?
 var fetchProductByHandle  = function(args, connectionInfo, retryCounter) {
@@ -1344,6 +1419,31 @@ var fetchAllRegisters = function(args, connectionInfo, processPagedResults) {
   return processPagesRecursively(args, connectionInfo, fetchRegisters, processPagedResults);
 };
 
+var fetchRegister  = function(args, connectionInfo, retryCounter) {
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    console.log('retry # ' + retryCounter);
+  }
+
+  var path = '/api/2.0/registers/' + args.apiId.value;
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  console.log('Requesting vend product ' + vendUrl);
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.debug('GET ' + vendUrl);
+  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+
+  var options = {
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Accept': 'application/json'
+    }
+  };
+
+  return sendRequest(options, args, connectionInfo, fetchRegister, retryCounter);
+};
+
 var fetchPaymentTypes = function(args, connectionInfo, retryCounter) {
   log.debug('inside fetchPaymentTypes()');
   if (!retryCounter) {
@@ -1542,6 +1642,64 @@ var createBrand = function(args, connectionInfo, retryCounter) {
   log.debug(options.method + ' ' + options.url);
 
   return sendRequest(options, args, connectionInfo, createBrand, retryCounter);
+};
+
+var fetchTags = function(args, connectionInfo, retryCounter) {
+  log.debug('inside fetchTags()');
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    console.log('retry # ' + retryCounter);
+  }
+
+  var path = '/api/2.0/tags';
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.debug('GET ' + vendUrl);
+  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+
+  var options = {
+    method: 'GET',
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Accept': 'application/json'
+    }
+  };
+
+  return sendRequest(options, args, connectionInfo, fetchTags, retryCounter);
+};
+
+var createTag = function(args, connectionInfo, retryCounter) {
+  if ( !(args && argsAreValid(args)) ) {
+    return Promise.reject('missing required arguments for createTag()');
+  }
+
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    console.log('retry # ' + retryCounter);
+  }
+
+  var path = '/api/2.0/tags';
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+  var body = args.body.value;
+
+  var options = {
+    method: 'POST',
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    },
+    json: body
+  };
+  log.debug(options.method + ' ' + options.url);
+
+  return sendRequest(options, args, connectionInfo, createTag, retryCounter);
 };
 
 var fetchRegisterSales = function(args, connectionInfo, retryCounter) {
@@ -2266,11 +2424,13 @@ module.exports = function(dependencies) {
       fetchPaginationInfo: fetchPaginationInfo,
       update: updateProductById,
       delete: deleteProductById,
-      create: createProduct
+      create: createProduct,
+      uploadImage: uploadProductImage
     },
     registers: {
       fetch: fetchRegisters,
-      fetchAll: fetchAllRegisters
+      fetchAll: fetchAllRegisters,
+      fetchById: fetchRegister
     },
     paymentTypes: {
       fetch: fetchPaymentTypes
@@ -2286,6 +2446,10 @@ module.exports = function(dependencies) {
     brands: {
       fetch: fetchBrands,
       create: createBrand
+    },
+    tags: {
+      fetch: fetchTags,
+      create: createTag
     },
     sales: {
       create: createRegisterSale,
