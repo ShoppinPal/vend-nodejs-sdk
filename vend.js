@@ -442,6 +442,18 @@ var argsForInput = {
         }
       };
     },
+    uploadImage: function() {
+      return {
+        apiId: {
+          required: true,
+          value: undefined
+        },
+        image: {
+          required: true,
+          value: undefined
+        }
+      };
+    },
     fetch: function() {
       return {
         orderBy: {
@@ -510,6 +522,14 @@ var argsForInput = {
     }
   },
   registers: {
+    fetchById: function() {
+      return {
+        apiId: {
+          required: true,
+          value: undefined
+        }
+      };
+    },
     fetch: function() {
       return {
         page: {
@@ -536,6 +556,14 @@ var argsForInput = {
         pageSize: {
           required: false,
           key: 'page_size',
+          value: undefined
+        }
+      };
+    },
+    fetchById: function() {
+      return {
+        apiId: {
+          required: true,
           value: undefined
         }
       };
@@ -571,9 +599,65 @@ var argsForInput = {
           value: undefined
         }
       };
+    },
+    create: function () {
+      return {
+        body: {
+          required: true,
+          value: undefined
+        }
+      };
     }
   },
   taxes: {
+    fetch: function() {
+      return {
+        page: {
+          required: false,
+          key: 'page',
+          value: undefined
+        },
+        pageSize: {
+          required: false,
+          key: 'page_size',
+          value: undefined
+        }
+      };
+    },
+    create: function () {
+      return {
+        body: {
+          required: true,
+          value: undefined
+        }
+      };
+    }
+  },
+  brands: {
+    fetch: function() {
+      return {
+        page: {
+          required: false,
+          key: 'page',
+          value: undefined
+        },
+        pageSize: {
+          required: false,
+          key: 'page_size',
+          value: undefined
+        }
+      };
+    },
+    create: function () {
+      return {
+        body: {
+          required: true,
+          value: undefined
+        }
+      };
+    }
+  },
+  tags: {
     fetch: function() {
       return {
         page: {
@@ -1049,7 +1133,37 @@ var createProduct = function(args, connectionInfo, retryCounter) {
   return sendRequest(options, args, connectionInfo, createProduct, retryCounter);
 };
 
+var uploadProductImage = function(args, connectionInfo, retryCounter) {
+  if ( !(args && argsAreValid(args)) ) {
+    return Promise.reject('missing required arguments for uploadProductImage()');
+  }
 
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    console.log('retry # ' + retryCounter);
+  }
+
+  var path = '/api/2.0/products/' + args.apiId.value + '/actions/image_upload';
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+  var body = args.image.value;
+
+  var options = {
+    method: 'POST',
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    },
+    json: body
+  };
+  log.debug(options.method + ' ' + options.url);
+
+  return sendRequest(options, args, connectionInfo, uploadProductImage, retryCounter);
+};
 
 // TODO: instead of returning response, return the value of response.products[0] directly?
 var fetchProductByHandle  = function(args, connectionInfo, retryCounter) {
@@ -1304,6 +1418,31 @@ var fetchAllRegisters = function(args, connectionInfo, processPagedResults) {
   return processPagesRecursively(args, connectionInfo, fetchRegisters, processPagedResults);
 };
 
+var fetchRegister  = function(args, connectionInfo, retryCounter) {
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    console.log('retry # ' + retryCounter);
+  }
+
+  var path = '/api/2.0/registers/' + args.apiId.value;
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  console.log('Requesting vend product ' + vendUrl);
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.debug('GET ' + vendUrl);
+  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+
+  var options = {
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Accept': 'application/json'
+    }
+  };
+
+  return sendRequest(options, args, connectionInfo, fetchRegister, retryCounter);
+};
+
 var fetchPaymentTypes = function(args, connectionInfo, retryCounter) {
   log.debug('inside fetchPaymentTypes()');
   if (!retryCounter) {
@@ -1338,7 +1477,7 @@ var fetchProductTypes = function(args, connectionInfo, retryCounter) {
     console.log('retry # ' + retryCounter);
   }
 
-  var path = '/api/1.0/product_type';
+  var path = '/api/2.0/product_types';
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
   log.debug('GET ' + vendUrl);
@@ -1354,6 +1493,38 @@ var fetchProductTypes = function(args, connectionInfo, retryCounter) {
   };
 
   return sendRequest(options, args, connectionInfo, fetchProductTypes, retryCounter);
+};
+
+var createProductTypes = function(args, connectionInfo, retryCounter) {
+  if ( !(args && argsAreValid(args)) ) {
+    return Promise.reject('missing required arguments for createProductTypes()');
+  }
+
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    console.log('retry # ' + retryCounter);
+  }
+
+  var path = '/api/2.0/product_types';
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+  var body = args.body.value;
+
+  var options = {
+    method: 'POST',
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    },
+    json: body
+  };
+  log.debug(options.method + ' ' + options.url);
+
+  return sendRequest(options, args, connectionInfo, createProductTypes, retryCounter);
 };
 
 var fetchTaxes = function(args, connectionInfo, retryCounter) {
@@ -1412,6 +1583,122 @@ var createTaxe = function(args, connectionInfo, retryCounter) {
   log.debug(options.method + ' ' + options.url);
 
   return sendRequest(options, args, connectionInfo, createTaxe, retryCounter);
+};
+
+var fetchBrands = function(args, connectionInfo, retryCounter) {
+  log.debug('inside fetchBrands()');
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    console.log('retry # ' + retryCounter);
+  }
+
+  var path = '/api/2.0/brands';
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.debug('GET ' + vendUrl);
+  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+
+  var options = {
+    method: 'GET',
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Accept': 'application/json'
+    }
+  };
+
+  return sendRequest(options, args, connectionInfo, fetchBrands, retryCounter);
+};
+
+var createBrand = function(args, connectionInfo, retryCounter) {
+  if ( !(args && argsAreValid(args)) ) {
+    return Promise.reject('missing required arguments for createBrand()');
+  }
+
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    console.log('retry # ' + retryCounter);
+  }
+
+  var path = '/api/2.0/brands';
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+  var body = args.body.value;
+
+  var options = {
+    method: 'POST',
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    },
+    json: body
+  };
+  log.debug(options.method + ' ' + options.url);
+
+  return sendRequest(options, args, connectionInfo, createBrand, retryCounter);
+};
+
+var fetchTags = function(args, connectionInfo, retryCounter) {
+  log.debug('inside fetchTags()');
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    console.log('retry # ' + retryCounter);
+  }
+
+  var path = '/api/2.0/tags';
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.debug('GET ' + vendUrl);
+  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+
+  var options = {
+    method: 'GET',
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Accept': 'application/json'
+    }
+  };
+
+  return sendRequest(options, args, connectionInfo, fetchTags, retryCounter);
+};
+
+var createTag = function(args, connectionInfo, retryCounter) {
+  if ( !(args && argsAreValid(args)) ) {
+    return Promise.reject('missing required arguments for createTag()');
+  }
+
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    console.log('retry # ' + retryCounter);
+  }
+
+  var path = '/api/2.0/tags';
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+  var body = args.body.value;
+
+  var options = {
+    method: 'POST',
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    },
+    json: body
+  };
+  log.debug(options.method + ' ' + options.url);
+
+  return sendRequest(options, args, connectionInfo, createTag, retryCounter);
 };
 
 var fetchRegisterSales = function(args, connectionInfo, retryCounter) {
@@ -1504,6 +1791,31 @@ var fetchOutlets = function(args, connectionInfo, retryCounter) {
   };
 
   return sendRequest(options, args, connectionInfo, fetchOutlets, retryCounter);
+};
+
+var fetchOutlet  = function(args, connectionInfo, retryCounter) {
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    console.log('retry # ' + retryCounter);
+  }
+
+  var path = '/api/2.0/outlets/' + args.apiId.value;
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  console.log('Requesting vend outlet ' + vendUrl);
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.debug('GET ' + vendUrl);
+  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+
+  var options = {
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Accept': 'application/json'
+    }
+  };
+
+  return sendRequest(options, args, connectionInfo, fetchOutlet, retryCounter);
 };
 
 var fetchSupplier = function(args, connectionInfo, retryCounter) {
@@ -2111,21 +2423,32 @@ module.exports = function(dependencies) {
       fetchPaginationInfo: fetchPaginationInfo,
       update: updateProductById,
       delete: deleteProductById,
-      create: createProduct
+      create: createProduct,
+      uploadImage: uploadProductImage
     },
     registers: {
       fetch: fetchRegisters,
-      fetchAll: fetchAllRegisters
+      fetchAll: fetchAllRegisters,
+      fetchById: fetchRegister
     },
     paymentTypes: {
       fetch: fetchPaymentTypes
     },
     productTypes: {
-      fetch: fetchProductTypes
+      fetch: fetchProductTypes,
+      create: createProductTypes
     },
     taxes: {
       fetch: fetchTaxes,
       create: createTaxe
+    },
+    brands: {
+      fetch: fetchBrands,
+      create: createBrand
+    },
+    tags: {
+      fetch: fetchTags,
+      create: createTag
     },
     sales: {
       create: createRegisterSale,
@@ -2158,7 +2481,8 @@ module.exports = function(dependencies) {
       }
     },
     outlets:{
-      fetch: fetchOutlets // no need for fetchAll since hardly any Vend customers have more than 200 outlets
+      fetch: fetchOutlets, // no need for fetchAll since hardly any Vend customers have more than 200 outlets
+      fetchById: fetchOutlet
     },
     suppliers:{
       fetchById: fetchSupplier,
