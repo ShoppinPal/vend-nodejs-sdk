@@ -171,8 +171,9 @@ var sendRequest = function(options, args, connectionInfo, callback, retryCounter
       return Promise.reject(e.statusCode + ' ' + e.response.body); // TODO: throw unknown errors but reject well known errors?
     })
     .catch(function(e) {
-      console.error('vend.js - sendRequest - An unexpected error occurred: ', e);
-      throw e; // TODO: throw unknown errors but reject well known errors?
+      //console.error('vend.js - sendRequest - An unexpected error occurred: ', e);
+      return Promise.reject(e.statusCode + ' ' + e.response.body);
+      //throw e; // TODO: throw unknown errors but reject well known errors?
     });
 };
 
