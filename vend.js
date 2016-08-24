@@ -6,6 +6,7 @@ var Promise = null;
 var request = null;
 var log = null;
 
+/* jshint ignore:start */
 function RateLimitingError(e) {
   return e.statusCode == 429;
 }
@@ -21,6 +22,7 @@ function AuthZError(e) {
 function ClientError(e) {
   return e.statusCode >= 400 && e.statusCode < 500;
 }
+/* jshint ignore:end */
 
 var successHandler = function(response) {
   if(_.isArray(response)) {
@@ -91,7 +93,7 @@ var retryWhenAuthNFails = function(args, connectionInfo, callback, retryCounter)
       connectionInfo.refreshToken,
       connectionInfo.domainPrefix
     )
-      .then(function(oauthInfo) {
+      .then(function(oauthInfo) {/*jshint camelcase: false */
         console.log('update connectionInfo w/ new token before using it again', oauthInfo);
         var waitFor = Promise.resolve();
         if (oauthInfo.access_token) {
@@ -123,7 +125,7 @@ var sendRequest = function(options, args, connectionInfo, callback, retryCounter
   }
   return request(options)
     .then(successHandler)
-    .catch(RateLimitingError, function(e) {
+    .catch(RateLimitingError, function(e) {// jshint ignore:line
       console.log('A RateLimitingError error like "429 Too Many Requests" happened: \n'
           + 'statusCode: ' + e.statusCode + '\n'
           + 'body: ' + e.response.body + '\n'
@@ -145,7 +147,7 @@ var sendRequest = function(options, args, connectionInfo, callback, retryCounter
       return retryWhenRateLimited(bodyObject, args, connectionInfo, callback, retryCounter);
       // TODO: how should a catch-block respond if there is a problem within the retry?
     })
-    .catch(AuthNError, function(e) {
+    .catch(AuthNError, function(e) {// jshint ignore:line
       console.log('An AuthNError happened: \n'
           + 'statusCode: ' + e.statusCode + '\n'
           + 'body: ' + e.response.body + '\n'
@@ -155,7 +157,7 @@ var sendRequest = function(options, args, connectionInfo, callback, retryCounter
       return retryWhenAuthNFails(args, connectionInfo, callback, retryCounter);
       // TODO: how to prevent a throw or rejection from also stepping thru the other catch-blocks?
     })
-    .catch(ClientError, function(e) {
+    .catch(ClientError, function(e) {// jshint ignore:line
       var message = e.response.body;
       if(_.isObject(message)) {
         message = JSON.stringify(message,null,2);
@@ -184,16 +186,15 @@ var sendRequest = function(options, args, connectionInfo, callback, retryCounter
  * @param domain_prefix
  * @returns {*|XML|string|void}
  */
-var getTokenUrl = function(tokenService, domain_prefix) {
-  var tokenUrl = tokenService.replace(/\{DOMAIN_PREFIX\}/, domain_prefix);
+var getTokenUrl = function(tokenService, domainPrefix) {
+  var tokenUrl = tokenService.replace(/\{DOMAIN_PREFIX\}/, domainPrefix);
   log.debug('token Url: '+ tokenUrl);
   return tokenUrl;
 };
 
 function processPagesRecursively(args, connectionInfo, fetchSinglePage, processPagedResults, previousProcessedResults){
-  'use strict';
   return fetchSinglePage(args, connectionInfo)
-    .then(function(result){
+    .then(function(result){/*jshint camelcase: false */
 
       // HACK - until Vend responses become consistent
       if (result && result.results && !result.pagination) {
@@ -256,7 +257,7 @@ var processPromisesSerially = function(aArray, aArrayIndex, args, mergeStrategy,
 };
 
 var argsAreValid = function(args){
-  var arrayOfRequiredArgs = _.filter(args, function(object, key){
+  var arrayOfRequiredArgs = _.filter(args, function(object/*, key*/){
     return object.required;
   });
   var arrayOfRequiredValues = _.pluck(arrayOfRequiredArgs, 'value');
@@ -658,7 +659,7 @@ var fetchStockOrdersForSuppliers = function(args, connectionInfo, retryCounter) 
       'Authorization': authString,
       'Accept': 'application/json'
     },
-    qs: {
+    qs: {/*jshint camelcase: false */
       page: args.page.value,
       page_size: args.pageSize.value
     }
@@ -686,7 +687,7 @@ var fetchAllStockOrdersForSuppliers = function(connectionInfo, processPagedResul
         }
       }
       return Promise.resolve(pagedData.consignments);
-    }
+    };
   }
   return processPagesRecursively(args, connectionInfo, fetchStockOrdersForSuppliers, processPagedResults);
 };
@@ -711,7 +712,7 @@ var fetchProductsByConsignment  = function(args, connectionInfo, retryCounter) {
       'Authorization': authString,
       'Accept': 'application/json'
     },
-    qs: {
+    qs: {/*jshint camelcase: false */
       consignment_id: args.consignmentId.value,
       page: args.page.value,
       page_size: args.pageSize.value
@@ -721,7 +722,8 @@ var fetchProductsByConsignment  = function(args, connectionInfo, retryCounter) {
   return sendRequest(options, args, connectionInfo, fetchProductsByConsignment, retryCounter);
 };
 
-var defaultMethod_ForProcessingPagedResults_ForConsignmentProducts = function(pagedData, previousData){
+var defaultMethod_ForProcessingPagedResults_ForConsignmentProducts = function(pagedData, previousData){// jshint ignore:line
+  /*jshint camelcase: false */
   log.debug('defaultMethod_ForProcessingPagedResults_ForConsignmentProducts');
   if (previousData && previousData.length>0) {
     //log.verbose(JSON.stringify(pagedData.consignment_products,replacer,2));
@@ -739,7 +741,7 @@ var defaultMethod_ForProcessingPagedResults_ForConsignmentProducts = function(pa
       return Promise.resolve(pagedData.consignment_products);
 };
 
-var defaultMethod_ForProcessingPagedResults_ForSuppliers = function processPagedResults(pagedData, previousData){
+var defaultMethod_ForProcessingPagedResults_ForSuppliers = function processPagedResults(pagedData, previousData){// jshint ignore:line
   log.debug('defaultMethod_ForProcessingPagedResults_ForSuppliers');
   if (previousData && previousData.length>0) {
     //log.verbose(JSON.stringify(pagedData.suppliers,replacer,2));
@@ -760,7 +762,7 @@ var fetchAllProductsByConsignment = function(args, connectionInfo, processPagedR
   args.pageSize = {value: 200};
   // set a default function if none is provided
   if (!processPagedResults) {
-    processPagedResults = defaultMethod_ForProcessingPagedResults_ForConsignmentProducts;
+    processPagedResults = defaultMethod_ForProcessingPagedResults_ForConsignmentProducts;// jshint ignore:line
   }
   return processPagesRecursively(args, connectionInfo, fetchProductsByConsignment, processPagedResults);
 };
@@ -816,7 +818,7 @@ var fetchAllProductsByConsignments = function(args, connectionInfo, processPaged
     function executeNext(updatedArgs){
       console.log('executing for consignmentId: ' + updatedArgs.consignmentId.value);
       //console.log('updatedArgs: ', updatedArgs);
-      return fetchAllProductsByConsignment(updatedArgs, connectionInfo);
+      return fetchAllProductsByConsignment(updatedArgs, connectionInfo, processPagedResults);
     }
   );
 };
@@ -838,7 +840,7 @@ var resolveMissingSuppliers = function(args, connectionInfo) {
     args.getArray(),
     args.getArrayIndex(),
     args,
-    function mergeStrategy(newData, previousData, args){
+    function mergeStrategy(newData, previousData, args){/*jshint camelcase: false */
       console.log('resolveMissingSuppliers - inside mergeStrategy()');
       var product = newData.products[0];
       //console.log('newData: ', newData);
@@ -876,7 +878,7 @@ var resolveMissingSuppliers = function(args, connectionInfo) {
 
 // WARN: if the ID is incorrect, the vend api the first 50 products which can totally throw folks off their mark!
 // TODO: instead of returning response, return the value of response.products[0] directly?
-var fetchProduct  = function(args, connectionInfo, retryCounter) {
+var fetchProduct = function(args, connectionInfo, retryCounter) {
   if (!retryCounter) {
     retryCounter = 0;
   } else {
@@ -1073,7 +1075,7 @@ var fetchProducts = function(args, connectionInfo, retryCounter) {
       'Authorization': authString,
       'Accept': 'application/json'
     },
-    qs: {
+    qs: {/*jshint camelcase: false */
       order_by: args.orderBy.value,
       order_direction: args.orderDirection.value,
       since: args.since.value,
@@ -1112,7 +1114,7 @@ var fetchAllProducts = function(connectionInfo, processPagedResults) {
         }
       }
       return Promise.resolve(pagedData.products);
-    }
+    };
   }
   return processPagesRecursively(args, connectionInfo, fetchProducts, processPagedResults);
 };
@@ -1122,7 +1124,7 @@ var fetchPaginationInfo = function(args, connectionInfo){
     return Promise.reject('missing required arguments for fetchPaginationInfo()');
   }
   return fetchProducts(args, connectionInfo)
-    .then(function(result){
+    .then(function(result){/*jshint camelcase: false */
 
       // HACK - until Vend responses become consistent
       if (result && result.results && !result.pagination) {
@@ -1136,13 +1138,6 @@ var fetchPaginationInfo = function(args, connectionInfo){
 
       return (result && result.pagination) ? Promise.resolve(result.pagination) : Promise.resolve();
     });
-};
-
-var fetchCustomerByEmail = function(email, connectionInfo, retryCounter) {
-  log.debug('inside fetchCustomerByEmail()');
-  var args = args.customers.fetch();
-  args.email.value = email;
-  fetchCustomers(args, connectionInfo, retryCounter);
 };
 
 var fetchCustomers = function(args, connectionInfo, retryCounter) {
@@ -1175,6 +1170,13 @@ var fetchCustomers = function(args, connectionInfo, retryCounter) {
   };
 
   return sendRequest(options, args, connectionInfo, fetchCustomers, retryCounter);
+};
+
+var fetchCustomerByEmail = function(email, connectionInfo, retryCounter) {
+  log.debug('inside fetchCustomerByEmail()');
+  var args = args.customers.fetch();
+  args.email.value = email;
+  fetchCustomers(args, connectionInfo, retryCounter);
 };
 
 var fetchRegisters = function(args, connectionInfo, retryCounter) {
@@ -1226,7 +1228,7 @@ var fetchAllRegisters = function(args, connectionInfo, processPagedResults) {
         }
       }
       return Promise.resolve(pagedData.registers);
-    }
+    };
   }
   return processPagesRecursively(args, connectionInfo, fetchRegisters, processPagedResults);
 };
@@ -1304,7 +1306,7 @@ var fetchRegisterSales = function(args, connectionInfo, retryCounter) {
       'Authorization': authString,
       'Accept': 'application/json'
     },
-    qs: {
+    qs: {/*jshint camelcase: false */
       since: args.since.value,
       outlet_id: args.outletApiId.value,
       tag: args.tag.value,
@@ -1325,7 +1327,7 @@ var fetchAllRegisterSales = function(args, connectionInfo, processPagedResults) 
 
   // set a default function if none is provided
   if (!processPagedResults) {
-    processPagedResults = function processPagedResults(pagedData, previousData){
+    processPagedResults = function processPagedResults(pagedData, previousData){/*jshint camelcase: false */
       log.debug('fetchAllRegisterSales - default processPagedResults()');
       if (previousData && previousData.length>0) {
         //log.verbose(JSON.stringify(pagedData.products,replacer,2));
@@ -1339,7 +1341,7 @@ var fetchAllRegisterSales = function(args, connectionInfo, processPagedResults) 
         }
       }
       return Promise.resolve(pagedData.register_sales);
-    }
+    };
   }
   return processPagesRecursively(args, connectionInfo, fetchRegisterSales, processPagedResults);
 };
@@ -1425,7 +1427,7 @@ var fetchSuppliers = function(args, connectionInfo, retryCounter) {
   };
   if (args.page && args.pageSize){
     // NOTE: page and page_size work! For ex: page=1,page_size=1 return just one result in response.suppliers
-    options.qs = {
+    options.qs = {/*jshint camelcase: false */
       page: args.page.value,
       page_size: args.pageSize.value
     };
@@ -1444,7 +1446,7 @@ var fetchAllSuppliers = function(connectionInfo, processPagedResults) {
 
   // set a default function if none is provided
   if (!processPagedResults) {
-    processPagedResults = defaultMethod_ForProcessingPagedResults_ForSuppliers;
+    processPagedResults = defaultMethod_ForProcessingPagedResults_ForSuppliers;// jshint ignore:line
   }
   return processPagesRecursively(args, connectionInfo, fetchSuppliers, processPagedResults);
 };
@@ -1833,12 +1835,12 @@ var getInitialAccessToken = function(tokenService, clientId, clientSecret, redir
   };
   return request.post(options)
     .then(successHandler)
-    .catch(RateLimitingError, function(e) {
+    .catch(RateLimitingError, function(e) {// jshint ignore:line
       console.log('A RateLimitingError error like "429 Too Many Requests" happened: '
         + e.statusCode + ' ' + e.response.body + '\n'
         + JSON.stringify(e.response.headers,null,2));
     })
-    .catch(ClientError, function(e) {
+    .catch(ClientError, function(e) {// jshint ignore:line
       console.log('A ClientError happened: '
           + e.statusCode + ' ' + e.response.body + '\n'
         /*+ JSON.stringify(e.response.headers,null,2)
@@ -1879,12 +1881,12 @@ var refreshAccessToken = function(tokenService, clientId, clientSecret, refreshT
   };
   return request.post(options)
     .then(successHandler)
-    .catch(RateLimitingError, function(e) {
+    .catch(RateLimitingError, function(e) {// jshint ignore:line
       console.log('A RateLimitingError error like "429 Too Many Requests" happened: '
         + e.statusCode + ' ' + e.response.body + '\n'
         + JSON.stringify(e.response.headers,null,2));
     })
-    .catch(ClientError, function(e) {
+    .catch(ClientError, function(e) {// jshint ignore:line
       console.log('A ClientError happened: '
           + e.statusCode + ' ' + e.response.body + '\n'
         /*+ JSON.stringify(e.response.headers,null,2)

@@ -18,7 +18,9 @@
   "strict": true,
   "trailing": true,
   "smarttabs": true,
+  "laxbreak": true,
   "laxcomma": true,
+  "-W003": true,
   "globals": {
   }
 }
