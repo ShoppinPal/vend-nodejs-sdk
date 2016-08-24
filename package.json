@@ -28,7 +28,7 @@
     "sdk"
   ],
   "author": "Pulkit Singhal",
-  "license": "Apache 2",
+  "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/ShoppinPal/vend-nodejs-sdk/issues"
   },
