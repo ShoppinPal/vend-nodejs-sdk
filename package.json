@@ -4,13 +4,15 @@
   "description": "Aims to provides a rich set of client-side functionality for Vend's public APIs",
   "main": "vend.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-    "commit": "commit-wizard"
+    "commit": "commit-wizard",
+    "test": "mocha"
   },
   "config": {
     "pre-git": {
       "commit-msg": [],
-      "pre-commit": [],
+      "pre-commit": [
+        "./node_modules/.bin/jshint ."
+      ],
       "pre-push": [],
       "post-commit": [],
       "post-merge": []
@@ -40,6 +42,9 @@
     "winston": "0.9.0"
   },
   "devDependencies": {
+    "chai": "3.5.0",
+    "jshint": "2.9.3",
+    "mocha": "3.0.2",
     "pre-git": "3.7.0"
   }
 }
