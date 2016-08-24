@@ -21,6 +21,7 @@
   "laxbreak": true,
   "laxcomma": true,
   "-W003": true,
+  "mocha": true,
   "globals": {
   }
 }
