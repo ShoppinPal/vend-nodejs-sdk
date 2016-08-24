@@ -5,6 +5,16 @@
   "main": "vend.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
+    "commit": "commit-wizard"
+  },
+  "config": {
+    "pre-git": {
+      "commit-msg": [],
+      "pre-commit": [],
+      "pre-push": [],
+      "post-commit": [],
+      "post-merge": []
+    }
   },
   "repository": {
     "type": "git",
@@ -28,5 +38,8 @@
     "request-promise": "0.3.2",
     "underscore": "1.7.0",
     "winston": "0.9.0"
+  },
+  "devDependencies": {
+    "pre-git": "3.7.0"
   }
 }
