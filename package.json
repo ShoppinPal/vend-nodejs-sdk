@@ -5,7 +5,7 @@
   "main": "vend.js",
   "scripts": {
     "commit": "commit-wizard",
-    "test": "NODE_ENV=test mocha"
+    "test": "jshint . && NODE_ENV=test mocha"
   },
   "config": {
     "pre-git": {
