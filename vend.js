@@ -40,7 +40,7 @@ var successHandler = function(response) {
       return Promise.resolve(responseObject);
     }
     catch(error){
-      log.error('caught an error: ', error);
+      log.error('successHandler', 'caught an error: ', error);
       throw error;
     }
   }
@@ -1611,7 +1611,7 @@ var createRegisterSale = function(body, connectionInfo, retryCounter) {
     body = _.isObject(body) ? body : JSON.parse(body);
   }
   catch(exception) {
-    log.error(exception);
+    log.error('createRegisterSale', exception);
     return Promise.reject('inside createRegisterSale() - failed to parse the sale body');
   }
 
@@ -1847,7 +1847,7 @@ var getInitialAccessToken = function(tokenService, clientId, clientSecret, redir
       // TODO: add retry logic
     })
     .catch(function(e) {
-      log.error('An unexpected error occurred: ', e);
+      log.error('getInitialAccessToken', 'An unexpected error occurred: ', e);
     });
 };
 
@@ -1890,10 +1890,13 @@ var refreshAccessToken = function(tokenService, clientId, clientSecret, refreshT
         /*+ JSON.stringify(e.response.headers,null,2)
          + JSON.stringify(e,null,2)*/
       );
-      // TODO: add retry logic
+      // NOTE: why not throw or retry?
+      // sample: "error_description": "The refresh token is invalid."
+      // in such a case retrying just doesn't make sense, its better to fail fast
+      // which will happen when the methods calling this function try to access its results
     })
     .catch(function(e) {
-      log.error('An unexpected error occurred: ', e);
+      log.error('refreshAccessToken', 'An unexpected error occurred: ', e);
     });
 };
 
