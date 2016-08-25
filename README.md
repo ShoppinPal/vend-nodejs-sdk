@@ -63,3 +63,40 @@ vendSdk.products.fetch(args, connectionInfo)
   });
 
 ```
+
+Tests
+=====
+
+1. The tests are setup to fail if you haven't taken the steps needed to run them. Hopefully, it will help you pinpoint which of the following steps you forgot, if any.
+1. NODE_ENV must be set. There are several ways to do this.
+  1. running `npm test` translates to `NODE_ENV=test mocha` so the `NODE_ENV` is already set for you in this case.
+  1. if you choose to run `mocha` directly then we advice running it with the `NODE_ENV` set. Examples:
+    1. `NODE_ENV=test mocha`
+    2. `export NODE_ENV=test && mocha`
+1. `NODE_ENV=test` exists so that while testing, logs are sent only to file. This leaves your console free for unit test status messages and avoids clutter.
+  1. If you must absolutely see the additional logs in your console then change the `NODE_ENV` value. For example: `NODE_ENV=dev mocha` 
+1. Optionally you may set `LOG_LEVEL_FOR_VEND_NODEJS_SDK` to a valid `winston` log level value to control the logs.
+1. For `NODE_ENV=test` you must create a file: `config/test.json`
+  1. the filename format is `config/<env>.json` so if you change to `NODE_ENV=dev` then the expected filename changes to `config/dev.json`
+  1. the file format is as follows and you must substitute the missing values from your own vend setup:
+
+    ```
+    {
+      "vend":{
+        "auth_endpoint":"https://{DOMAIN_PREFIX}.vendhq.com/connect",
+        "token_service":"https://{DOMAIN_PREFIX}.vendhq.com/api/1.0/token",
+        "client_id":"",
+        "client_secret":""
+      }
+    }
+    ```
+1. Must create a file: `config/oauth.json`
+  1. the file format is as follows and you must substitute the missing values from your own vend setup:
+
+    ```
+    {
+      "access_token": "",
+      "refresh_token": "",
+      "domain_prefix": ""
+    }
+    ```

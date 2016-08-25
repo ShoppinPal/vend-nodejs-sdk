@@ -26,26 +26,26 @@ function ClientError(e) {
 
 var successHandler = function(response) {
   if(_.isArray(response)) {
-    console.log('response is an array');
+    log.debug('response is an array');
   }
   else if(_.isObject(response)) {
-    console.log('response is an object');
+    log.debug('response is an object');
     return Promise.resolve(response);
   }
   else if(_.isString(response)) {
-    console.log('response is a string');
+    log.debug('response is a string');
     try{
       var responseObject = JSON.parse(response);
-      //console.log(responseObject);
+      //log.silly(responseObject);
       return Promise.resolve(responseObject);
     }
     catch(error){
-      console.error('caught an error: ', error);
+      log.error('caught an error: ', error);
       throw error;
     }
   }
   else {
-    console.log(response);
+    log.debug(response);
   }
 };
 
@@ -64,11 +64,11 @@ var retryWhenRateLimited = function(bodyObject, args, connectionInfo, callback, 
     var retryAfter = 5*60*1000; // by default Vend will never block for more than 5 minutes
     retryAfter = Math.max(moment(bodyObject['retry-after']).diff(moment()), 0);
     //retryAfter = 5000; // for sanity testing counter increments quickly
-    console.log('retry after: ' + retryAfter + ' ms');
+    log.debug('retry after: ' + retryAfter + ' ms');
 
     return Promise.delay(retryAfter)
       .then(function() {
-        console.log(retryAfter + ' ms have passed...');
+        log.debug(retryAfter + ' ms have passed...');
         return callback(args, connectionInfo, ++retryCounter);
       });
   }
@@ -85,7 +85,7 @@ var retryWhenAuthNFails = function(args, connectionInfo, callback, retryCounter)
       // throw e; // TODO: throw unknown errors but reject well known errors?
     }
 
-    console.log('try to fetch a new access token');
+    log.debug('try to fetch a new access token');
     return refreshAccessToken( //TODO: validate connectionInfo before using it for retries?
       connectionInfo.vendTokenService,
       connectionInfo.vendClientId,
@@ -94,21 +94,21 @@ var retryWhenAuthNFails = function(args, connectionInfo, callback, retryCounter)
       connectionInfo.domainPrefix
     )
       .then(function(oauthInfo) {/*jshint camelcase: false */
-        console.log('update connectionInfo w/ new token before using it again', oauthInfo);
+        log.debug('update connectionInfo w/ new token before using it again', oauthInfo);
         var waitFor = Promise.resolve();
         if (oauthInfo.access_token) {
-          console.log('received new access_token: ' + oauthInfo.access_token);
+          log.debug('received new access_token: ' + oauthInfo.access_token);
           connectionInfo.accessToken = oauthInfo.access_token;
           if(_.isFunction(connectionInfo.updateAccessToken)) {
             waitFor = connectionInfo.updateAccessToken(connectionInfo);
           }
         }
         if (oauthInfo.refresh_token) {
-          console.log('received new refresh_token: ' + oauthInfo.refresh_token);
+          log.debug('received new refresh_token: ' + oauthInfo.refresh_token);
           connectionInfo.refreshToken = oauthInfo.refresh_token;
         }
 
-        console.log('retrying with new accessToken: ' + connectionInfo.accessToken);
+        log.debug('retrying with new accessToken: ' + connectionInfo.accessToken);
         return waitFor.then(function(){
           return callback(args, connectionInfo, ++retryCounter);
         });
@@ -126,21 +126,21 @@ var sendRequest = function(options, args, connectionInfo, callback, retryCounter
   return request(options)
     .then(successHandler)
     .catch(RateLimitingError, function(e) {// jshint ignore:line
-      console.log('A RateLimitingError error like "429 Too Many Requests" happened: \n'
+      log.error('A RateLimitingError error like "429 Too Many Requests" happened: \n'
           + 'statusCode: ' + e.statusCode + '\n'
           + 'body: ' + e.response.body + '\n'
         //+ JSON.stringify(e.response.headers,null,2)
       );
 
       var bodyObject = JSON.parse(e.response.body);
-      console.log(bodyObject['retry-after']);
-      console.log(
+      log.debug(bodyObject['retry-after']);
+      log.debug(
         moment(bodyObject['retry-after']).format('dddd, MMMM Do YYYY, h:mm:ss a ZZ')
       );
       /*successHandler(e.response.body)
         .then(function(bodyObject){
-          console.log(bodyObject['retry-after']);
-          console.log(
+          log.debug(bodyObject['retry-after']);
+          log.debug(
             moment(bodyObject['retry-after']).format('dddd, MMMM Do YYYY, h:mm:ss a ZZ')
           );
         });*/
@@ -148,7 +148,7 @@ var sendRequest = function(options, args, connectionInfo, callback, retryCounter
       // TODO: how should a catch-block respond if there is a problem within the retry?
     })
     .catch(AuthNError, function(e) {// jshint ignore:line
-      console.log('An AuthNError happened: \n'
+      log.error('An AuthNError happened: \n'
           + 'statusCode: ' + e.statusCode + '\n'
           + 'body: ' + e.response.body + '\n'
         /*+ JSON.stringify(e.response.headers,null,2)
@@ -162,7 +162,7 @@ var sendRequest = function(options, args, connectionInfo, callback, retryCounter
       if(_.isObject(message)) {
         message = JSON.stringify(message,null,2);
       }
-      console.log('A ClientError happened: \n'
+      log.error('A ClientError happened: \n'
           + e.statusCode + ' ' + message + '\n'
         /*+ JSON.stringify(e.response.headers,null,2)
          + JSON.stringify(e,null,2)*/
@@ -173,7 +173,7 @@ var sendRequest = function(options, args, connectionInfo, callback, retryCounter
       return Promise.reject(e.statusCode + ' ' + e.response.body); // TODO: throw unknown errors but reject well known errors?
     })
     .catch(function(e) {
-      console.error('vend.js - sendRequest - An unexpected error occurred: ', e);
+      log.error('vend.js - sendRequest - An unexpected error occurred: ', e);
       throw e; // TODO: throw unknown errors but reject well known errors?
     });
 };
@@ -224,17 +224,17 @@ function processPagesRecursively(args, connectionInfo, fetchSinglePage, processP
 
 var processPromisesSerially = function(aArray, aArrayIndex, args, mergeStrategy, setupNext, executeNext, aPreviousResults){
   if (aArrayIndex < aArray.length) {
-    console.log('processPromisesSerially for aArrayIndex # ' + aArrayIndex);
+    log.debug('processPromisesSerially for aArrayIndex # ' + aArrayIndex);
     return executeNext(args)
       .then(function(executedResults){
-        //console.log('executedResults ', executedResults);
-        //console.log('executedResults.length ', executedResults.length); // .length may not be valid everytime
+        //log.silly('executedResults ', executedResults);
+        //log.silly('executedResults.length ', executedResults.length); // .length may not be valid everytime
         return mergeStrategy(executedResults, aPreviousResults, args)
           .then(function(mergedResults){
-            console.log('mergedResults.length ', mergedResults.length);
-            //console.log('before: ', args);
+            log.debug('mergedResults.length ', mergedResults.length);
+            //log.silly('before: ', args);
             args = setupNext(args);
-            //console.log('after: ', args);
+            //log.silly('after: ', args);
             return processPromisesSerially(
               args.getArray(), //args.consignmentIds.value,
               args.getArrayIndex(), //args.consignmentIdIndex.value,
@@ -249,9 +249,9 @@ var processPromisesSerially = function(aArray, aArrayIndex, args, mergeStrategy,
   }
   else {
     if(aPreviousResults) {
-    console.log('aPreviousResults.length ', aPreviousResults.length);
+    log.debug('aPreviousResults.length ', aPreviousResults.length);
     }
-    console.log('processPromisesSerially() finished');
+    log.debug('processPromisesSerially() finished');
     return Promise.resolve(aPreviousResults);
   }
 };
@@ -643,7 +643,7 @@ var fetchStockOrdersForSuppliers = function(args, connectionInfo, retryCounter) 
   if (!retryCounter) {
     retryCounter = 0;
   } else {
-    console.log('retry # ' + retryCounter);
+    log.debug('retry # ' + retryCounter);
   }
 
   var path = '/api/consignment';
@@ -678,9 +678,9 @@ var fetchAllStockOrdersForSuppliers = function(connectionInfo, processPagedResul
     processPagedResults = function(pagedData, previousData){
       if (previousData && previousData.length>0) {
         if (pagedData.consignments.length>0) {
-        console.log('previousData: ', previousData.length);
+        log.debug('previousData: ', previousData.length);
         pagedData.consignments = pagedData.consignments.concat(previousData);
-        console.log('combined: ', pagedData.consignments.length);
+        log.debug('combined: ', pagedData.consignments.length);
       }
         else {
           pagedData.consignments = previousData;
@@ -696,12 +696,12 @@ var fetchProductsByConsignment  = function(args, connectionInfo, retryCounter) {
   if (!retryCounter) {
     retryCounter = 0;
   } else {
-    console.log('retry # ' + retryCounter);
+    log.debug('retry # ' + retryCounter);
   }
 
   var path = '/api/consignment_product';
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
-  console.log('Requesting vend product ' + vendUrl);
+  log.debug('Requesting vend product ' + vendUrl);
   var authString = 'Bearer ' + connectionInfo.accessToken;
   log.debug('GET ' + vendUrl);
   log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
@@ -736,8 +736,8 @@ var defaultMethod_ForProcessingPagedResults_ForConsignmentProducts = function(pa
       pagedData.consignment_products = previousData;
     }
   }
-  //console.log('finalData: ', pagedData.consignment_products);
-  console.log('finalData.length: ', pagedData.consignment_products.length);
+  //log.silly('finalData: ', pagedData.consignment_products);
+  log.debug('finalData.length: ', pagedData.consignment_products.length);
       return Promise.resolve(pagedData.consignment_products);
 };
 
@@ -786,38 +786,38 @@ var fetchAllProductsByConsignments = function(args, connectionInfo, processPaged
     args.consignmentIdIndex.value,
     args,
     function mergeStrategy(newData, previousData){
-      console.log('inside mergeStrategy()');
-      //console.log('newData ', newData);
-      //console.log('previousData ', previousData);
+      log.debug('inside mergeStrategy()');
+      //log.silly('newData ', newData);
+      //log.silly('previousData ', previousData);
       if (previousData && previousData.length>0) {
         if (newData.length>0) {
-        console.log('previousData.length: ', previousData.length);
+        log.debug('previousData.length: ', previousData.length);
         newData = newData.concat(previousData);
-        console.log('combinedData.length: ', newData.length);
+        log.debug('combinedData.length: ', newData.length);
       }
         else {
           newData = previousData;
         }
       }
-      //console.log('finalData ', newData);
-      console.log('finalData.length ', newData.length);
+      //log.silly('finalData ', newData);
+      log.debug('finalData.length ', newData.length);
       return Promise.resolve(newData); // why do we need a promise?
     },
     function setupNext(updateArgs){
       updateArgs.consignmentIdIndex.value = updateArgs.consignmentIdIndex.value + 1;
       if (updateArgs.consignmentIdIndex.value < updateArgs.consignmentIds.value.length) {
         updateArgs.consignmentId.value = updateArgs.consignmentIds.value[updateArgs.consignmentIdIndex.value];
-        console.log('next is consignmentId: ' + updateArgs.consignmentId.value);
+        log.debug('next is consignmentId: ' + updateArgs.consignmentId.value);
       }
       else {
         updateArgs.consignmentId.value = null;
-        console.log('finished iterating through all the consignmentIds');
+        log.debug('finished iterating through all the consignmentIds');
       }
       return updateArgs;
     },
     function executeNext(updatedArgs){
-      console.log('executing for consignmentId: ' + updatedArgs.consignmentId.value);
-      //console.log('updatedArgs: ', updatedArgs);
+      log.debug('executing for consignmentId: ' + updatedArgs.consignmentId.value);
+      //log.silly('updatedArgs: ', updatedArgs);
       return fetchAllProductsByConsignment(updatedArgs, connectionInfo, processPagedResults);
     }
   );
@@ -841,34 +841,34 @@ var resolveMissingSuppliers = function(args, connectionInfo) {
     args.getArrayIndex(),
     args,
     function mergeStrategy(newData, previousData, args){/*jshint camelcase: false */
-      console.log('resolveMissingSuppliers - inside mergeStrategy()');
+      log.debug('resolveMissingSuppliers - inside mergeStrategy()');
       var product = newData.products[0];
-      //console.log('newData: ', newData);
-      //console.log('product: ', product);
+      //log.silly('newData: ', newData);
+      //log.silly('product: ', product);
       var updateMe = args.getArray()[args.getArrayIndex()];
       updateMe.supplier = product.supplier_name || product.supplier_code;
-      console.log('updated consignmentIdToProductIdMap: ', args.getArray()[args.getArrayIndex()]);
+      log.debug('updated consignmentIdToProductIdMap: ', args.getArray()[args.getArrayIndex()]);
 
       previousData = args.getArray();
       return Promise.resolve(previousData); // why do we need a promise?
     },
     function setupNext(updateArgs){
-      console.log('resolveMissingSuppliers - inside setupNext()');
+      log.debug('resolveMissingSuppliers - inside setupNext()');
       updateArgs.arrayIndex.value = updateArgs.getArrayIndex() + 1;
       if (updateArgs.getArrayIndex() < updateArgs.getArray().length) {
         updateArgs.consignmentProductId.value = updateArgs.getArray()[updateArgs.getArrayIndex()].productId;
-        console.log('resolveMissingSuppliers - next is consignmentId: ' + updateArgs.consignmentProductId.value);
+        log.debug('resolveMissingSuppliers - next is consignmentId: ' + updateArgs.consignmentProductId.value);
       }
       else {
         updateArgs.consignmentProductId.value = null;
-        console.log('resolveMissingSuppliers - finished iterating through all the consignmentIds');
+        log.debug('resolveMissingSuppliers - finished iterating through all the consignmentIds');
       }
       return updateArgs;
     },
     function executeNext(updatedArgs){
-      console.log('resolveMissingSuppliers - inside executeNext()');
-      console.log('resolveMissingSuppliers - executing for consignmentProductId: ' + updatedArgs.consignmentProductId.value);
-      //console.log('updatedArgs: ', updatedArgs);
+      log.debug('resolveMissingSuppliers - inside executeNext()');
+      log.debug('resolveMissingSuppliers - executing for consignmentProductId: ' + updatedArgs.consignmentProductId.value);
+      //log.silly('updatedArgs: ', updatedArgs);
       var args = argsForInput.products.fetchById();
       args.apiId.value = updatedArgs.consignmentProductId.value;
       return fetchProduct(args, connectionInfo);
@@ -882,7 +882,7 @@ var fetchProduct = function(args, connectionInfo, retryCounter) {
   if (!retryCounter) {
     retryCounter = 0;
   } else {
-    console.log('retry # ' + retryCounter);
+    log.debug('retry # ' + retryCounter);
   }
 
   var path = '/api/products/' + args.apiId.value;
@@ -891,7 +891,7 @@ var fetchProduct = function(args, connectionInfo, retryCounter) {
   // which is lame ... TODO: should we unwrap it within the SDK?
 
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
-  console.log('Requesting vend product ' + vendUrl);
+  log.debug('Requesting vend product ' + vendUrl);
   var authString = 'Bearer ' + connectionInfo.accessToken;
   log.debug('GET ' + vendUrl);
   log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
@@ -920,7 +920,7 @@ var updateProductById = function(args, connectionInfo, retryCounter) {
   if (!retryCounter) {
     retryCounter = 0;
   } else {
-    console.log('retry # ' + retryCounter);
+    log.debug('retry # ' + retryCounter);
   }
 
   var path = '/api/products';
@@ -989,7 +989,7 @@ var fetchProductByHandle  = function(args, connectionInfo, retryCounter) {
   if (!retryCounter) {
     retryCounter = 0;
   } else {
-    console.log('retry # ' + retryCounter);
+    log.debug('retry # ' + retryCounter);
   }
 
   var path = '/api/products';
@@ -998,7 +998,7 @@ var fetchProductByHandle  = function(args, connectionInfo, retryCounter) {
   // which is lame ... TODO: should we unwrap it within the SDK?
 
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
-  console.log('Requesting vend product ' + vendUrl);
+  log.debug('Requesting vend product ' + vendUrl);
   var authString = 'Bearer ' + connectionInfo.accessToken;
   log.debug('GET ' + vendUrl);
   log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
@@ -1026,7 +1026,7 @@ var fetchProductBySku  = function(args, connectionInfo, retryCounter) {
   if (!retryCounter) {
     retryCounter = 0;
   } else {
-    console.log('retry # ' + retryCounter);
+    log.debug('retry # ' + retryCounter);
   }
 
   var path = '/api/products';
@@ -1035,7 +1035,7 @@ var fetchProductBySku  = function(args, connectionInfo, retryCounter) {
   // which is lame ... TODO: should we unwrap it within the SDK?
 
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
-  console.log('Requesting vend product ' + vendUrl);
+  log.debug('Requesting vend product ' + vendUrl);
   var authString = 'Bearer ' + connectionInfo.accessToken;
   log.debug('GET ' + vendUrl);
   log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
@@ -1058,7 +1058,7 @@ var fetchProducts = function(args, connectionInfo, retryCounter) {
   if (!retryCounter) {
     retryCounter = 0;
   } else {
-    console.log('retry # ' + retryCounter);
+    log.debug('retry # ' + retryCounter);
   }
 
   var path = '/api/products';
@@ -1105,9 +1105,9 @@ var fetchAllProducts = function(connectionInfo, processPagedResults) {
       if (previousData && previousData.length>0) {
         //log.verbose(JSON.stringify(pagedData.products,replacer,2));
         if (pagedData.products && pagedData.products.length>0) {
-          console.log('previousData: ', previousData.length);
+          log.debug('previousData: ', previousData.length);
           pagedData.products = pagedData.products.concat(previousData);
-          console.log('combined: ', pagedData.products.length);
+          log.debug('combined: ', pagedData.products.length);
         }
         else {
           pagedData.products = previousData;
@@ -1145,7 +1145,7 @@ var fetchCustomers = function(args, connectionInfo, retryCounter) {
   if (!retryCounter) {
     retryCounter = 0;
   } else {
-    console.log('retry # ' + retryCounter);
+    log.debug('retry # ' + retryCounter);
   }
 
   var path = '/api/customers';
@@ -1184,7 +1184,7 @@ var fetchRegisters = function(args, connectionInfo, retryCounter) {
   if (!retryCounter) {
     retryCounter = 0;
   } else {
-    console.log('retry # ' + retryCounter);
+    log.debug('retry # ' + retryCounter);
   }
 
   var path = '/api/registers';
@@ -1219,9 +1219,9 @@ var fetchAllRegisters = function(args, connectionInfo, processPagedResults) {
       if (previousData && previousData.length>0) {
         //log.verbose(JSON.stringify(pagedData.products,replacer,2));
         if (pagedData.registers && pagedData.registers.length>0) {
-          console.log('previousData: ', previousData.length);
+          log.debug('previousData: ', previousData.length);
           pagedData.registers = pagedData.registers.concat(previousData);
-          console.log('combined: ', pagedData.registers.length);
+          log.debug('combined: ', pagedData.registers.length);
         }
         else {
           pagedData.registers = previousData;
@@ -1238,7 +1238,7 @@ var fetchPaymentTypes = function(args, connectionInfo, retryCounter) {
   if (!retryCounter) {
     retryCounter = 0;
   } else {
-    console.log('retry # ' + retryCounter);
+    log.debug('retry # ' + retryCounter);
   }
 
   var path = '/api/payment_types';
@@ -1264,7 +1264,7 @@ var fetchTaxes = function(args, connectionInfo, retryCounter) {
   if (!retryCounter) {
     retryCounter = 0;
   } else {
-    console.log('retry # ' + retryCounter);
+    log.debug('retry # ' + retryCounter);
   }
 
   var path = '/api/taxes';
@@ -1290,7 +1290,7 @@ var fetchRegisterSales = function(args, connectionInfo, retryCounter) {
   if (!retryCounter) {
     retryCounter = 0;
   } else {
-    console.log('retry # ' + retryCounter);
+    log.debug('retry # ' + retryCounter);
   }
 
   var path = '/api/register_sales';
@@ -1332,9 +1332,9 @@ var fetchAllRegisterSales = function(args, connectionInfo, processPagedResults) 
       if (previousData && previousData.length>0) {
         //log.verbose(JSON.stringify(pagedData.products,replacer,2));
         if (pagedData.register_sales && pagedData.register_sales.length>0) {
-          console.log('previousData: ', previousData.length);
+          log.debug('previousData: ', previousData.length);
           pagedData.register_sales = pagedData.register_sales.concat(previousData);
-          console.log('combined: ', pagedData.register_sales.length);
+          log.debug('combined: ', pagedData.register_sales.length);
         }
         else {
           pagedData.register_sales = previousData;
@@ -1352,7 +1352,7 @@ var fetchOutlets = function(args, connectionInfo, retryCounter) {
   if (!retryCounter) {
     retryCounter = 0;
   } else {
-    console.log('retry # ' + retryCounter);
+    log.debug('retry # ' + retryCounter);
   }
 
   var path = '/api/outlets';
@@ -1382,7 +1382,7 @@ var fetchSupplier = function(args, connectionInfo, retryCounter) {
   if (!retryCounter) {
     retryCounter = 0;
   } else {
-    console.log('retry # ' + retryCounter);
+    log.debug('retry # ' + retryCounter);
   }
 
   var path = '/api/supplier/' + args.apiId.value;
@@ -1408,7 +1408,7 @@ var fetchSuppliers = function(args, connectionInfo, retryCounter) {
   if (!retryCounter) {
     retryCounter = 0;
   } else {
-    console.log('retry # ' + retryCounter);
+    log.debug('retry # ' + retryCounter);
   }
 
   var path = '/api/supplier';
@@ -1431,7 +1431,7 @@ var fetchSuppliers = function(args, connectionInfo, retryCounter) {
       page: args.page.value,
       page_size: args.pageSize.value
     };
-    console.log(options);
+    log.debug(options);
     // NOTE: BUT for this endpoint, the paging properties in the response are part of the immediate response,
     //       instead of being nested one-level-down under the response.pagination structure!
   }
@@ -1455,12 +1455,12 @@ var fetchConsignment  = function(args, connectionInfo, retryCounter) {
   if (!retryCounter) {
     retryCounter = 0;
   } else {
-    console.log('retry # ' + retryCounter);
+    log.debug('retry # ' + retryCounter);
   }
 
   var path = '/api/1.0/consignment/' + args.apiId.value;
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
-  console.log('Requesting vend consignment ' + vendUrl);
+  log.debug('Requesting vend consignment ' + vendUrl);
   var authString = 'Bearer ' + connectionInfo.accessToken;
   log.debug('GET ' + vendUrl);
   log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
@@ -1501,7 +1501,7 @@ var createConsignmentProduct = function(args, connectionInfo, retryCounter) {
   if (!retryCounter) {
     retryCounter = 0;
   } else {
-    console.log('retry # ' + retryCounter);
+    log.debug('retry # ' + retryCounter);
   }
 
   var path = '/api/consignment_product';
@@ -1534,7 +1534,7 @@ var createStockOrder = function(args, connectionInfo, retryCounter) {
   if (!retryCounter) {
     retryCounter = 0;
   } else {
-    console.log('retry # ' + retryCounter);
+    log.debug('retry # ' + retryCounter);
   }
 
   var path = '/api/consignment';
@@ -1571,7 +1571,7 @@ var createCustomer = function(body, connectionInfo, retryCounter) {
   if (!retryCounter) {
     retryCounter = 0;
   } else {
-    console.log('retry # ' + retryCounter);
+    log.debug('retry # ' + retryCounter);
   }
 
   var path = '/api/customers';
@@ -1599,7 +1599,7 @@ var createRegisterSale = function(body, connectionInfo, retryCounter) {
   if (!retryCounter) {
     retryCounter = 0;
   } else {
-    console.log('retry # ' + retryCounter);
+    log.debug('retry # ' + retryCounter);
   }
 
   var path = '/api/register_sales';
@@ -1611,7 +1611,7 @@ var createRegisterSale = function(body, connectionInfo, retryCounter) {
     body = _.isObject(body) ? body : JSON.parse(body);
   }
   catch(exception) {
-    console.log(exception);
+    log.error(exception);
     return Promise.reject('inside createRegisterSale() - failed to parse the sale body');
   }
 
@@ -1640,7 +1640,7 @@ var updateConsignmentProduct = function(args, connectionInfo, retryCounter) {
   if (!retryCounter) {
     retryCounter = 0;
   } else {
-    console.log('retry # ' + retryCounter);
+    log.debug('retry # ' + retryCounter);
   }
 
   var path = '/api/consignment_product/' + args.apiId.value;
@@ -1675,7 +1675,7 @@ var markStockOrderAsSent = function(args, connectionInfo, retryCounter) {
   if (!retryCounter) {
     retryCounter = 0;
   } else {
-    console.log('retry # ' + retryCounter);
+    log.debug('retry # ' + retryCounter);
   }
 
   var path = '/api/consignment/' + args.apiId.value;
@@ -1711,7 +1711,7 @@ var markStockOrderAsReceived = function(args, connectionInfo, retryCounter) {
   if (!retryCounter) {
     retryCounter = 0;
   } else {
-    console.log('retry # ' + retryCounter);
+    log.debug('retry # ' + retryCounter);
   }
 
   var path = '/api/consignment/' + args.apiId.value;
@@ -1740,21 +1740,19 @@ var markStockOrderAsReceived = function(args, connectionInfo, retryCounter) {
 var deleteStockOrder = function(args, connectionInfo, retryCounter) {
   log.debug('inside deleteStockOrder()');
 
-  console.log(args);
   if ( !(args && argsAreValid(args)) ) {
     return Promise.reject('missing required arguments for deleteStockOrder()');
   }
-  console.log(args);
 
   if (!retryCounter) {
     retryCounter = 0;
   } else {
-    console.log('retry # ' + retryCounter);
+    log.debug('retry # ' + retryCounter);
   }
 
-  console.log(args.apiId.value);
+  log.debug(args.apiId.value);
   var path = '/api/consignment/' + args.apiId.value;
-  console.log(path);
+  log.debug(path);
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
   log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
@@ -1836,12 +1834,12 @@ var getInitialAccessToken = function(tokenService, clientId, clientSecret, redir
   return request.post(options)
     .then(successHandler)
     .catch(RateLimitingError, function(e) {// jshint ignore:line
-      console.log('A RateLimitingError error like "429 Too Many Requests" happened: '
+      log.error('A RateLimitingError error like "429 Too Many Requests" happened: '
         + e.statusCode + ' ' + e.response.body + '\n'
         + JSON.stringify(e.response.headers,null,2));
     })
     .catch(ClientError, function(e) {// jshint ignore:line
-      console.log('A ClientError happened: '
+      log.error('A ClientError happened: '
           + e.statusCode + ' ' + e.response.body + '\n'
         /*+ JSON.stringify(e.response.headers,null,2)
          + JSON.stringify(e,null,2)*/
@@ -1849,7 +1847,7 @@ var getInitialAccessToken = function(tokenService, clientId, clientSecret, redir
       // TODO: add retry logic
     })
     .catch(function(e) {
-      console.error('An unexpected error occurred: ', e);
+      log.error('An unexpected error occurred: ', e);
     });
 };
 
@@ -1882,12 +1880,12 @@ var refreshAccessToken = function(tokenService, clientId, clientSecret, refreshT
   return request.post(options)
     .then(successHandler)
     .catch(RateLimitingError, function(e) {// jshint ignore:line
-      console.log('A RateLimitingError error like "429 Too Many Requests" happened: '
+      log.error('A RateLimitingError error like "429 Too Many Requests" happened: '
         + e.statusCode + ' ' + e.response.body + '\n'
         + JSON.stringify(e.response.headers,null,2));
     })
     .catch(ClientError, function(e) {// jshint ignore:line
-      console.log('A ClientError happened: '
+      log.error('A ClientError happened: '
           + e.statusCode + ' ' + e.response.body + '\n'
         /*+ JSON.stringify(e.response.headers,null,2)
          + JSON.stringify(e,null,2)*/
@@ -1895,7 +1893,7 @@ var refreshAccessToken = function(tokenService, clientId, clientSecret, refreshT
       // TODO: add retry logic
     })
     .catch(function(e) {
-      console.error('An unexpected error occurred: ', e);
+      log.error('An unexpected error occurred: ', e);
     });
 };
 
@@ -1933,7 +1931,17 @@ module.exports = function(dependencies) {
 
   log = dependencies.winston || require('winston');
   log.remove(log.transports.Console);
-  log.add(log.transports.Console, {colorize: true, timestamp: false, level: 'debug'});
+  if (process.env.NODE_ENV !== 'test') {
+      log.add(log.transports.Console, {
+        colorize: true,
+        timestamp: false,
+        level: process.env.LOG_LEVEL_FOR_VEND_NODEJS_SDK || 'debug'
+      });
+  }
+  else {
+      // while testing, log only to file, leaving stdout free for unit test status messages
+      log.add(log.transports.File, { filename: 'vend-nodejs-sdk.log' });
+  }
 
   // (2) initialize any module-scoped variables which need the dependencies
   // ...
