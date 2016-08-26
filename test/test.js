@@ -3,7 +3,11 @@
 var nconf = require('nconf');
 //nconf.argv().env();
 
+var chai = require('chai');
 var expect = require('chai').expect;
+
+var chaiAsPromised = require('chai-as-promised');
+chai.use(chaiAsPromised);
 
 var vendSdk = require('./../vend')({});
 
@@ -57,6 +61,10 @@ describe('vend-nodejs-sdk', function() {/*jshint expr: true*/
                 domainPrefix: nconf.get('domain_prefix')
             };
 
+            /* short hand for testing */
+            //var unresolvedPromise = vendSdk.products.fetch(args, connectionInfo);
+            //return expect(unresolvedPromise).to.be.rejectedWith('missing required arguments for sendRequest()');
+
             return vendSdk.products.fetch(args, connectionInfo)
                 .catch(function(error){
                     expect(error).to.be.a('string');
@@ -86,9 +94,31 @@ describe('vend-nodejs-sdk', function() {/*jshint expr: true*/
 
     });
 
-    describe('when a valid refreshToken is available', function() {
+    describe('when a refreshToken is available', function() {
 
-        it('can regenerate an accessToken for use', function() {
+        it('but invalid - API calls should fail', function() {
+
+            var args = vendSdk.args.products.fetch();
+            args.orderBy.value = 'id';
+            args.page.value = 1;
+            args.pageSize.value = 1;
+            args.active.value = true;
+
+            var connectionInfo = {
+                domainPrefix: nconf.get('domain_prefix'),
+                accessToken: 'JUNK',
+                refreshToken: 'JUNK',
+                vendTokenService: nconf.get('vend:token_service'), // config/<env>.json
+                vendClientId: nconf.get('vend:client_id'), // config/<env>.json
+                vendClientSecret: nconf.get('vend:client_secret') // config/<env>.json
+            };
+
+            return expect( vendSdk.products.fetch(args, connectionInfo) ).to.be.rejectedWith(TypeError);
+
+        });
+
+        it('and valid - can regenerate an accessToken for use in API calls', function() {
+
             this.timeout(30000);
 
             var args = vendSdk.args.products.fetch();
@@ -144,6 +174,7 @@ describe('vend-nodejs-sdk', function() {/*jshint expr: true*/
                     expect(response).to.exist;
                     expect(response.products).to.exist;
                     expect(response.products).to.be.instanceof(Array);
+                    expect(response.products).to.have.length.of.at.least(1);
                     expect(response.products).to.have.length.of.at.most(5);
                     if(response.pagination) {/*jshint camelcase: false */
                         expect(response.pagination.results).to.exist;
