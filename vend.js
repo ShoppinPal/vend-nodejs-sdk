@@ -1111,7 +1111,7 @@ var createProduct = function(args, connectionInfo, retryCounter) {
   if (!retryCounter) {
     retryCounter = 0;
   } else {
-    console.log('retry # ' + retryCounter);
+    log.debug('retry # ' + retryCounter);
   }
 
   var path = '/api/products';
@@ -1143,7 +1143,7 @@ var uploadProductImage = function(args, connectionInfo, retryCounter) {
   if (!retryCounter) {
     retryCounter = 0;
   } else {
-    console.log('retry # ' + retryCounter);
+    log.debug('retry # ' + retryCounter);
   }
 
   var path = '/api/2.0/products/' + args.apiId.value + '/actions/image_upload';
@@ -1424,12 +1424,12 @@ var fetchRegister  = function(args, connectionInfo, retryCounter) {
   if (!retryCounter) {
     retryCounter = 0;
   } else {
-    console.log('retry # ' + retryCounter);
+    log.debug('retry # ' + retryCounter);
   }
 
   var path = '/api/2.0/registers/' + args.apiId.value;
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
-  console.log('Requesting vend product ' + vendUrl);
+  log.debug('Requesting vend product ' + vendUrl);
   var authString = 'Bearer ' + connectionInfo.accessToken;
   log.debug('GET ' + vendUrl);
   log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
@@ -1476,7 +1476,7 @@ var fetchProductTypes = function(args, connectionInfo, retryCounter) {
   if (!retryCounter) {
     retryCounter = 0;
   } else {
-    console.log('retry # ' + retryCounter);
+    log.debug('retry # ' + retryCounter);
   }
 
   var path = '/api/2.0/product_types';
@@ -1505,7 +1505,7 @@ var createProductTypes = function(args, connectionInfo, retryCounter) {
   if (!retryCounter) {
     retryCounter = 0;
   } else {
-    console.log('retry # ' + retryCounter);
+    log.debug('retry # ' + retryCounter);
   }
 
   var path = '/api/2.0/product_types';
@@ -1563,7 +1563,7 @@ var createTaxe = function(args, connectionInfo, retryCounter) {
   if (!retryCounter) {
     retryCounter = 0;
   } else {
-    console.log('retry # ' + retryCounter);
+    log.debug('retry # ' + retryCounter);
   }
 
   var path = '/api/taxes';
@@ -1592,7 +1592,7 @@ var fetchBrands = function(args, connectionInfo, retryCounter) {
   if (!retryCounter) {
     retryCounter = 0;
   } else {
-    console.log('retry # ' + retryCounter);
+    log.debug('retry # ' + retryCounter);
   }
 
   var path = '/api/2.0/brands';
@@ -1621,7 +1621,7 @@ var createBrand = function(args, connectionInfo, retryCounter) {
   if (!retryCounter) {
     retryCounter = 0;
   } else {
-    console.log('retry # ' + retryCounter);
+    log.debug('retry # ' + retryCounter);
   }
 
   var path = '/api/2.0/brands';
@@ -1650,7 +1650,7 @@ var fetchTags = function(args, connectionInfo, retryCounter) {
   if (!retryCounter) {
     retryCounter = 0;
   } else {
-    console.log('retry # ' + retryCounter);
+    log.debug('retry # ' + retryCounter);
   }
 
   var path = '/api/2.0/tags';
@@ -1679,7 +1679,7 @@ var createTag = function(args, connectionInfo, retryCounter) {
   if (!retryCounter) {
     retryCounter = 0;
   } else {
-    console.log('retry # ' + retryCounter);
+    log.debug('retry # ' + retryCounter);
   }
 
   var path = '/api/2.0/tags';
@@ -1799,12 +1799,12 @@ var fetchOutlet  = function(args, connectionInfo, retryCounter) {
   if (!retryCounter) {
     retryCounter = 0;
   } else {
-    console.log('retry # ' + retryCounter);
+    log.debug('retry # ' + retryCounter);
   }
 
   var path = '/api/2.0/outlets/' + args.apiId.value;
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
-  console.log('Requesting vend outlet ' + vendUrl);
+  log.debug('Requesting vend outlet ' + vendUrl);
   var authString = 'Bearer ' + connectionInfo.accessToken;
   log.debug('GET ' + vendUrl);
   log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
@@ -1902,7 +1902,7 @@ var createSupplier = function(args, connectionInfo, retryCounter) {
   if (!retryCounter) {
     retryCounter = 0;
   } else {
-    console.log('retry # ' + retryCounter);
+    log.debug('retry # ' + retryCounter);
   }
 
   var path = '/api/supplier';
@@ -2405,7 +2405,7 @@ module.exports = function(dependencies) {
   Promise = dependencies.bluebird || require('bluebird');
 
   request = dependencies['request-promise'] || require('request-promise');
-  //request.debug = true;
+  request.debug = dependencies.debugRequests;
 
   log = dependencies.winston || require('winston');
   log.remove(log.transports.Console);
