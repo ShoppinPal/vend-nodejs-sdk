@@ -308,7 +308,25 @@ describe('vend-nodejs-sdk', function() {/*jshint expr: true*/
         });
 
         it('can fetch a register by ID', function() {
-            // TODO: implement it
+            var args = vendSdk.args.registers.fetch();
+            return vendSdk.registers.fetch(args, getConnectionInfo())
+              .then(function(response1){
+                  expect(response1).to.exist;
+                  expect(response1.registers).to.exist;
+                  expect(response1.registers).to.be.instanceof(Array);
+                  expect(response1.registers).to.have.length.of.at.least(1); // TODO: what if no registers exist at all?
+
+                  // fetch a register by ID
+                  var args = vendSdk.args.registers.fetchById();
+                  args.apiId.value = _.last(response1.registers).id;
+                  return vendSdk.registers.fetchById(args, getConnectionInfo())
+                    .then(function(response2){
+                        expect(response2).to.exist;
+                        expect(response2.data).to.exist;
+                        expect(response2.data).to.be.instanceof(Object);
+                        expect(response2.data.id).to.equal(_.last(response1.registers).id); // IDs should match
+                    });
+              });
         });
 
         xit('can fetch ALL registers', function() {
