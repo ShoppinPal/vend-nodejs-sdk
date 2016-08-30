@@ -247,7 +247,6 @@ describe('vend-nodejs-sdk', function() {/*jshint expr: true*/
         });
 
         it('can create a customer', function() {
-            // TODO: implement it
             // create a dummy customer
             var customer = {
                 'first_name': 'boy',
@@ -256,6 +255,74 @@ describe('vend-nodejs-sdk', function() {/*jshint expr: true*/
             };
             var connectionInfo = getConnectionInfo();
             return vendSdk.customers.create(customer, connectionInfo);
+        });
+
+        it('can create a product', function() {
+            // TODO: implement it
+        });
+
+        it('can fetch a product that was just created', function() {
+            // TODO: implement it
+        });
+
+        it('can upload product image', function() {
+            // TODO: implement it
+        });
+
+        xit('can fetch registers', function() {
+            // TODO: implement it
+        });
+
+        it('can fetch a register by ID', function() {
+            // TODO: implement it
+        });
+
+        xit('can fetch ALL registers', function() {
+            // TODO: implement it
+        });
+
+        it('can fetch tags', function() {
+            // TODO: implement it
+        });
+
+        it('can create a tag', function() {
+            // TODO: implement it
+        });
+
+        xit('can fetch outlets', function() {
+            // TODO: implement it
+        });
+
+        it('can fetch an outlet by ID', function() {
+            // TODO: implement it
+        });
+
+        xit('can fetch ALL outlets', function() {
+            // NOTE: no need for fetchAll since hardly any Vend customers have more than 200 outlets
+        });
+
+        it('can fetch product-types', function() {
+            // TODO: implement it
+        });
+
+        it('can create a product-type', function() {
+            // TODO: implement it
+        });
+
+        it('can fetch brands', function() {
+            // TODO: implement it
+        });
+
+        it('can create a brand', function() {
+            // TODO: implement it
+        });
+
+        it('can create a supplier', function() {
+            // TODO: implement it
+        });
+
+        it('can create a tax', function() {
+            // TODO: implement it
         });
 
     });
