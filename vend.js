@@ -1386,6 +1386,10 @@ var fetchRegisters = function(args, connectionInfo, retryCounter) {
     headers: {
       'Authorization': authString,
       'Accept': 'application/json'
+    },
+    qs: {/*jshint camelcase: false */
+      page: args.page.value,
+      page_size: args.pageSize.value
     }
   };
 

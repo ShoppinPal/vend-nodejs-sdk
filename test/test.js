@@ -9,7 +9,9 @@ var expect = require('chai').expect;
 var chaiAsPromised = require('chai-as-promised');
 chai.use(chaiAsPromised);
 
-var vendSdk = require('./../vend')({});
+var vendSdk = require('./../vend')({
+    debugRequests: false
+});
 var _ = require('underscore');
 
 var getConnectionInfo = function() {
@@ -108,6 +110,8 @@ describe('vend-nodejs-sdk', function() {/*jshint expr: true*/
 
     describe('when a refreshToken is available', function() {
 
+        this.timeout(30000);
+
         it('but invalid - API calls should fail', function() {
 
             var args = vendSdk.args.products.fetch();
@@ -130,8 +134,6 @@ describe('vend-nodejs-sdk', function() {/*jshint expr: true*/
         });
 
         it('and valid - can regenerate an accessToken for use in API calls', function() {
-
-            this.timeout(30000);
 
             var args = vendSdk.args.products.fetch();
             args.orderBy.value = 'id';
@@ -163,8 +165,6 @@ describe('vend-nodejs-sdk', function() {/*jshint expr: true*/
         });
 
         it('can fetch products', function() {
-
-            this.timeout(30000);
 
             var args = vendSdk.args.products.fetch();
             args.orderBy.value = 'id';
@@ -214,7 +214,6 @@ describe('vend-nodejs-sdk', function() {/*jshint expr: true*/
 
         it('can fetch a product by ID', function() {
 
-            this.timeout(30000);
 
             var args = vendSdk.args.products.fetch();
             args.orderBy.value = 'id';
@@ -269,8 +268,29 @@ describe('vend-nodejs-sdk', function() {/*jshint expr: true*/
             // TODO: implement it
         });
 
-        xit('can fetch registers', function() {
-            // TODO: implement it
+        it('can fetch registers', function() {
+            var args = vendSdk.args.registers.fetch();
+            return vendSdk.registers.fetch(args, getConnectionInfo())
+              .then(function(response){
+                  //console.log(response);
+                  expect(response).to.exist;
+                  expect(response.registers).to.exist;
+                  expect(response.registers).to.be.instanceof(Array);
+              });
+        });
+
+        it('cannot paginate when fetching registers - it is not supported by vend in 0.x', function() {
+            var args = vendSdk.args.registers.fetch();
+            args.page.value = 1;
+            args.pageSize.value = 1;
+            return vendSdk.registers.fetch(args, getConnectionInfo())
+              .then(function(response){
+                  //console.log(response);
+                  expect(response).to.exist;
+                  expect(response.registers).to.exist;
+                  expect(response.registers).to.be.instanceof(Array);
+                  expect(response.registers).to.have.length.above(1); // TODO: what if no more than 1 registers exist?
+              });
         });
 
         it('can fetch a register by ID', function() {
