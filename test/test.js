@@ -10,6 +10,18 @@ var chaiAsPromised = require('chai-as-promised');
 chai.use(chaiAsPromised);
 
 var vendSdk = require('./../vend')({});
+var _ = require('underscore');
+
+var getConnectionInfo = function() {
+    return {
+        domainPrefix: nconf.get('domain_prefix'),
+        accessToken: nconf.get('access_token'),
+        refreshToken: nconf.get('refresh_token'), // oauth.json
+        vendTokenService: nconf.get('vend:token_service'), // config/<env>.json
+        vendClientId: nconf.get('vend:client_id'), // config/<env>.json
+        vendClientSecret: nconf.get('vend:client_secret') // config/<env>.json
+    };
+};
 
 describe('vend-nodejs-sdk', function() {/*jshint expr: true*/
 
@@ -198,6 +210,52 @@ describe('vend-nodejs-sdk', function() {/*jshint expr: true*/
                     );
                 });
 
+        });
+
+        it('can fetch a product by ID', function() {
+
+            this.timeout(30000);
+
+            var args = vendSdk.args.products.fetch();
+            args.orderBy.value = 'id';
+            args.page.value = 1;
+            args.pageSize.value = 1;
+            args.active.value = true;
+
+            var connectionInfo = getConnectionInfo();
+
+            // get one of any product
+            return vendSdk.products.fetch(args, connectionInfo)
+              .then(function(response){
+                  expect(response).to.exist;
+                  expect(response.products).to.exist;
+                  expect(response.products).to.be.instanceof(Array);
+                  expect(response.products).to.have.length.of.at.least(1);
+
+                  // fetch a product by ID
+                  var args = vendSdk.args.products.fetchById();
+                  args.apiId.value = _.last(response.products).id;
+                  return vendSdk.products.fetchById(args, connectionInfo)
+                    .then(function(response){
+                        expect(response).to.exist;
+                        expect(response.products).to.exist;
+                        expect(response.products).to.be.instanceof(Array);
+                        expect(response.products.length).to.equal(1);
+                        expect(response.products[0].id).to.equal(_.last(response.products).id); // IDs should match
+                    });
+              });
+        });
+
+        it('can create a customer', function() {
+            // TODO: implement it
+            // create a dummy customer
+            var customer = {
+                'first_name': 'boy',
+                'last_name': 'blue',
+                'email': 'boy'+Date.now()+'@blue.com'
+            };
+            var connectionInfo = getConnectionInfo();
+            return vendSdk.customers.create(customer, connectionInfo);
         });
 
     });
