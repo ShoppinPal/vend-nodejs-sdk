@@ -212,8 +212,22 @@ describe('vend-nodejs-sdk', function() {/*jshint expr: true*/
 
         });
 
-        it('can fetch a product by ID', function() {
+        it('can paginate when fetching products', function() {
+            var args = vendSdk.args.products.fetch();
+            args.orderBy.value = 'id';
+            args.page.value = 1;
+            args.pageSize.value = 1;
+            args.active.value = true;
+            return vendSdk.products.fetch(args, getConnectionInfo())
+              .then(function(response){
+                  expect(response).to.exist;
+                  expect(response.products).to.exist;
+                  expect(response.products).to.be.instanceof(Array);
+                  expect(response.products.length).to.equal(1);
+              });
+        });
 
+        it('can fetch a product by ID', function() {
 
             var args = vendSdk.args.products.fetch();
             args.orderBy.value = 'id';
