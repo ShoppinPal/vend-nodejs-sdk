@@ -239,22 +239,22 @@ describe('vend-nodejs-sdk', function() {/*jshint expr: true*/
 
             // get one of any product
             return vendSdk.products.fetch(args, connectionInfo)
-              .then(function(response){
-                  expect(response).to.exist;
-                  expect(response.products).to.exist;
-                  expect(response.products).to.be.instanceof(Array);
-                  expect(response.products).to.have.length.of.at.least(1);
+              .then(function(response1){
+                  expect(response1).to.exist;
+                  expect(response1.products).to.exist;
+                  expect(response1.products).to.be.instanceof(Array);
+                  expect(response1.products).to.have.length.of.at.least(1);
 
                   // fetch a product by ID
                   var args = vendSdk.args.products.fetchById();
-                  args.apiId.value = _.last(response.products).id;
+                  args.apiId.value = _.last(response1.products).id;
                   return vendSdk.products.fetchById(args, connectionInfo)
-                    .then(function(response){
-                        expect(response).to.exist;
-                        expect(response.products).to.exist;
-                        expect(response.products).to.be.instanceof(Array);
-                        expect(response.products.length).to.equal(1);
-                        expect(response.products[0].id).to.equal(_.last(response.products).id); // IDs should match
+                    .then(function(response2){
+                        expect(response2).to.exist;
+                        expect(response2.products).to.exist;
+                        expect(response2.products).to.be.instanceof(Array);
+                        expect(response2.products.length).to.equal(1);
+                        expect(response2.products[0].id).to.equal(_.last(response1.products).id); // IDs should match
                     });
               });
         });
