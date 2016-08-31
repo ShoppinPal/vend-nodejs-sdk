@@ -215,6 +215,19 @@ function processPagesRecursively(args, connectionInfo, fetchSinglePage, processP
             return processPagesRecursively(args, connectionInfo, fetchSinglePage, processPagedResults, newlyProcessedResults);
           });
       }
+      else if (result && result.version && result.data && result.data.length>0) {
+        log.info('# of entries returned: ' + result.data.length);
+        log.info('version min: '+ result.version.min + ' max: ' + result.version.max);
+        if (args.pageSize.value) {
+          log.info('Page # ' + args.page.value); // page has no operational role here, just useful for readable logs
+        }
+        return processPagedResults(result, previousProcessedResults)
+          .then(function(newlyProcessedResults){
+            args.after.value = result.version.max; // work on whatever is left after the max version from previous call
+            args.page.value = args.page.value+1; // page has no operational role here, just useful for readable logs
+            return processPagesRecursively(args, connectionInfo, fetchSinglePage, processPagedResults, newlyProcessedResults);
+          });
+      }
       else {
         log.info('Processing last page. Page # ' + args.page.value);
         return processPagedResults(result, previousProcessedResults);
@@ -661,6 +674,11 @@ var argsForInput = {
   tags: {
     fetch: function() {
       return {
+        after: {
+          required: false,
+          key: 'after',
+          value: undefined
+        },
         page: {
           required: false,
           key: 'page',
@@ -1670,10 +1688,53 @@ var fetchTags = function(args, connectionInfo, retryCounter) {
     headers: {
       'Authorization': authString,
       'Accept': 'application/json'
+    },
+    // WARN: 0.x and 1.0 use `page` and `page_size`, which may or may NOT be implemented on Vend server side for all entities!
+    // WARN: 2.0 uses `after` and even though `page_size` is not documented, it is still useable.
+    //       Server side no longer limits you to pages of size 200 and it can handle north of 10000 easy
+    qs: { /*jshint camelcase: false */
+      after: args.after.value,
+      page_size: args.pageSize.value
     }
   };
 
   return sendRequest(options, args, connectionInfo, fetchTags, retryCounter);
+};
+
+var fetchAllTags = function(args, connectionInfo, processPagedResults) {
+  log.debug('inside fetchAllTags()');
+  if (!args) {
+    args = argsForInput.tags.fetch();
+  }
+  if (!args.after || !args.after.value) {
+    args.after = {value:0};
+  }
+  if (!args.page || !args.page.value) {
+    args.page = {value:1}; // page has no operational role here, just useful for readable logs
+  }
+  if (!args.pageSize || !args.pageSize.value) {
+    args.pageSize = {value:200};
+  }
+
+  // set a default function if none is provided
+  if (!processPagedResults) {
+    processPagedResults = function processPagedResults(pagedData, previousData){
+      log.debug('fetchAllTags - default processPagedResults()');
+      if (previousData && previousData.length>0) {
+        //log.verbose(JSON.stringify(pagedData.data,replacer,2));
+        if (pagedData.data && pagedData.data.length>0) {
+          log.debug('previousData: ', previousData.length);
+          pagedData.data = pagedData.data.concat(previousData);
+          log.debug('combined: ', pagedData.data.length);
+        }
+        else {
+          pagedData.data = previousData;
+        }
+      }
+      return Promise.resolve(pagedData.data);
+    };
+  }
+  return processPagesRecursively(args, connectionInfo, fetchTags, processPagedResults);
 };
 
 var createTag = function(args, connectionInfo, retryCounter) {
@@ -1733,6 +1794,7 @@ var fetchRegisterSales = function(args, connectionInfo, retryCounter) {
       since: args.since.value,
       outlet_id: args.outletApiId.value,
       tag: args.tag.value,
+      // WARN: 0.x and 1.0 use `page` and `page_size`, which may or may NOT be implemented on Vend server side for all entities!
       page: args.page.value,
       page_size: args.pageSize.value
     }
@@ -2419,6 +2481,7 @@ module.exports = function(dependencies) {
       log.add(log.transports.Console, {
         colorize: true,
         timestamp: false,
+        prettyPrint: true,
         level: process.env.LOG_LEVEL_FOR_VEND_NODEJS_SDK || 'debug'
       });
     }
@@ -2471,6 +2534,7 @@ module.exports = function(dependencies) {
     },
     tags: {
       fetch: fetchTags,
+      fetchAll: fetchAllTags,
       create: createTag
     },
     sales: {
