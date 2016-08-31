@@ -1120,6 +1120,7 @@ var createProduct = function(args, connectionInfo, retryCounter) {
   log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
   var body = args.body.value;
 
+  console.log('body', body);
   var options = {
     method: 'POST',
     url: vendUrl,
@@ -1559,9 +1560,9 @@ var fetchTaxes = function(args, connectionInfo, retryCounter) {
   return sendRequest(options, args, connectionInfo, fetchTaxes, retryCounter);
 };
 
-var createTaxe = function(args, connectionInfo, retryCounter) {
+var createTax = function(args, connectionInfo, retryCounter) {
   if ( !(args && argsAreValid(args)) ) {
-    return Promise.reject('missing required arguments for createTaxe()');
+    return Promise.reject('missing required arguments for createTax()');
   }
 
   if (!retryCounter) {
@@ -1588,7 +1589,7 @@ var createTaxe = function(args, connectionInfo, retryCounter) {
   };
   log.debug(options.method + ' ' + options.url);
 
-  return sendRequest(options, args, connectionInfo, createTaxe, retryCounter);
+  return sendRequest(options, args, connectionInfo, createTax, retryCounter);
 };
 
 var fetchBrands = function(args, connectionInfo, retryCounter) {
@@ -2412,17 +2413,22 @@ module.exports = function(dependencies) {
   request.debug = dependencies.debugRequests;
 
   log = dependencies.winston || require('winston');
-  log.remove(log.transports.Console);
-  if (process.env.NODE_ENV !== 'test') {
+  if (!dependencies.winston) { // if winston is being instantiated within this method then take these actions
+    log.remove(log.transports.Console);
+    if (process.env.NODE_ENV !== 'test') {
       log.add(log.transports.Console, {
         colorize: true,
         timestamp: false,
         level: process.env.LOG_LEVEL_FOR_VEND_NODEJS_SDK || 'debug'
       });
-  }
-  else {
+    }
+    else {
       // while testing, log only to file, leaving stdout free for unit test status messages
-      log.add(log.transports.File, { filename: 'vend-nodejs-sdk.log' });
+      log.add(log.transports.File, {
+        filename: 'vend-nodejs-sdk.log',
+        level: process.env.LOG_LEVEL_FOR_VEND_NODEJS_SDK || 'debug'
+      });
+    }
   }
 
   // (2) initialize any module-scoped variables which need the dependencies
@@ -2457,7 +2463,7 @@ module.exports = function(dependencies) {
     },
     taxes: {
       fetch: fetchTaxes,
-      create: createTaxe
+      create: createTax
     },
     brands: {
       fetch: fetchBrands,
