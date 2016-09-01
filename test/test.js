@@ -10,7 +10,7 @@ var chaiAsPromised = require('chai-as-promised');
 chai.use(chaiAsPromised);
 
 var vendSdk = require('./../vend')({
-  debugRequests: false // flip it to true to see detailed request/response logs
+  debugRequests: process.env.REQUEST_LOG_LEVEL_FOR_VEND_NODEJS_SDK || false // flip it to true to see detailed request/response logs
 });
 var _ = require('underscore');
 var faker = require('faker');
@@ -136,6 +136,15 @@ describe('vend-nodejs-sdk', function() {/*jshint expr: true*/
   describe('when a refreshToken is available', function() {
 
     this.timeout(30000);
+
+    // Why do this? It is useful if someone runs:
+    //   NODE_ENV=test ./node_modules/.bin/mocha --grep <pattern>
+    // on the command line to run tests and suites with names matching the pattern.
+    before('requires proper configuration to run tests', function() {
+      // loading twice into the `nconf` singleton is effectively a no-op, so no worries
+      nconf.file('config', { file: 'config/' + process.env.NODE_ENV + '.json' });
+      nconf.file('oauth', { file: 'config/oauth.json' });
+    });
 
     it('but invalid - API calls should fail', function() {
 
@@ -308,7 +317,7 @@ describe('vend-nodejs-sdk', function() {/*jshint expr: true*/
       var args = vendSdk.args.registers.fetch();
       return vendSdk.registers.fetch(args, getConnectionInfo())
         .then(function(response){
-          //console.log(response);
+          //log.debug('can fetch registers', 'response:', response);
           expect(response).to.exist;
           expect(response.registers).to.exist;
           expect(response.registers).to.be.instanceof(Array);
@@ -351,51 +360,98 @@ describe('vend-nodejs-sdk', function() {/*jshint expr: true*/
         });
     });
 
-    it('can fetch ALL registers', function() {
-      // TODO: implement it
+    xit('SKIP: can fetch ALL registers', function() {
+      log.info('This test is pointless because pagination is not supported for registes by Vend.' +
+        '\nSo while we can fetch a max of 200 registers, there is no way we can page'+
+        '\nthrough and fetch more than that if they existed.\n');
+    });
+
+    it('UNVERIFIED: can create a tag', function() {
+      // TODO: implement it - create some tags so fetch can be more relevant/concrete
     });
 
     it('can fetch tags', function() {
+      var args = vendSdk.args.tags.fetch();
+      return vendSdk.tags.fetch(args, getConnectionInfo())
+        .then(function(response){
+          //log.debug('can fetch tags', 'response:', response);
+          expect(response).to.exist;
+          expect(response.data).to.exist;
+          expect(response.data).to.be.instanceof(Array);
+          //log.debug('can fetch tags', 'response.data.length:', response.data.length);
+        });
+    });
+
+    it('can paginate when fetching tags', function() {
+      var args = vendSdk.args.tags.fetch();
+      args.pageSize.value = 2;
+      return vendSdk.tags.fetch(args, getConnectionInfo())
+        .then(function(response){
+          //log.debug('can paginate when fetching tags', 'response:', response);
+          expect(response).to.exist;
+          expect(response.data).to.exist;
+          expect(response.data).to.be.instanceof(Array);
+          expect(response.data.length).to.equal(2);
+          //log.debug('can paginate when fetching tags', 'response.data.length:', response.data.length);
+        });
+    });
+
+    it('can fetch ALL tags', function() {
+      var args = vendSdk.args.tags.fetch();
+      args.pageSize.value = 2;
+      return vendSdk.tags.fetchAll(args, getConnectionInfo())
+        .then(function(allTags){
+          //log.debug('can fetch ALL tags', 'allTags:', allTags);
+          expect(allTags).to.exist;
+          expect(allTags).to.be.instanceof(Array);
+          //log.debug('can fetch ALL tags', 'allTags.length:', allTags.length);
+        });
+    });
+
+    xit('DUPLICATE: can paginate when fetching tags and start AFTER a given point in time', function() {
+      log.debug('The previous test already executes code which does this internally' +
+        ' by starting AFTER version 0 by default.' +
+        '\n While it would be nice to give a different version to start "AFTER" than 0,' +
+        ' a valid/meaningful version to use in tests will be different in every Vend subdomain');
+    });
+
+    xit('FEATURE REQUEST: can fetch ALL tags and start AFTER a given point in time', function() {
       // TODO: implement it
     });
 
-    it('can create a tag', function() {
+    xit('TODO: can fetch outlets', function() {
       // TODO: implement it
     });
 
-    xit('can fetch outlets', function() {
+    it('TODO: can fetch an outlet by ID', function() {
       // TODO: implement it
     });
 
-    it('can fetch an outlet by ID', function() {
-      // TODO: implement it
-    });
-
-    xit('can fetch ALL outlets', function() {
+    xit('TODO: can fetch ALL outlets', function() {
       // NOTE: no need for fetchAll since hardly any Vend customers have more than 200 outlets
     });
 
-    it('can fetch product-types', function() {
+    it('TODO: can fetch product-types', function() {
       // TODO: implement it
     });
 
-    it('can create a product-type', function() {
+    it('UNVERIFIED: can create a product-type', function() {
       // TODO: implement it
     });
 
-    it('can fetch brands', function() {
+    it('TODO: can fetch brands', function() {
       // TODO: implement it
     });
 
-    it('can create a brand', function() {
+    it('UNVERIFIED: can create a brand', function() {
       // TODO: implement it
     });
 
-    it('can create a supplier', function() {
+    it('UNVERIFIED: can create a supplier', function() {
       // TODO: implement it
     });
 
-    it('can create a tax', function() {
+    it('UNVERIFIED: can create a tax', function() {
       // TODO: implement it
     });
 

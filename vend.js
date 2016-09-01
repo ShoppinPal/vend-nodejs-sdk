@@ -2474,6 +2474,16 @@ module.exports = function(dependencies) {
   request = dependencies['request-promise'] || require('request-promise');
   request.debug = dependencies.debugRequests;
 
+  /**
+   * Using winston can SUCK because it formats and positions things differently
+   * than what we are used to with console.log()
+   * > for ex: 1. json data is not made part of the message
+   * >         2. arrays are formatted and printed in a fashion that
+   * >            will make you think that you have the wrong data structure!
+   * >         3. prettyPrint option doesn't work for file logging
+   * >         4. error objects can run into problems and not get logged:
+   * >            https://github.com/winstonjs/winston/issues/600
+   */
   log = dependencies.winston || require('winston');
   if (!dependencies.winston) { // if winston is being instantiated within this method then take these actions
     log.remove(log.transports.Console);
