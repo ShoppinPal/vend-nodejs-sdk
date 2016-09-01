@@ -562,6 +562,11 @@ var argsForInput = {
   outlets: {
     fetch: function() {
       return {
+        after: {
+          required: false,
+          key: 'after',
+          value: undefined
+        },
         page: {
           required: false,
           key: 'page',
@@ -1841,6 +1846,9 @@ var fetchOutlets = function(args, connectionInfo, retryCounter) {
   }
 
   var path = '/api/outlets';
+  if (args.path && args.path.value) {
+    path = args.path.value;
+  }
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
   log.debug('GET ' + vendUrl);
@@ -1852,17 +1860,57 @@ var fetchOutlets = function(args, connectionInfo, retryCounter) {
     headers: {
       'Authorization': authString,
       'Accept': 'application/json'
-    }/*,
-    qs: { // NOTE: page and page_size are NOT implemented on Vend server side! For ex: page=1,page_size=1 doesn't work
-      page: args.page.value,
+    },
+    // WARN: 0.x and 1.0 use `page` and `page_size`, which may or may NOT be implemented on Vend server side for all entities!
+    // WARN: 2.0 uses `after` and even though `page_size` is not documented, it is still useable.
+    //       Server side no longer limits you to pages of size 200 and it can handle north of 10000 easy
+    qs: { /*jshint camelcase: false */
+      after: args.after.value,
       page_size: args.pageSize.value
-    }*/
+    }
   };
 
   return sendRequest(options, args, connectionInfo, fetchOutlets, retryCounter);
 };
 
-var fetchOutlet  = function(args, connectionInfo, retryCounter) {
+var fetchAllOutlets = function(args, connectionInfo, processPagedResults) {
+  log.debug('inside fetchAllOutlets()');
+  if (!args) {
+    args = argsForInput.outlets.fetch();
+  }
+  if (!args.after || !args.after.value) {
+    args.after = {value:0};
+  }
+  if (!args.page || !args.page.value) {
+    args.page = {value:1}; // page has no operational role here, just useful for readable logs
+  }
+  if (!args.pageSize || !args.pageSize.value) {
+    args.pageSize = {value:200};
+  }
+  args.path = {value:'/api/2.0/outlets'};
+
+  // set a default function if none is provided
+  if (!processPagedResults) {
+    processPagedResults = function processPagedResults(pagedData, previousData){
+      log.debug('fetchAllOutlets - default processPagedResults()');
+      if (previousData && previousData.length>0) {
+        //log.verbose(JSON.stringify(pagedData.data,replacer,2));
+        if (pagedData.data && pagedData.data.length>0) {
+          log.debug('previousData: ', previousData.length);
+          pagedData.data = pagedData.data.concat(previousData);
+          log.debug('combined: ', pagedData.data.length);
+        }
+        else {
+          pagedData.data = previousData;
+        }
+      }
+      return Promise.resolve(pagedData.data);
+    };
+  }
+  return processPagesRecursively(args, connectionInfo, fetchOutlets, processPagedResults);
+};
+
+var fetchOutlet = function(args, connectionInfo, retryCounter) {
   if (!retryCounter) {
     retryCounter = 0;
   } else {
@@ -2578,6 +2626,7 @@ module.exports = function(dependencies) {
       }
     },
     outlets:{
+      fetchAll: fetchAllOutlets,
       fetch: fetchOutlets, // no need for fetchAll since hardly any Vend customers have more than 200 outlets
       fetchById: fetchOutlet
     },

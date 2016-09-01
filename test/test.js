@@ -419,16 +419,59 @@ describe('vend-nodejs-sdk', function() {/*jshint expr: true*/
       // TODO: implement it
     });
 
-    xit('TODO: can fetch outlets', function() {
-      // TODO: implement it
+    it('can fetch outlets', function() {
+      var args = vendSdk.args.outlets.fetch();
+      return vendSdk.outlets.fetch(args, getConnectionInfo())
+        .then(function(response){
+          //log.debug('can fetch outlets', 'response:', response);
+          expect(response).to.exist;
+          expect(response.outlets).to.exist;
+          expect(response.outlets).to.be.instanceof(Array);
+          expect(response.outlets).to.have.length.of.at.least(1);
+          //log.debug('can fetch outlets', 'response.outlets.length:', response.outlets.length);
+        });
     });
 
-    it('TODO: can fetch an outlet by ID', function() {
-      // TODO: implement it
+    it('can fetch an outlet by ID', function() {
+      var args = vendSdk.args.outlets.fetch();
+      return vendSdk.outlets.fetch(args, getConnectionInfo())
+        .then(function(response1){
+          //log.debug('can fetch an outlet by ID', 'response1:', response1);
+          expect(response1).to.exist;
+          expect(response1.outlets).to.exist;
+          expect(response1.outlets).to.be.instanceof(Array);
+          expect(response1.outlets).to.have.length.of.at.least(1);
+          //log.debug('can fetch an outlet by ID', 'response1.outlets.length:', response1.outlets.length);
+
+          // fetch a product by ID
+          var args = vendSdk.args.outlets.fetchById();
+          args.apiId.value = _.last(response1.outlets).id;
+          return vendSdk.outlets.fetchById(args, getConnectionInfo())
+            .then(function(response2){
+              //log.debug('can fetch an outlet by ID', 'response2:', response2);
+              expect(response2).to.exist;
+              expect(response2.data).to.exist;
+              expect(response2.data).to.be.instanceof(Object);
+              expect(response2.data.id).to.equal(_.last(response1.outlets).id); // IDs should match
+            });
+        });
     });
 
-    xit('TODO: can fetch ALL outlets', function() {
+    it('can fetch ALL outlets', function() {
       // NOTE: no need for fetchAll since hardly any Vend customers have more than 200 outlets
+      var args = vendSdk.args.outlets.fetch();
+      args.pageSize.value = 2;
+      return vendSdk.outlets.fetchAll(args, getConnectionInfo())
+        .then(function(outlets){
+          //log.debug('can fetch ALL outlets', 'outlets:', outlets);
+          expect(outlets).to.exist;
+          expect(outlets).to.be.instanceof(Array);
+          log.debug('can fetch ALL outlets', 'outlets.length:', outlets.length);
+        });
+    });
+
+    xit('FEATURE REQUEST: can fetch ALL outlets AFTER a given point in time', function() {
+      // TODO: implement it
     });
 
     it('TODO: can fetch product-types', function() {
