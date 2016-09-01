@@ -466,7 +466,7 @@ describe('vend-nodejs-sdk', function() {/*jshint expr: true*/
           //log.debug('can fetch ALL outlets', 'outlets:', outlets);
           expect(outlets).to.exist;
           expect(outlets).to.be.instanceof(Array);
-          log.debug('can fetch ALL outlets', 'outlets.length:', outlets.length);
+          //log.debug('can fetch ALL outlets', 'outlets.length:', outlets.length);
         });
     });
 
@@ -474,20 +474,42 @@ describe('vend-nodejs-sdk', function() {/*jshint expr: true*/
       // TODO: implement it
     });
 
-    it('TODO: can fetch product-types', function() {
-      // TODO: implement it
+    xit('UNVERIFIED: can create a product-type', function() {
+      var args = vendSdk.args.productTypes.create();
+      args.body.value = {
+        name: faker.commerce.department()
+      };
+      return vendSdk.productTypes.create(args, getConnectionInfo());
     });
 
-    it('UNVERIFIED: can create a product-type', function() {
-      // TODO: implement it
-    });
-
-    it('TODO: can fetch brands', function() {
-      // TODO: implement it
+    it('can fetch product-types', function() {
+      var args = vendSdk.args.productTypes.fetch();
+      return vendSdk.productTypes.fetch(args, getConnectionInfo())
+        .then(function(response){
+          //log.debug('can fetch product-types', 'response:', response);
+          expect(response).to.exist;
+          expect(response.data).to.exist;
+          expect(response.data).to.be.instanceof(Array);
+          expect(response.data).to.have.length.of.at.least(1);
+          //log.debug('can fetch product-types', 'response.data.length:', response.data.length);
+        });
     });
 
     it('UNVERIFIED: can create a brand', function() {
       // TODO: implement it
+    });
+
+    it('can fetch brands', function() {
+      var args = vendSdk.args.brands.fetch();
+      return vendSdk.brands.fetch(args, getConnectionInfo())
+        .then(function(response){
+          //log.debug('can fetch brands', 'response:', response);
+          expect(response).to.exist;
+          expect(response.data).to.exist;
+          expect(response.data).to.be.instanceof(Array);
+          expect(response.data).to.have.length.of.at.least(1);
+          //log.debug('can fetch brands', 'response.data.length:', response.data.length);
+        });
     });
 
     it('UNVERIFIED: can create a supplier', function() {
