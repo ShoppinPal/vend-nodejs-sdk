@@ -1,21 +1,21 @@
 {
   "name": "vend-nodejs-sdk",
-  "version": "1.0.18",
+  "version": "1.1.0",
   "description": "Aims to provides a rich set of client-side functionality for Vend's public APIs",
   "license": "Apache-2.0",
   "author": "Pulkit Singhal",
   "contributors": [
     {
       "name": "Armand",
-      "url" : "https://github.com/armandchard"
+      "url": "https://github.com/armandchard"
     },
     {
       "name": "Megha",
-      "url" : "https://github.com/MeghaY"
+      "url": "https://github.com/MeghaY"
     },
     {
       "name": "Yash Gandhi",
-      "url" : "https://github.com/ysg410"
+      "url": "https://github.com/ysg410"
     }
   ],
   "main": "vend.js",
