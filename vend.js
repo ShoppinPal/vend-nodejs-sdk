@@ -215,6 +215,19 @@ function processPagesRecursively(args, connectionInfo, fetchSinglePage, processP
             return processPagesRecursively(args, connectionInfo, fetchSinglePage, processPagedResults, newlyProcessedResults);
           });
       }
+      else if (result && result.version && result.data && result.data.length>0) {
+        log.info('# of entries returned: ' + result.data.length);
+        log.info('version min: '+ result.version.min + ' max: ' + result.version.max);
+        if (args.pageSize.value) {
+          log.info('Page # ' + args.page.value); // page has no operational role here, just useful for readable logs
+        }
+        return processPagedResults(result, previousProcessedResults)
+          .then(function(newlyProcessedResults){
+            args.after.value = result.version.max; // work on whatever is left after the max version from previous call
+            args.page.value = args.page.value+1; // page has no operational role here, just useful for readable logs
+            return processPagesRecursively(args, connectionInfo, fetchSinglePage, processPagedResults, newlyProcessedResults);
+          });
+      }
       else {
         log.info('Processing last page. Page # ' + args.page.value);
         return processPagedResults(result, previousProcessedResults);
@@ -435,6 +448,26 @@ var argsForInput = {
         }
       };
     },
+    create: function() {
+      return {
+        body: {
+          required: true,
+          value: undefined
+        }
+      };
+    },
+    uploadImage: function() {
+      return {
+        apiId: {
+          required: true,
+          value: undefined
+        },
+        image: {
+          required: true,
+          value: undefined
+        }
+      };
+    },
     fetch: function() {
       return {
         orderBy: {
@@ -503,6 +536,14 @@ var argsForInput = {
     }
   },
   registers: {
+    fetchById: function() {
+      return {
+        apiId: {
+          required: true,
+          value: undefined
+        }
+      };
+    },
     fetch: function() {
       return {
         page: {
@@ -521,6 +562,11 @@ var argsForInput = {
   outlets: {
     fetch: function() {
       return {
+        after: {
+          required: false,
+          key: 'after',
+          value: undefined
+        },
         page: {
           required: false,
           key: 'page',
@@ -529,6 +575,14 @@ var argsForInput = {
         pageSize: {
           required: false,
           key: 'page_size',
+          value: undefined
+        }
+      };
+    },
+    fetchById: function() {
+      return {
+        apiId: {
+          required: true,
           value: undefined
         }
       };
@@ -550,6 +604,35 @@ var argsForInput = {
       };
     }
   },
+  productTypes: {
+    fetch: function() {
+      return {
+        after: {
+          required: false,
+          key: 'after',
+          value: undefined
+        },
+        page: {
+          required: false,
+          key: 'page',
+          value: undefined
+        },
+        pageSize: {
+          required: false,
+          key: 'page_size',
+          value: undefined
+        }
+      };
+    },
+    create: function () {
+      return {
+        body: {
+          required: true,
+          value: undefined
+        }
+      };
+    }
+  },
   taxes: {
     fetch: function() {
       return {
@@ -561,6 +644,72 @@ var argsForInput = {
         pageSize: {
           required: false,
           key: 'page_size',
+          value: undefined
+        }
+      };
+    },
+    create: function () {
+      return {
+        body: {
+          required: true,
+          value: undefined
+        }
+      };
+    }
+  },
+  brands: {
+    fetch: function() {
+      return {
+        after: {
+          required: false,
+          key: 'after',
+          value: undefined
+        },
+        page: {
+          required: false,
+          key: 'page',
+          value: undefined
+        },
+        pageSize: {
+          required: false,
+          key: 'page_size',
+          value: undefined
+        }
+      };
+    },
+    create: function () {
+      return {
+        body: {
+          required: true,
+          value: undefined
+        }
+      };
+    }
+  },
+  tags: {
+    fetch: function() {
+      return {
+        after: {
+          required: false,
+          key: 'after',
+          value: undefined
+        },
+        page: {
+          required: false,
+          key: 'page',
+          value: undefined
+        },
+        pageSize: {
+          required: false,
+          key: 'page_size',
+          value: undefined
+        }
+      };
+    },
+    create: function () {
+      return {
+        body: {
+          required: true,
           value: undefined
         }
       };
@@ -634,6 +783,14 @@ var argsForInput = {
           value: undefined
         }
       };
+    },
+    create: function () {
+      return {
+        body: {
+          required: true,
+          value: undefined
+        }
+      };
     }
   }
 };
@@ -650,7 +807,7 @@ var fetchStockOrdersForSuppliers = function(args, connectionInfo, retryCounter) 
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
   log.debug('GET ' + vendUrl);
-  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   var options = {
     method: 'GET',
@@ -704,7 +861,7 @@ var fetchProductsByConsignment  = function(args, connectionInfo, retryCounter) {
   log.debug('Requesting vend product ' + vendUrl);
   var authString = 'Bearer ' + connectionInfo.accessToken;
   log.debug('GET ' + vendUrl);
-  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   var options = {
     url: vendUrl,
@@ -894,7 +1051,7 @@ var fetchProduct = function(args, connectionInfo, retryCounter) {
   log.debug('Requesting vend product ' + vendUrl);
   var authString = 'Bearer ' + connectionInfo.accessToken;
   log.debug('GET ' + vendUrl);
-  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   var options = {
     url: vendUrl,
@@ -926,7 +1083,7 @@ var updateProductById = function(args, connectionInfo, retryCounter) {
   var path = '/api/products';
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
-  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
   var body = args.body.value;
 
   var options = {
@@ -963,7 +1120,7 @@ var deleteProductById = function(args, connectionInfo, retryCounter) {
   var path = '/api/products/' + args.apiId.value;
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
-  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   var options = {
     method: 'DELETE',
@@ -979,6 +1136,70 @@ var deleteProductById = function(args, connectionInfo, retryCounter) {
   return sendRequest(options, args, connectionInfo, deleteProductById, retryCounter);
 };
 
+var createProduct = function(args, connectionInfo, retryCounter) {
+  if ( !(args && argsAreValid(args)) ) {
+    return Promise.reject('missing required arguments for createProduct()');
+  }
+
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    log.debug('retry # ' + retryCounter);
+  }
+
+  var path = '/api/products';
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+  var body = args.body.value;
+
+  console.log('body', body);
+  var options = {
+    method: 'POST',
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    },
+    json: body
+  };
+  log.debug(options.method + ' ' + options.url);
+
+  return sendRequest(options, args, connectionInfo, createProduct, retryCounter);
+};
+
+var uploadProductImage = function(args, connectionInfo, retryCounter) {
+  if ( !(args && argsAreValid(args)) ) {
+    return Promise.reject('missing required arguments for uploadProductImage()');
+  }
+
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    log.debug('retry # ' + retryCounter);
+  }
+
+  var path = '/api/2.0/products/' + args.apiId.value + '/actions/image_upload';
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+  var body = args.image.value;
+
+  var options = {
+    method: 'POST',
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    },
+    json: body
+  };
+  log.debug(options.method + ' ' + options.url);
+
+  return sendRequest(options, args, connectionInfo, uploadProductImage, retryCounter);
+};
 
 // TODO: instead of returning response, return the value of response.products[0] directly?
 var fetchProductByHandle  = function(args, connectionInfo, retryCounter) {
@@ -1001,7 +1222,7 @@ var fetchProductByHandle  = function(args, connectionInfo, retryCounter) {
   log.debug('Requesting vend product ' + vendUrl);
   var authString = 'Bearer ' + connectionInfo.accessToken;
   log.debug('GET ' + vendUrl);
-  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   var options = {
     url: vendUrl,
@@ -1038,7 +1259,7 @@ var fetchProductBySku  = function(args, connectionInfo, retryCounter) {
   log.debug('Requesting vend product ' + vendUrl);
   var authString = 'Bearer ' + connectionInfo.accessToken;
   log.debug('GET ' + vendUrl);
-  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   var options = {
     url: vendUrl,
@@ -1065,7 +1286,7 @@ var fetchProducts = function(args, connectionInfo, retryCounter) {
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
   log.debug('GET ' + vendUrl);
-  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   //var domainPrefix = this.domainPrefix;
 
@@ -1152,7 +1373,7 @@ var fetchCustomers = function(args, connectionInfo, retryCounter) {
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
   log.debug('GET ' + vendUrl);
-  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   var options = {
     method: 'GET',
@@ -1191,7 +1412,7 @@ var fetchRegisters = function(args, connectionInfo, retryCounter) {
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
   log.debug('GET ' + vendUrl);
-  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   var options = {
     method: 'GET',
@@ -1199,6 +1420,10 @@ var fetchRegisters = function(args, connectionInfo, retryCounter) {
     headers: {
       'Authorization': authString,
       'Accept': 'application/json'
+    },
+    qs: {/*jshint camelcase: false */
+      page: args.page.value,
+      page_size: args.pageSize.value
     }
   };
 
@@ -1233,6 +1458,31 @@ var fetchAllRegisters = function(args, connectionInfo, processPagedResults) {
   return processPagesRecursively(args, connectionInfo, fetchRegisters, processPagedResults);
 };
 
+var fetchRegister  = function(args, connectionInfo, retryCounter) {
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    log.debug('retry # ' + retryCounter);
+  }
+
+  var path = '/api/2.0/registers/' + args.apiId.value;
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  log.debug('Requesting vend product ' + vendUrl);
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.debug('GET ' + vendUrl);
+  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+
+  var options = {
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Accept': 'application/json'
+    }
+  };
+
+  return sendRequest(options, args, connectionInfo, fetchRegister, retryCounter);
+};
+
 var fetchPaymentTypes = function(args, connectionInfo, retryCounter) {
   log.debug('inside fetchPaymentTypes()');
   if (!retryCounter) {
@@ -1245,7 +1495,7 @@ var fetchPaymentTypes = function(args, connectionInfo, retryCounter) {
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
   log.debug('GET ' + vendUrl);
-  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   var options = {
     method: 'GET',
@@ -1257,6 +1507,71 @@ var fetchPaymentTypes = function(args, connectionInfo, retryCounter) {
   };
 
   return sendRequest(options, args, connectionInfo, fetchPaymentTypes, retryCounter);
+};
+
+var fetchProductTypes = function(args, connectionInfo, retryCounter) {
+  log.debug('inside fetchProductTypes()');
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    log.debug('retry # ' + retryCounter);
+  }
+
+  var path = '/api/2.0/product_types';
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.debug('GET ' + vendUrl);
+  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+
+  var options = {
+    method: 'GET',
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Accept': 'application/json'
+    },
+    // WARN: 0.x and 1.0 use `page` and `page_size`, which may or may NOT be implemented on Vend server side for all entities!
+    // WARN: 2.0 uses `after` and even though `page_size` is not documented, it is still useable.
+    //       Server side no longer limits you to pages of size 200 and it can handle north of 10000 easy
+    qs: { /*jshint camelcase: false */
+      after: args.after.value,
+      page_size: args.pageSize.value
+    }
+  };
+
+  return sendRequest(options, args, connectionInfo, fetchProductTypes, retryCounter);
+};
+
+var createProductTypes = function(args, connectionInfo, retryCounter) {
+  if ( !(args && argsAreValid(args)) ) {
+    return Promise.reject('missing required arguments for createProductTypes()');
+  }
+
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    log.debug('retry # ' + retryCounter);
+  }
+
+  var path = '/api/2.0/product_types';
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+  var body = args.body.value;
+
+  var options = {
+    method: 'POST',
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    },
+    json: body
+  };
+  log.debug(options.method + ' ' + options.url);
+
+  return sendRequest(options, args, connectionInfo, createProductTypes, retryCounter);
 };
 
 var fetchTaxes = function(args, connectionInfo, retryCounter) {
@@ -1271,7 +1586,7 @@ var fetchTaxes = function(args, connectionInfo, retryCounter) {
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
   log.debug('GET ' + vendUrl);
-  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   var options = {
     method: 'GET',
@@ -1283,6 +1598,204 @@ var fetchTaxes = function(args, connectionInfo, retryCounter) {
   };
 
   return sendRequest(options, args, connectionInfo, fetchTaxes, retryCounter);
+};
+
+var createTax = function(args, connectionInfo, retryCounter) {
+  if ( !(args && argsAreValid(args)) ) {
+    return Promise.reject('missing required arguments for createTax()');
+  }
+
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    log.debug('retry # ' + retryCounter);
+  }
+
+  var path = '/api/taxes';
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+  var body = args.body.value;
+
+  var options = {
+    method: 'POST',
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    },
+    json: body
+  };
+  log.debug(options.method + ' ' + options.url);
+
+  return sendRequest(options, args, connectionInfo, createTax, retryCounter);
+};
+
+var fetchBrands = function(args, connectionInfo, retryCounter) {
+  log.debug('inside fetchBrands()');
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    log.debug('retry # ' + retryCounter);
+  }
+
+  var path = '/api/2.0/brands';
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.debug('GET ' + vendUrl);
+  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+
+  var options = {
+    method: 'GET',
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Accept': 'application/json'
+    },
+    // WARN: 0.x and 1.0 use `page` and `page_size`, which may or may NOT be implemented on Vend server side for all entities!
+    // WARN: 2.0 uses `after` and even though `page_size` is not documented, it is still useable.
+    //       Server side no longer limits you to pages of size 200 and it can handle north of 10000 easy
+    qs: { /*jshint camelcase: false */
+      after: args.after.value,
+      page_size: args.pageSize.value
+    }
+  };
+
+  return sendRequest(options, args, connectionInfo, fetchBrands, retryCounter);
+};
+
+var createBrand = function(args, connectionInfo, retryCounter) {
+  if ( !(args && argsAreValid(args)) ) {
+    return Promise.reject('missing required arguments for createBrand()');
+  }
+
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    log.debug('retry # ' + retryCounter);
+  }
+
+  var path = '/api/2.0/brands';
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+  var body = args.body.value;
+
+  var options = {
+    method: 'POST',
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    },
+    json: body
+  };
+  log.debug(options.method + ' ' + options.url);
+
+  return sendRequest(options, args, connectionInfo, createBrand, retryCounter);
+};
+
+var fetchTags = function(args, connectionInfo, retryCounter) {
+  log.debug('inside fetchTags()');
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    log.debug('retry # ' + retryCounter);
+  }
+
+  var path = '/api/2.0/tags';
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.debug('GET ' + vendUrl);
+  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+
+  var options = {
+    method: 'GET',
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Accept': 'application/json'
+    },
+    // WARN: 0.x and 1.0 use `page` and `page_size`, which may or may NOT be implemented on Vend server side for all entities!
+    // WARN: 2.0 uses `after` and even though `page_size` is not documented, it is still useable.
+    //       Server side no longer limits you to pages of size 200 and it can handle north of 10000 easy
+    qs: { /*jshint camelcase: false */
+      after: args.after.value,
+      page_size: args.pageSize.value
+    }
+  };
+
+  return sendRequest(options, args, connectionInfo, fetchTags, retryCounter);
+};
+
+var fetchAllTags = function(args, connectionInfo, processPagedResults) {
+  log.debug('inside fetchAllTags()');
+  if (!args) {
+    args = argsForInput.tags.fetch();
+  }
+  if (!args.after || !args.after.value) {
+    args.after = {value:0};
+  }
+  if (!args.page || !args.page.value) {
+    args.page = {value:1}; // page has no operational role here, just useful for readable logs
+  }
+  if (!args.pageSize || !args.pageSize.value) {
+    args.pageSize = {value:200};
+  }
+
+  // set a default function if none is provided
+  if (!processPagedResults) {
+    processPagedResults = function processPagedResults(pagedData, previousData){
+      log.debug('fetchAllTags - default processPagedResults()');
+      if (previousData && previousData.length>0) {
+        //log.verbose(JSON.stringify(pagedData.data,replacer,2));
+        if (pagedData.data && pagedData.data.length>0) {
+          log.debug('previousData: ', previousData.length);
+          pagedData.data = pagedData.data.concat(previousData);
+          log.debug('combined: ', pagedData.data.length);
+        }
+        else {
+          pagedData.data = previousData;
+        }
+      }
+      return Promise.resolve(pagedData.data);
+    };
+  }
+  return processPagesRecursively(args, connectionInfo, fetchTags, processPagedResults);
+};
+
+var createTag = function(args, connectionInfo, retryCounter) {
+  if ( !(args && argsAreValid(args)) ) {
+    return Promise.reject('missing required arguments for createTag()');
+  }
+
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    log.debug('retry # ' + retryCounter);
+  }
+
+  var path = '/api/2.0/tags';
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+  var body = args.body.value;
+
+  var options = {
+    method: 'POST',
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    },
+    json: body
+  };
+  log.debug(options.method + ' ' + options.url);
+
+  return sendRequest(options, args, connectionInfo, createTag, retryCounter);
 };
 
 var fetchRegisterSales = function(args, connectionInfo, retryCounter) {
@@ -1297,7 +1810,7 @@ var fetchRegisterSales = function(args, connectionInfo, retryCounter) {
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
   log.debug('GET ' + vendUrl);
-  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   var options = {
     method: 'GET',
@@ -1310,6 +1823,7 @@ var fetchRegisterSales = function(args, connectionInfo, retryCounter) {
       since: args.since.value,
       outlet_id: args.outletApiId.value,
       tag: args.tag.value,
+      // WARN: 0.x and 1.0 use `page` and `page_size`, which may or may NOT be implemented on Vend server side for all entities!
       page: args.page.value,
       page_size: args.pageSize.value
     }
@@ -1346,7 +1860,6 @@ var fetchAllRegisterSales = function(args, connectionInfo, processPagedResults) 
   return processPagesRecursively(args, connectionInfo, fetchRegisterSales, processPagedResults);
 };
 
-//TODO: maybe reorder as: (connectionInfo, args, retryCounter) ... ?
 var fetchOutlets = function(args, connectionInfo, retryCounter) {
   log.debug('inside fetchOutlets()');
   if (!retryCounter) {
@@ -1356,10 +1869,13 @@ var fetchOutlets = function(args, connectionInfo, retryCounter) {
   }
 
   var path = '/api/outlets';
+  if (args.path && args.path.value) {
+    path = args.path.value;
+  }
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
   log.debug('GET ' + vendUrl);
-  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   var options = {
     method: 'GET',
@@ -1367,14 +1883,79 @@ var fetchOutlets = function(args, connectionInfo, retryCounter) {
     headers: {
       'Authorization': authString,
       'Accept': 'application/json'
-    }/*,
-    qs: { // NOTE: page and page_size are NOT implemented on Vend server side! For ex: page=1,page_size=1 doesn't work
-      page: args.page.value,
+    },
+    // WARN: 0.x and 1.0 use `page` and `page_size`, which may or may NOT be implemented on Vend server side for all entities!
+    // WARN: 2.0 uses `after` and even though `page_size` is not documented, it is still useable.
+    //       Server side no longer limits you to pages of size 200 and it can handle north of 10000 easy
+    qs: { /*jshint camelcase: false */
+      after: args.after.value,
       page_size: args.pageSize.value
-    }*/
+    }
   };
 
   return sendRequest(options, args, connectionInfo, fetchOutlets, retryCounter);
+};
+
+var fetchAllOutlets = function(args, connectionInfo, processPagedResults) {
+  log.debug('inside fetchAllOutlets()');
+  if (!args) {
+    args = argsForInput.outlets.fetch();
+  }
+  if (!args.after || !args.after.value) {
+    args.after = {value:0};
+  }
+  if (!args.page || !args.page.value) {
+    args.page = {value:1}; // page has no operational role here, just useful for readable logs
+  }
+  if (!args.pageSize || !args.pageSize.value) {
+    args.pageSize = {value:200};
+  }
+  args.path = {value:'/api/2.0/outlets'};
+
+  // set a default function if none is provided
+  if (!processPagedResults) {
+    processPagedResults = function processPagedResults(pagedData, previousData){
+      log.debug('fetchAllOutlets - default processPagedResults()');
+      if (previousData && previousData.length>0) {
+        //log.verbose(JSON.stringify(pagedData.data,replacer,2));
+        if (pagedData.data && pagedData.data.length>0) {
+          log.debug('previousData: ', previousData.length);
+          pagedData.data = pagedData.data.concat(previousData);
+          log.debug('combined: ', pagedData.data.length);
+        }
+        else {
+          pagedData.data = previousData;
+        }
+      }
+      return Promise.resolve(pagedData.data);
+    };
+  }
+  return processPagesRecursively(args, connectionInfo, fetchOutlets, processPagedResults);
+};
+
+var fetchOutlet = function(args, connectionInfo, retryCounter) {
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    log.debug('retry # ' + retryCounter);
+  }
+
+  var path = '/api/2.0/outlets/' + args.apiId.value;
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  log.debug('Requesting vend outlet ' + vendUrl);
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.debug('GET ' + vendUrl);
+  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+
+  var options = {
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Accept': 'application/json'
+    }
+  };
+
+  return sendRequest(options, args, connectionInfo, fetchOutlet, retryCounter);
 };
 
 var fetchSupplier = function(args, connectionInfo, retryCounter) {
@@ -1389,7 +1970,7 @@ var fetchSupplier = function(args, connectionInfo, retryCounter) {
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
   log.debug('GET ' + vendUrl);
-  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   var options = {
     method: 'GET',
@@ -1415,7 +1996,7 @@ var fetchSuppliers = function(args, connectionInfo, retryCounter) {
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
   log.debug('GET ' + vendUrl);
-  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   var options = {
     method: 'GET',
@@ -1451,6 +2032,38 @@ var fetchAllSuppliers = function(connectionInfo, processPagedResults) {
   return processPagesRecursively(args, connectionInfo, fetchSuppliers, processPagedResults);
 };
 
+var createSupplier = function(args, connectionInfo, retryCounter) {
+  if ( !(args && argsAreValid(args)) ) {
+    return Promise.reject('missing required arguments for createSupplier()');
+  }
+
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    log.debug('retry # ' + retryCounter);
+  }
+
+  var path = '/api/supplier';
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+  var body = args.body.value;
+
+  var options = {
+    method: 'POST',
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    },
+    json: body
+  };
+  log.debug(options.method + ' ' + options.url);
+
+  return sendRequest(options, args, connectionInfo, createSupplier, retryCounter);
+};
+
 var fetchConsignment  = function(args, connectionInfo, retryCounter) {
   if (!retryCounter) {
     retryCounter = 0;
@@ -1463,7 +2076,7 @@ var fetchConsignment  = function(args, connectionInfo, retryCounter) {
   log.debug('Requesting vend consignment ' + vendUrl);
   var authString = 'Bearer ' + connectionInfo.accessToken;
   log.debug('GET ' + vendUrl);
-  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   var options = {
     url: vendUrl,
@@ -1507,7 +2120,7 @@ var createConsignmentProduct = function(args, connectionInfo, retryCounter) {
   var path = '/api/consignment_product';
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
-  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   var options = {
     method: 'POST',
@@ -1540,7 +2153,7 @@ var createStockOrder = function(args, connectionInfo, retryCounter) {
   var path = '/api/consignment';
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
-  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   var body = {
     'type': 'SUPPLIER',
@@ -1577,7 +2190,7 @@ var createCustomer = function(body, connectionInfo, retryCounter) {
   var path = '/api/customers';
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
-  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   var options = {
     method: 'POST',
@@ -1605,7 +2218,7 @@ var createRegisterSale = function(body, connectionInfo, retryCounter) {
   var path = '/api/register_sales';
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
-  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   try {
     body = _.isObject(body) ? body : JSON.parse(body);
@@ -1646,7 +2259,7 @@ var updateConsignmentProduct = function(args, connectionInfo, retryCounter) {
   var path = '/api/consignment_product/' + args.apiId.value;
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
-  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
   var body = args.body.value;
 
   var options = {
@@ -1681,7 +2294,7 @@ var markStockOrderAsSent = function(args, connectionInfo, retryCounter) {
   var path = '/api/consignment/' + args.apiId.value;
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
-  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
   var body = args.body.value;
   body.status = 'SENT';
 
@@ -1717,7 +2330,7 @@ var markStockOrderAsReceived = function(args, connectionInfo, retryCounter) {
   var path = '/api/consignment/' + args.apiId.value;
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
-  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
   var body = args.body.value;
   body.status = 'RECEIVED';
 
@@ -1755,7 +2368,7 @@ var deleteStockOrder = function(args, connectionInfo, retryCounter) {
   log.debug(path);
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
-  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   var options = {
     method: 'DELETE',
@@ -1789,7 +2402,7 @@ var deleteConsignmentProduct = function(args, connectionInfo, retryCounter) {
   var path = '/api/consignment_product/' + args.apiId.value;
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
-  log.debug('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   var options = {
     method: 'DELETE',
@@ -1930,20 +2543,36 @@ module.exports = function(dependencies) {
   Promise = dependencies.bluebird || require('bluebird');
 
   request = dependencies['request-promise'] || require('request-promise');
-  //request.debug = true;
+  request.debug = dependencies.debugRequests;
 
+  /**
+   * Using winston can SUCK because it formats and positions things differently
+   * than what we are used to with console.log()
+   * > for ex: 1. json data is not made part of the message
+   * >         2. arrays are formatted and printed in a fashion that
+   * >            will make you think that you have the wrong data structure!
+   * >         3. prettyPrint option doesn't work for file logging
+   * >         4. error objects can run into problems and not get logged:
+   * >            https://github.com/winstonjs/winston/issues/600
+   */
   log = dependencies.winston || require('winston');
-  log.remove(log.transports.Console);
-  if (process.env.NODE_ENV !== 'test') {
+  if (!dependencies.winston) { // if winston is being instantiated within this method then take these actions
+    log.remove(log.transports.Console);
+    if (process.env.NODE_ENV !== 'test') {
       log.add(log.transports.Console, {
         colorize: true,
         timestamp: false,
+        prettyPrint: true,
         level: process.env.LOG_LEVEL_FOR_VEND_NODEJS_SDK || 'debug'
       });
-  }
-  else {
+    }
+    else {
       // while testing, log only to file, leaving stdout free for unit test status messages
-      log.add(log.transports.File, { filename: 'vend-nodejs-sdk.log' });
+      log.add(log.transports.File, {
+        filename: 'vend-nodejs-sdk.log',
+        level: process.env.LOG_LEVEL_FOR_VEND_NODEJS_SDK || 'debug'
+      });
+    }
   }
 
   // (2) initialize any module-scoped variables which need the dependencies
@@ -1960,17 +2589,34 @@ module.exports = function(dependencies) {
       fetchAll: fetchAllProducts,
       fetchPaginationInfo: fetchPaginationInfo,
       update: updateProductById,
-      delete: deleteProductById
+      delete: deleteProductById,
+      create: createProduct,
+      uploadImage: uploadProductImage
     },
     registers: {
       fetch: fetchRegisters,
-      fetchAll: fetchAllRegisters
+      fetchAll: fetchAllRegisters,
+      fetchById: fetchRegister
     },
     paymentTypes: {
       fetch: fetchPaymentTypes
     },
+    productTypes: {
+      fetch: fetchProductTypes,
+      create: createProductTypes
+    },
     taxes: {
-      fetch: fetchTaxes
+      fetch: fetchTaxes,
+      create: createTax
+    },
+    brands: {
+      fetch: fetchBrands,
+      create: createBrand
+    },
+    tags: {
+      fetch: fetchTags,
+      fetchAll: fetchAllTags,
+      create: createTag
     },
     sales: {
       create: createRegisterSale,
@@ -2003,12 +2649,15 @@ module.exports = function(dependencies) {
       }
     },
     outlets:{
-      fetch: fetchOutlets // no need for fetchAll since hardly any Vend customers have more than 200 outlets
+      fetchAll: fetchAllOutlets,
+      fetch: fetchOutlets, // no need for fetchAll since hardly any Vend customers have more than 200 outlets
+      fetchById: fetchOutlet
     },
     suppliers:{
       fetchById: fetchSupplier,
       fetch: fetchSuppliers,
-      fetchAll: fetchAllSuppliers
+      fetchAll: fetchAllSuppliers,
+      create: createSupplier
     },
     hasAccessTokenExpired: hasAccessTokenExpired,
     getInitialAccessToken: getInitialAccessToken,
