@@ -415,7 +415,7 @@ describe('vend-nodejs-sdk', function() {/*jshint expr: true*/
         ' a valid/meaningful version to use in tests will be different in every Vend subdomain');
     });
 
-    xit('FEATURE REQUEST: can fetch ALL tags and start AFTER a given point in time', function() {
+    xit('FEATURE REQUEST: can fetch ALL tags AFTER a given point in time', function() {
       // TODO: implement it
     });
 

@@ -1836,7 +1836,6 @@ var fetchAllRegisterSales = function(args, connectionInfo, processPagedResults) 
   return processPagesRecursively(args, connectionInfo, fetchRegisterSales, processPagedResults);
 };
 
-//TODO: maybe reorder as: (connectionInfo, args, retryCounter) ... ?
 var fetchOutlets = function(args, connectionInfo, retryCounter) {
   log.debug('inside fetchOutlets()');
   if (!retryCounter) {
