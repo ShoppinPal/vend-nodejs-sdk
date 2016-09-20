@@ -13,6 +13,7 @@ If you don't use nodejs, please be aware that there are still other libraries ou
 4. https://github.com/wso2-extensions/esb-connector-vend
 
 There are also resources for developers by Vend:
+
 1. https://github.com/vend/developer-wiki/wiki
 2. http://docs.vend.apiary.io/
 
