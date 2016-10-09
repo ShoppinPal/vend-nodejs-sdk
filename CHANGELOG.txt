@@ -1,0 +1,8 @@
+v1.1.1 - Oct 09,2016
+- Bug fix - retry request on ETIMEDOUT
+
+v1.1.0 - Sep 01, 2016
+- Added support for some of the new entities and endpoints exposed by vend api v2.0
+
+v1.0.18 - Apr 27, 2016
+- set user-agent header to help VendHQ.com track api usage better
