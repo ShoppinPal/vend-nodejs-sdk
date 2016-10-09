@@ -22,6 +22,10 @@ function AuthZError(e) {
 function ClientError(e) {
   return e.statusCode >= 400 && e.statusCode < 500;
 }
+
+function ConnectError(e) { // TODO: maybe leverage https://github.com/petkaantonov/core-error-predicates#connecterror
+  return e.code === 'ETIMEDOUT';
+}
 /* jshint ignore:end */
 
 var successHandler = function(response) {
@@ -46,6 +50,22 @@ var successHandler = function(response) {
   }
   else {
     log.debug(response);
+  }
+};
+
+var retryWhenConnectionFails = function(args, connectionInfo, callback, retryCounter) {
+  if(retryCounter<3) {
+    var retryAfter = (retryCounter+1)*1000; // will wait for 1, 2, 3 seconds successively
+    log.debug('retryWhenConnectionFails', 'retry after: ' + retryAfter + ' ms');
+
+    return Promise.delay(retryAfter)
+        .then(function() {
+          log.debug('retryWhenConnectionFails', retryAfter + ' ms have passed...');
+          return callback(args, connectionInfo, ++retryCounter);
+        });
+  }
+  else {
+    return Promise.reject('failed to connect, even after multiple retries');
   }
 };
 
@@ -125,6 +145,11 @@ var sendRequest = function(options, args, connectionInfo, callback, retryCounter
   }
   return request(options)
     .then(successHandler)
+    .catch(ConnectError, function(e) {// jshint ignore:line
+      log.error('A ConnectError happened: \n' + e);
+      return retryWhenConnectionFails(args, connectionInfo, callback, retryCounter);
+      // TODO: how to prevent a throw or rejection from also stepping thru the other catch-blocks?
+    })
     .catch(RateLimitingError, function(e) {// jshint ignore:line
       log.error('A RateLimitingError error like "429 Too Many Requests" happened: \n'
           + 'statusCode: ' + e.statusCode + '\n'
