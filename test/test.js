@@ -273,6 +273,16 @@ describe('vend-nodejs-sdk', function() {/*jshint expr: true*/
         });
     });
 
+    it('can fetch ALL products', function() {
+      return vendSdk.products.fetchAll(getConnectionInfo()) // NOTE: 2nd (optional) argument can be a custom method to processPagedResults
+        .then(function(allProducts){
+          //log.debug('can fetch ALL products', 'allProducts:', allProducts);
+          expect(allProducts).to.exist;
+          expect(allProducts).to.be.instanceof(Array);
+          //log.debug('can fetch ALL products', 'allProducts.length:', allProducts.length);
+        });
+    });
+
     it('can create a customer', function() {
       // create a dummy customer
       var customer = {
