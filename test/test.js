@@ -530,6 +530,10 @@ describe('vend-nodejs-sdk', function() {/*jshint expr: true*/
       // TODO: implement it
     });
 
+    it('UNVERIFIED: can fetch users', function() {
+      // TODO: implement it
+    });
+
   });
 
 });

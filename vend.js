@@ -817,6 +817,40 @@ var argsForInput = {
         }
       };
     }
+  },
+  users: {
+    fetchById: function() {
+      return {
+        apiId: {
+          required: true,
+          value: undefined
+        }
+      };
+    },
+    fetch: function() {
+      return {
+        after: {
+          required: false,
+          key: 'after',
+          value: undefined
+        },
+        before: {
+          required: false,
+          key: 'before',
+          value: undefined
+        },
+        page: {
+          required: false,
+          key: 'page',
+          value: undefined
+        },
+        pageSize: {
+          required: false,
+          key: 'page_size',
+          value: undefined
+        }
+      };
+    }
   }
 };
 
@@ -2443,6 +2477,90 @@ var deleteConsignmentProduct = function(args, connectionInfo, retryCounter) {
   return sendRequest(options, args, connectionInfo, deleteConsignmentProduct, retryCounter);
 };
 
+var fetchUser = function(args, connectionInfo, retryCounter) {
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    log.debug('retry # ' + retryCounter);
+  }
+
+  var path = '/api/2.0/users/' + args.apiId.value;
+
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  log.debug('Requesting vend users ' + vendUrl);
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.debug('GET ' + vendUrl);
+  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+
+  var options = {
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Accept': 'application/json'
+    }
+  };
+
+  return sendRequest(options, args, connectionInfo, fetchUser, retryCounter);
+};
+
+var fetchUsers = function(args, connectionInfo, retryCounter) {
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    log.debug('retry # ' + retryCounter);
+  }
+
+  var path = '/api/2.0/users';
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.debug('GET ' + vendUrl);
+  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+
+  var options = {
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Accept': 'application/json'
+    },
+    qs: {
+      after: args.after.value,
+      before: args.before.value,
+      page_size: args.pageSize.value
+    }
+  };
+  if (args.page.value) {
+    log.debug('Requesting users page ' + args.page.value);
+  }
+
+  return sendRequest(options, args, connectionInfo, fetchProducts, retryCounter);
+};
+
+var fetchAllUsers = function(connectionInfo, processPagedResults) {
+  var args = argsForInput.users.fetch();
+  args.page.value = 1;
+  args.pageSize.value = 200;
+
+  // set a default function if none is provided
+  if (!processPagedResults) {
+    processPagedResults = function processPagedResults(pagedData, previousData){
+      log.debug('fetchAllUsers - default processPagedResults()');
+      if (previousData && previousData.length>0) {
+        //log.verbose(JSON.stringify(pagedData.products,replacer,2));
+        if (pagedData.users && pagedData.users.length>0) {
+          log.debug('previousData: ', previousData.length);
+          pagedData.users = pagedData.users.concat(previousData);
+          log.debug('combined: ', pagedData.users.length);
+        }
+        else {
+          pagedData.users = previousData;
+        }
+      }
+      return Promise.resolve(pagedData.users);
+    };
+  }
+  return processPagesRecursively(args, connectionInfo, fetchUsers, processPagedResults);
+};
+
 var getInitialAccessToken = function(tokenService, clientId, clientSecret, redirectUri, code, domainPrefix, state) {
   // TODO: tweak winston logs to prefix method signature (like breadcrumbs) when logging?
   log.debug('getInitialAccessToken - token_service: ' + tokenService);
@@ -2683,6 +2801,11 @@ module.exports = function(dependencies) {
       fetch: fetchSuppliers,
       fetchAll: fetchAllSuppliers,
       create: createSupplier
+    },
+    users:{
+      fetchById: fetchUser,
+      fetch: fetchUsers,
+      fetchAll: fetchAllUsers,
     },
     hasAccessTokenExpired: hasAccessTokenExpired,
     getInitialAccessToken: getInitialAccessToken,
