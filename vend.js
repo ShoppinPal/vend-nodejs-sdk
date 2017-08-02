@@ -817,6 +817,20 @@ var argsForInput = {
         }
       };
     },
+    fetch: function() {
+      return {
+        page: {
+          required: false,
+          key: 'page',
+          value: undefined
+        },
+        pageSize: {
+          required: false,
+          key: 'page_size',
+          value: undefined
+        }
+      };
+    },
     create: function () {
       return {
         body: {
