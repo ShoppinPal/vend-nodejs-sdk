@@ -267,7 +267,7 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
                     //return _.first(response.suppliers);
                     return Promise.resolve(
                       _.find(response.suppliers, function (supplier) {
-                        return supplier.name == name;
+                        return supplier.name === name;
                       })
                     );
                 });
@@ -281,12 +281,12 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
                 .then(function(result){
                   randomProduct = result;
                   expect(randomProduct).to.exist;
-                  return getSupplierIdByName(randomProduct['supplier_name']);
+                  return getSupplierIdByName(randomProduct['supplier_name']);// jshint ignore:line
                 })
                 .then(function(result){
                   supplier = result;
                   expect(supplier).to.exist;
-                  expect(supplier.name).to.equal(randomProduct['supplier_name']);
+                  expect(supplier.name).to.equal(randomProduct['supplier_name']);// jshint ignore:line
                   //console.log('randomProduct', randomProduct);
                   //console.log('randomSupplier', supplier);
                 });
@@ -351,10 +351,10 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
                    */
                   expect(consignmentProductResponse.id).to.not.equal(consignmentId);
 
-                  expect(consignmentProductResponse['product_id']).to.exist;
-                  expect(consignmentProductResponse['product_id']).to.equal(randomProduct.id);
-                  expect(consignmentProductResponse['consignment_id']).to.exist;
-                  expect(consignmentProductResponse['consignment_id']).to.equal(consignmentId);
+                  expect(consignmentProductResponse['product_id']).to.exist;// jshint ignore:line
+                  expect(consignmentProductResponse['product_id']).to.equal(randomProduct.id);// jshint ignore:line
+                  expect(consignmentProductResponse['consignment_id']).to.exist;// jshint ignore:line
+                  expect(consignmentProductResponse['consignment_id']).to.equal(consignmentId);// jshint ignore:line
 
                   consignmentProductId = consignmentProductResponse.id;
                 });
@@ -369,10 +369,10 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
                   expect(fetchConsignmentByProductIdResponse).to.exist;
                   expect(fetchConsignmentByProductIdResponse.id).to.exist;
                   expect(fetchConsignmentByProductIdResponse.id).to.not.equal(consignmentId);
-                  expect(fetchConsignmentByProductIdResponse['product_id']).to.exist;
-                  expect(fetchConsignmentByProductIdResponse['product_id']).to.equal(randomProduct.id);
-                  expect(fetchConsignmentByProductIdResponse['consignment_id']).to.exist;
-                  expect(fetchConsignmentByProductIdResponse['consignment_id']).to.equal(consignmentId);
+                  expect(fetchConsignmentByProductIdResponse['product_id']).to.exist;// jshint ignore:line
+                  expect(fetchConsignmentByProductIdResponse['product_id']).to.equal(randomProduct.id);// jshint ignore:line
+                  expect(fetchConsignmentByProductIdResponse['consignment_id']).to.exist;// jshint ignore:line
+                  expect(fetchConsignmentByProductIdResponse['consignment_id']).to.equal(consignmentId);// jshint ignore:line
 
                   // validate if what was created, is what we fetched now
                   expect(fetchConsignmentByProductIdResponse.id).to.equal(consignmentProductId);
@@ -409,14 +409,12 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
                 .then(function(result){
                   randomProduct = result;
                   expect(randomProduct).to.exist;
-                  return getSupplierIdByName(randomProduct['supplier_name']);
+                  return getSupplierIdByName(randomProduct['supplier_name']);// jshint ignore:line
                 })
                 .then(function(result){
                   supplier = result;
                   expect(supplier).to.exist;
-                  expect(supplier.name).to.equal(randomProduct['supplier_name']);
-                  //console.log('randomProduct', randomProduct);
-                  //console.log('randomSupplier', supplier);
+                  expect(supplier.name).to.equal(randomProduct['supplier_name']);// jshint ignore:line
                 });
             });
             it('by preparing a new consignment', function () {
@@ -479,10 +477,10 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
                    */
                   expect(consignmentProductResponse.id).to.not.equal(consignmentId);
 
-                  expect(consignmentProductResponse['product_id']).to.exist;
-                  expect(consignmentProductResponse['product_id']).to.equal(randomProduct.id);
-                  expect(consignmentProductResponse['consignment_id']).to.exist;
-                  expect(consignmentProductResponse['consignment_id']).to.equal(consignmentId);
+                  expect(consignmentProductResponse['product_id']).to.exist;// jshint ignore:line
+                  expect(consignmentProductResponse['product_id']).to.equal(randomProduct.id);// jshint ignore:line
+                  expect(consignmentProductResponse['consignment_id']).to.exist;// jshint ignore:line
+                  expect(consignmentProductResponse['consignment_id']).to.equal(consignmentId);// jshint ignore:line
 
                   consignmentProductId = consignmentProductResponse.id;
                 });
