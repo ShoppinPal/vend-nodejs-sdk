@@ -2143,9 +2143,9 @@ var fetchConsignmentProductById  = function(args, connectionInfo, retryCounter) 
     log.debug('retry # ' + retryCounter);
   }
 
-  var path = '/api/2.0/consignments/' + args.apiId.value;
+  var path = '/api/1.0/consignment_product/' + args.apiId.value;
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
-  log.debug('Requesting vend consignment ' + vendUrl);
+  log.debug('Requesting vend consignment product ' + vendUrl);
   var authString = 'Bearer ' + connectionInfo.accessToken;
   log.debug('GET ' + vendUrl);
   log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
