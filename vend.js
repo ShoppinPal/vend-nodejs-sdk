@@ -372,6 +372,14 @@ var argsForInput = {
           }
         };
       },
+      fetchById: function() {
+        return {
+          apiId: {
+            required: true,
+            value: undefined
+          }
+        };
+      },
       fetchAllByConsignment: function() {
         return {
           consignmentId: {
@@ -796,6 +804,20 @@ var argsForInput = {
   },
   suppliers: {
     fetchAll: function() {
+      return {
+        page: {
+          required: false,
+          key: 'page',
+          value: undefined
+        },
+        pageSize: {
+          required: false,
+          key: 'page_size',
+          value: undefined
+        }
+      };
+    },
+    fetch: function() {
       return {
         page: {
           required: false,
@@ -2114,6 +2136,31 @@ var fetchConsignment  = function(args, connectionInfo, retryCounter) {
   return sendRequest(options, args, connectionInfo, fetchConsignment, retryCounter);
 };
 
+var fetchConsignmentProductById  = function(args, connectionInfo, retryCounter) {
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    log.debug('retry # ' + retryCounter);
+  }
+
+  var path = '/api/1.0/consignment_product/' + args.apiId.value;
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  log.debug('Requesting vend consignment product ' + vendUrl);
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.debug('GET ' + vendUrl);
+  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+
+  var options = {
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Accept': 'application/json'
+    }
+  };
+
+  return sendRequest(options, args, connectionInfo, fetchConsignment, retryCounter);
+};
+
 var createConsignmentProduct = function(args, connectionInfo, retryCounter) {
   log.debug('inside createConsignmentProduct()');
 
@@ -2668,6 +2715,7 @@ module.exports = function(dependencies) {
         create: createConsignmentProduct,
         update: updateConsignmentProduct,
         fetch: fetchProductsByConsignment,
+        fetchById: fetchConsignmentProductById,
         fetchAllByConsignment: fetchAllProductsByConsignment,
         fetchAllForConsignments: fetchAllProductsByConsignments,
         remove: deleteConsignmentProduct
