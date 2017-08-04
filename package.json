@@ -20,6 +20,7 @@
   ],
   "main": "vend.js",
   "scripts": {
+    "eslint": "eslint",
     "commit": "commit-wizard",
     "test": "jshint . && NODE_ENV=test mocha"
   },
@@ -61,6 +62,7 @@
   "devDependencies": {
     "chai": "3.5.0",
     "chai-as-promised": "5.3.0",
+    "eslint": "4.3.0",
     "faker": "3.1.0",
     "jshint": "2.9.3",
     "mocha": "3.0.2",

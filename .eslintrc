@@ -1,0 +1,43 @@
+{
+  "env": {
+    "mocha": true,
+    "node": true
+  },
+  "globals": {},
+  "rules": {
+    "no-bitwise": "error",
+    "camelcase": "error",
+    "curly": "error",
+    "eqeqeq": "error",
+    "wrap-iife": [
+      "error",
+      "any"
+    ],
+    "indent": [
+      "error",
+      2,
+      {
+        "SwitchCase": 1
+      }
+    ],
+    "no-use-before-define": [
+      "error",
+      {
+        "functions": false
+      }
+    ],
+    "new-cap": "error",
+    "no-caller": "error",
+    "quotes": [
+      "error",
+      "single"
+    ],
+    "no-undef": "error",
+    "no-unused-vars": "error",
+    "linebreak-style": "error",
+    "comma-style": [
+      "error",
+      "last"
+    ]
+  }
+}
