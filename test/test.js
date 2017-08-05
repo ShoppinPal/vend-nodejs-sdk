@@ -805,7 +805,7 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
           .then(function(result){
             expect(result).to.exist;
             product = result;
-          })
+          });
       });
       it('by preparing a register', function () {
         var args = vendSdk.args.registers.fetch();
@@ -820,15 +820,15 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
       });
       it('we can create a sale', function () {
         var saleBody = {
-          "register_id": register.id,
-          //"user_id": "???",
-          "status": "OPEN",
-          "register_sale_products": [{
-              "product_id": product.id
-              , "quantity": 1
-              , "price": 12
-              , "tax": 1.8
-              //"tax_id": "???"
+          'register_id': register.id,
+          //'user_id': '???',
+          'status': 'OPEN',
+          'register_sale_products': [{
+              'product_id': product.id
+              , 'quantity': 1
+              , 'price': 12
+              , 'tax': 1.8
+              //'tax_id': '???'
           }]
         };
         return vendSdk.sales.create(saleBody, getConnectionInfo())
