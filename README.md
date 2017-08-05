@@ -14,8 +14,7 @@ If you don't use nodejs, please be aware that there are still other libraries ou
 
 There are also resources for developers by Vend:
 
-1. https://github.com/vend/developer-wiki/wiki
-2. http://docs.vend.apiary.io/
+1. http://docs.vendhq.com
 
 Simple-Legal-Speak
 ==================
