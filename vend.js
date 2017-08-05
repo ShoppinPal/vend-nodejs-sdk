@@ -800,6 +800,14 @@ var argsForInput = {
           value: undefined
         }
       };
+    },
+    fetchById: function () {
+      return {
+        apiId: {
+          required: true,
+          value: undefined
+        }
+      };
     }
   },
   suppliers: {
@@ -1200,7 +1208,6 @@ var createProduct = function(args, connectionInfo, retryCounter) {
   log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
   var body = args.body.value;
 
-  console.log('body', body);
   var options = {
     method: 'POST',
     url: vendUrl,
@@ -2279,6 +2286,35 @@ var createCustomer = function(body, connectionInfo, retryCounter) {
   return sendRequest(options, body, connectionInfo, createCustomer, retryCounter);
 };
 
+var fetchRegisterSalesById  = function(args, connectionInfo, retryCounter) {
+  if ( !(args && argsAreValid(args)) ) {
+    return Promise.reject('missing required arguments for fetchRegisterSalesById()');
+  }
+
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    log.debug('retry # ' + retryCounter);
+  }
+
+  var path = '/api/2.0/sales/' + args.apiId.value;
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  log.debug('Requesting sale by ID ' + vendUrl);
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.debug('GET ' + vendUrl);
+  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+
+  var options = {
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Accept': 'application/json'
+    }
+  };
+
+  return sendRequest(options, args, connectionInfo, fetchRegisterSalesById, retryCounter);
+};
+
 var createRegisterSale = function(body, connectionInfo, retryCounter) {
   log.debug('inside createRegisterSale()');
   if (!retryCounter) {
@@ -2311,7 +2347,6 @@ var createRegisterSale = function(body, connectionInfo, retryCounter) {
     json: body
   };
   log.debug(options.method + ' ' + options.url);
-
   return sendRequest(options, body, connectionInfo, createRegisterSale, retryCounter);
 };
 
@@ -2693,7 +2728,8 @@ module.exports = function(dependencies) {
     sales: {
       create: createRegisterSale,
       fetch: fetchRegisterSales,
-      fetchAll: fetchAllRegisterSales
+      fetchAll: fetchAllRegisterSales,
+      fetchById: fetchRegisterSalesById
     },
     customers: {
       create: createCustomer,
