@@ -1207,6 +1207,7 @@ var createProduct = function(args, connectionInfo, retryCounter) {
   var authString = 'Bearer ' + connectionInfo.accessToken;
   log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
   var body = args.body.value;
+
   var options = {
     method: 'POST',
     url: vendUrl,
@@ -2286,6 +2287,10 @@ var createCustomer = function(body, connectionInfo, retryCounter) {
 };
 
 var fetchRegisterSalesById  = function(args, connectionInfo, retryCounter) {
+  if ( !(args && argsAreValid(args)) ) {
+    return Promise.reject('missing required arguments for fetchRegisterSalesById()');
+  }
+
   if (!retryCounter) {
     retryCounter = 0;
   } else {

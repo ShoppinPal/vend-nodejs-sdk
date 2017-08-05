@@ -273,8 +273,8 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
         });
     };
 
-    describe.only('test consignment product APIs', function() {
-      describe.only('usecase one', function() {
+    describe('test consignment product APIs', function() {
+      describe('usecase one', function() {
         var randomProduct, supplier, consignmentProductId, consignmentId;
         it('by preparing a product with a supplier and an outlet', function () {
           return getRandomProduct()
@@ -402,7 +402,7 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
             });
         });
       });
-      describe.only('usecase two', function() {
+      describe('usecase two', function() {
         var randomProduct, supplier, consignmentProductId, consignmentId;
         it('by preparing a product with a supplier and an outlet', function () {
           return getRandomProduct()
@@ -796,6 +796,82 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
 
     it('UNVERIFIED: can create a tax', function () {
       // TODO: implement it
+    });
+
+    describe.only('then after preparing a sale', function () {
+      var product, register, sale;
+      it('by preparing a product', function () {
+        return getRandomProduct()
+          .then(function(result){
+            expect(result).to.exist;
+            product = result;
+          })
+      });
+      it('by preparing a register', function () {
+        var args = vendSdk.args.registers.fetch();
+        return vendSdk.registers.fetch(args, getConnectionInfo())
+          .then(function (response) {
+            expect(response).to.exist;
+            expect(response.registers).to.exist;
+            expect(response.registers).to.be.instanceof(Array);
+            expect(response.registers.length).to.be.greaterThan(0);
+            register = response.registers[0];
+          });
+      });
+      it('we can create a sale', function () {
+        var saleBody = {
+          "register_id": register.id,
+          //"user_id": "???",
+          "status": "OPEN",
+          "register_sale_products": [{
+              "product_id": product.id
+              , "quantity": 1
+              , "price": 12
+              , "tax": 1.8
+              //"tax_id": "???"
+          }]
+        };
+        return vendSdk.sales.create(saleBody, getConnectionInfo())
+          .then(function (response) {
+            expect(response).to.exist;
+            expect(response.register_sale).to.exist;
+            expect(response.register_sale.id).to.exist;
+            expect(response.register_sale.source).to.exist;
+            expect(response.register_sale.register_id).to.exist;
+            expect(response.register_sale.register_id).to.equal(register.id);
+            expect(response.register_sale.user_id).to.exist;
+            expect(response.register_sale.total_price).to.exist;
+            expect(response.register_sale.total_price).to.equal(12);
+            expect(response.register_sale.total_tax).to.exist;
+            expect(response.register_sale.total_tax).to.equal(1.8);
+            // NOTE: in the response for creating the sale, products are in register_sale; but when fetching sales they are in line_items
+            expect(response.register_sale.register_sale_products).to.exist;
+            expect(response.register_sale.register_sale_products).to.be.instanceof(Array);
+            expect(response.register_sale.register_sale_products.length).to.be.greaterThan(0);
+            sale = response.register_sale;
+          });
+      });
+      it('can fetch a sale by ID', function () {
+        var args = vendSdk.args.sales.fetchById();
+        args.apiId.value = sale.id;
+        return vendSdk.sales.fetchById(args, getConnectionInfo())
+          .then(function (response) {
+            expect(response.data).to.exist;
+            expect(response.data.id).to.exist;
+            expect(response.data.source).to.exist;
+            expect(response.data.register_id).to.exist;
+            expect(response.data.register_id).to.equal(register.id);
+            expect(response.data.user_id).to.exist;
+            expect(response.data.total_price).to.exist;
+            expect(response.data.total_price).to.equal(12);
+            expect(response.data.total_tax).to.exist;
+            expect(response.data.total_tax).to.equal(1.8);
+            // NOTE: in the response for creating the sale, products are in register_sale; but when fetching sales they are in line_items
+            expect(response.data.line_items).to.exist;
+            expect(response.data.line_items).to.be.instanceof(Array);
+            expect(response.data.line_items.length).to.be.greaterThan(0);
+          });
+      });
     });
 
   });
