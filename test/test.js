@@ -798,7 +798,7 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
       // TODO: implement it
     });
 
-    describe.only('then after preparing a sale', function () {
+    describe('then after preparing a sale', function () {
       var product, register, sale;
       it('by preparing a product', function () {
         return getRandomProduct()
