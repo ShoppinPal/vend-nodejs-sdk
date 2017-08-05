@@ -819,7 +819,7 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
           });
       });
       it('we can create a sale', function () {
-        var saleBody = {
+        var saleBody = { // jshint ignore:line
           'register_id': register.id,
           //'user_id': '???',
           'status': 'OPEN',
@@ -831,6 +831,7 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
               //'tax_id': '???'
           }]
         };
+        /* jshint ignore:start */
         return vendSdk.sales.create(saleBody, getConnectionInfo())
           .then(function (response) {
             expect(response).to.exist;
@@ -850,10 +851,12 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
             expect(response.register_sale.register_sale_products.length).to.be.greaterThan(0);
             sale = response.register_sale;
           });
+          /* jshint ignore:end */
       });
       it('can fetch a sale by ID', function () {
         var args = vendSdk.args.sales.fetchById();
         args.apiId.value = sale.id;
+        /* jshint ignore:start */
         return vendSdk.sales.fetchById(args, getConnectionInfo())
           .then(function (response) {
             expect(response.data).to.exist;
@@ -871,6 +874,7 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
             expect(response.data.line_items).to.be.instanceof(Array);
             expect(response.data.line_items.length).to.be.greaterThan(0);
           });
+          /* jshint ignore:end */
       });
     });
 
