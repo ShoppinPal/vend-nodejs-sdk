@@ -539,6 +539,18 @@ var argsForInput = {
           value: undefined
         }
       };
+    },
+    fetchAll: function() {
+      return {
+        active: {
+          required: false,
+          key: 'active',
+          // 0 (or no value) : returns only inactive products
+          // 1 (or any other value) : returns only active products
+          // undefined : returns both active and inactive products
+          value: undefined
+        },
+      };
     }
   },
   customers: {
@@ -1344,6 +1356,12 @@ var fetchProducts = function(args, connectionInfo, retryCounter) {
 
   //var domainPrefix = this.domainPrefix;
 
+  var active;
+  if (args.active.value===undefined || args.active.value===null) {
+    active = undefined;
+  } else {
+    active = (args.active.value) ? 1 : 0;
+  }
   var options = {
     url: vendUrl,
     headers: {
@@ -1354,7 +1372,7 @@ var fetchProducts = function(args, connectionInfo, retryCounter) {
       order_by: args.orderBy.value,
       order_direction: args.orderDirection.value,
       since: args.since.value,
-      active: (args.active.value) ? 1 : 0,
+      active: active,
       page: args.page.value,
       page_size: args.pageSize.value
     }
@@ -1366,12 +1384,40 @@ var fetchProducts = function(args, connectionInfo, retryCounter) {
   return sendRequest(options, args, connectionInfo, fetchProducts, retryCounter);
 };
 
-var fetchAllProducts = function(connectionInfo, processPagedResults) {
-  var args = argsForInput.products.fetch();
-  args.orderBy.value = 'id';
-  args.page.value = 1;
-  args.pageSize.value = 200;
-  args.active.value = true;
+var fetchAllProducts = function(args, connectionInfo, processPagedResults) {
+  var defaultArgs = argsForInput.products.fetch();
+  defaultArgs.orderBy.value = 'id';
+  defaultArgs.page.value = 1;
+  defaultArgs.pageSize.value = 200;
+  defaultArgs.active.value = true; // fetch only active products by default
+
+  var input = (arguments.length === 1 ? [arguments[0]] : Array.apply(null, arguments));
+  if (input.length===1) { // backward compatible with old method signature
+    connectionInfo = input[0];
+  }
+  else if (input.length===2 && _.isFunction(input[1])) { // backward compatible with old method signature
+    connectionInfo = input[0];
+    processPagedResults = input[1];
+  }
+  else if (
+    ( input.length===2 ) ||
+    ( input.length===3 && _.isFunction(input[2]) ) )
+  {
+    if ( !(args && argsAreValid(args)) ) {
+      return Promise.reject('missing required arguments for fetchAllProducts()');
+    }
+    if (!args.active || args.active.value===undefined || args.active.value===null) {
+      // in Vend API, not specifying this field is a way of saying
+      // that you want both: active AND inactive products
+      defaultArgs.active.value = undefined;
+    }
+    else {
+      defaultArgs.active.value = args.active.value;
+    }
+  }
+  else {
+    return Promise.reject('please check the method signature and fix your code');
+  }
 
   // set a default function if none is provided
   if (!processPagedResults) {
@@ -1391,7 +1437,7 @@ var fetchAllProducts = function(connectionInfo, processPagedResults) {
       return Promise.resolve(pagedData.products);
     };
   }
-  return processPagesRecursively(args, connectionInfo, fetchProducts, processPagedResults);
+  return processPagesRecursively(defaultArgs, connectionInfo, fetchProducts, processPagedResults);
 };
 
 var fetchPaginationInfo = function(args, connectionInfo){
