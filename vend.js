@@ -1391,6 +1391,14 @@ var fetchAllProducts = function(args, connectionInfo, processPagedResults) {
   defaultArgs.pageSize.value = 200;
   defaultArgs.active.value = true; // fetch only active products by default
 
+  /*
+   * This method's signature changed
+   * FROM:
+   *     function(connectionInfo, processPagedResults)
+   * TO:
+   *     function(args, connectionInfo, processPagedResults)
+   * therefore, the following section massages arguments to provide backward compatibility.
+   */ 
   var input = (arguments.length === 1 ? [arguments[0]] : Array.apply(null, arguments));
   if (input.length===1) { // backward compatible with old method signature
     connectionInfo = input[0];
@@ -1401,7 +1409,7 @@ var fetchAllProducts = function(args, connectionInfo, processPagedResults) {
   }
   else if (
     ( input.length===2 ) ||
-    ( input.length===3 && _.isFunction(input[2]) ) )
+    ( input.length===3 && _.isFunction(input[2]) ) ) // new method signature calls, will end up using this code-block
   {
     if ( !(args && argsAreValid(args)) ) {
       return Promise.reject('missing required arguments for fetchAllProducts()');
@@ -1418,6 +1426,7 @@ var fetchAllProducts = function(args, connectionInfo, processPagedResults) {
   else {
     return Promise.reject('please check the method signature and fix your code');
   }
+  // method signature related changes END
 
   // set a default function if none is provided
   if (!processPagedResults) {

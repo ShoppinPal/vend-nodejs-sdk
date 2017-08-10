@@ -541,66 +541,73 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
         });
     });
 
-    it('can fetch ALL products (test backward compatibility with old method signature and one argument)', function() {
-      this.timeout(300000);
-      return vendSdk.products.fetchAll(getConnectionInfo()) // NOTE: 2nd (optional) argument can be a custom method to processPagedResults
-        .then(function (allProducts) {
-          //log.debug('can fetch ALL products (test backward compatibility with old method signature and one argument)', 'allProducts:', allProducts);
-          expect(allProducts).to.exist;
-          expect(allProducts).to.be.instanceof(Array);
-          //log.debug('can fetch ALL products (test backward compatibility with old method signature and one argument)', 'allProducts.length:', allProducts.length);
-        });
-    });
+    describe.only('can fetch ALL products', function() {
+      var totalActiveProducts, totalInactiveProducts;
+      it('can fetch ALL products (test backward compatibility with old method signature and one argument)', function() {
+        this.timeout(300000);
+        return vendSdk.products.fetchAll(getConnectionInfo()) // NOTE: 2nd (optional) argument can be a custom method to processPagedResults
+          .then(function (allProducts) {
+            //log.debug('can fetch ALL products (test backward compatibility with old method signature and one argument)', 'allProducts:', allProducts);
+            expect(allProducts).to.exist;
+            expect(allProducts).to.be.instanceof(Array);
+            totalActiveProducts = allProducts.length;
+            //log.debug('can fetch ALL products (test backward compatibility with old method signature and one argument)', 'allProducts.length:', allProducts.length);
+          });
+      });
 
-    it('can fetch ALL products (test backward compatibility with old method signature and two arguments)', function() {
-      this.timeout(300000);
-      var processPagedResults = function processPagedResults(pagedData, previousData) {
-        log.debug('fetchAllProducts - default processPagedResults()');
-        if (previousData && previousData.length>0) {
-          //log.verbose(JSON.stringify(pagedData.products,replacer,2));
-          if (pagedData.products && pagedData.products.length>0) {
-            log.debug('previousData: ', previousData.length);
-            pagedData.products = pagedData.products.concat(previousData);
-            log.debug('combined: ', pagedData.products.length);
+      it('can fetch ALL products (test backward compatibility with old method signature and two arguments)', function() {
+        this.timeout(300000);
+        var processPagedResults = function processPagedResults(pagedData, previousData) {
+          log.debug('fetchAllProducts - default processPagedResults()');
+          if (previousData && previousData.length>0) {
+            //log.verbose(JSON.stringify(pagedData.products,replacer,2));
+            if (pagedData.products && pagedData.products.length>0) {
+              log.debug('previousData: ', previousData.length);
+              pagedData.products = pagedData.products.concat(previousData);
+              log.debug('combined: ', pagedData.products.length);
+            }
+            else {
+              pagedData.products = previousData;
+            }
           }
-          else {
-            pagedData.products = previousData;
-          }
-        }
-        return Promise.resolve(pagedData.products);
-      };
-      return vendSdk.products.fetchAll(getConnectionInfo(), processPagedResults) // NOTE: 2nd (optional) argument can be a custom method to processPagedResults
-        .then(function (allProducts) {
-          //log.debug('can fetch ALL products (test backward compatibility with old method signature and two arguments)', 'allProducts:', allProducts);
-          expect(allProducts).to.exist;
-          expect(allProducts).to.be.instanceof(Array);
-          //log.debug('can fetch ALL products (test backward compatibility with old method signature and two arguments)', 'allProducts.length:', allProducts.length);
-        });
-    });
+          return Promise.resolve(pagedData.products);
+        };
+        return vendSdk.products.fetchAll(getConnectionInfo(), processPagedResults) // NOTE: 2nd (optional) argument can be a custom method to processPagedResults
+          .then(function (allProducts) {
+            //log.debug('can fetch ALL products (test backward compatibility with old method signature and two arguments)', 'allProducts:', allProducts);
+            expect(allProducts).to.exist;
+            expect(allProducts).to.be.instanceof(Array);
+            expect(allProducts.length).to.equal(totalActiveProducts);
+            //log.debug('can fetch ALL products (test backward compatibility with old method signature and two arguments)', 'allProducts.length:', allProducts.length);
+          });
+      });
 
-    it('can fetch ALL inactive products', function() {
-      var args = vendSdk.args.products.fetchAll();
-      args.active.value = false;
-      return vendSdk.products.fetchAll(args, getConnectionInfo()) // NOTE: 2nd (optional) argument can be a custom method to processPagedResults
-        .then(function (allProducts) {
-          //log.debug('can fetch ALL inactive products', 'allProducts:', allProducts);
-          expect(allProducts).to.exist;
-          expect(allProducts).to.be.instanceof(Array);
-          //log.debug('can fetch ALL inactive products', 'allProducts.length:', allProducts.length);
-        });
-    });
+      it('can fetch ALL inactive products', function() {
+        var args = vendSdk.args.products.fetchAll();
+        args.active.value = false;
+        return vendSdk.products.fetchAll(args, getConnectionInfo()) // NOTE: 2nd (optional) argument can be a custom method to processPagedResults
+          .then(function (allProducts) {
+            //log.debug('can fetch ALL inactive products', 'allProducts:', allProducts);
+            expect(allProducts).to.exist;
+            expect(allProducts).to.be.instanceof(Array);
+            totalInactiveProducts = allProducts.length;
+            //log.debug('can fetch ALL inactive products', 'allProducts.length:', allProducts.length);
+          });
+      });
 
-    it('can fetch ALL active and inactive products', function() {
-      this.timeout(300000);
-      var args = vendSdk.args.products.fetchAll();
-      args.active.value = undefined; // in Vend API, not specifying this field is a way of saying that you want both: active AND inactive products
-      return vendSdk.products.fetchAll(args, getConnectionInfo()) // NOTE: 2nd (optional) argument can be a custom method to processPagedResults
-        .then(function (allProducts) {
-          //log.debug('can fetch ALL active and inactive products', 'allProducts:', allProducts);
-          expect(allProducts).to.exist;
-          expect(allProducts).to.be.instanceof(Array);
-          //log.debug('can fetch ALL active and inactive products', 'allProducts.length:', allProducts.length);
-        });
+      it('can fetch ALL active and inactive products', function() {
+        this.timeout(300000);
+        var args = vendSdk.args.products.fetchAll();
+        args.active.value = undefined; // in Vend API, not specifying this field is a way of saying that you want both: active AND inactive products
+        return vendSdk.products.fetchAll(args, getConnectionInfo()) // NOTE: 2nd (optional) argument can be a custom method to processPagedResults
+          .then(function (allProducts) {
+            //log.debug('can fetch ALL active and inactive products', 'allProducts:', allProducts);
+            expect(allProducts).to.exist;
+            expect(allProducts).to.be.instanceof(Array);
+            expect(allProducts.length).to.equal(totalActiveProducts + totalInactiveProducts);
+            //log.debug('can fetch ALL active and inactive products', 'allProducts.length:', allProducts.length);
+          });
+      });
     });
 
     it('can create a customer', function () {
