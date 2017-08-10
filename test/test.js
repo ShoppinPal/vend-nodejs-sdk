@@ -541,7 +541,7 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
         });
     });
 
-    describe.only('can fetch ALL products', function() {
+    describe('can fetch ALL products', function() {
       var totalActiveProducts, totalInactiveProducts;
       it('can fetch ALL products (test backward compatibility with old method signature and one argument)', function() {
         this.timeout(300000);
