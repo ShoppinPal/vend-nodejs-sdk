@@ -541,6 +541,17 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
         });
     });
 
+    it('can fetch ALL products with v2.0 api', function() {
+      this.timeout(30000);
+      return vendSdk.products.fetchAll2(getConnectionInfo()) // NOTE: 2nd (optional) argument can be a custom method to processPagedResults
+        .then(function (allProducts) {
+          //log.debug('can fetch ALL products (test backward compatibility with old method signature and one argument)', 'allProducts:', allProducts);
+          expect(allProducts).to.exist;
+          expect(allProducts).to.be.instanceof(Array);
+          //log.debug('can fetch ALL products (test backward compatibility with old method signature and one argument)', 'allProducts.length:', allProducts.length);
+        });
+    });
+
     describe('can fetch ALL products', function() {
       var totalActiveProducts, totalInactiveProducts;
       it('can fetch ALL products (test backward compatibility with old method signature and one argument)', function() {

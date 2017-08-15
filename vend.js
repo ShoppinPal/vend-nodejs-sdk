@@ -549,7 +549,41 @@ var argsForInput = {
           // 1 (or any other value) : returns only active products
           // undefined : returns both active and inactive products
           value: undefined
+        }
+      };
         },
+    fetch2: function () {
+      return {
+        after: {
+          required: false,
+          key: 'after',
+          value: undefined,
+          description: 'The lower limit for the version numbers to be included in the response.'
+        },
+        before: {
+          required: false,
+          key: 'before',
+          value: undefined,
+          description: 'The upper limit for the version numbers to be included in the response.'
+        },
+        deleted: {
+          required: false,
+          key: 'deleted',
+          value: undefined,
+          description: 'Indicates whether deleted items should be included in the response.'
+        },
+        pageSize: {
+          required: false,
+          key: 'page_size',
+          value: undefined,
+          description: 'The maximum number of items to be returned in the response.'
+        },
+        page: {
+          required: false,
+          key: 'page',
+          value: undefined,
+          description: 'The page number of response. Not supported by Vend API, just for informational logs.'
+        }
       };
     }
   },
@@ -1449,12 +1483,77 @@ var fetchAllProducts = function(args, connectionInfo, processPagedResults) {
   return processPagesRecursively(defaultArgs, connectionInfo, fetchProducts, processPagedResults);
 };
 
-var fetchPaginationInfo = function(args, connectionInfo){
-  if ( !(args && argsAreValid(args)) ) {
+var fetchProducts2 = function (args, connectionInfo, retryCounter) {
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    log.debug('retry # ' + retryCounter);
+  }
+
+  var path = '/api/2.0/products';
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.debug('GET ' + vendUrl);
+  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+
+  //var domainPrefix = this.domainPrefix;
+
+  var options = {
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Accept': 'application/json'
+    },
+    qs: {
+      /*jshint camelcase: false */
+      after: args.after.value,
+      before: args.before.value,
+      deleted: args.deleted.value,
+      page_size: args.pageSize.value
+    }
+  };
+  if (args.page.value) {
+    log.debug('Requesting product page ' + args.page.value);
+  }
+
+  return sendRequest(options, args, connectionInfo, fetchProducts2, retryCounter);
+};
+
+var fetchAllProducts2 = function(connectionInfo, processPagedResults) {
+  var args = argsForInput.products.fetch2();
+  // args.after.value = 'id';
+  args.page.value = 1;
+  args.pageSize.value = 40000;
+  // args.active.value = true;
+
+  // set a default function if none is provided
+  if(!processPagedResults) {
+    processPagedResults = function processPagedResults(pagedData, previousData) {
+      log.debug('fetchAllProducts - default processPagedResults()');
+      if(previousData && previousData.length>0) {
+        //log.verbose(JSON.stringify(pagedData.products,replacer,2));
+        if(pagedData.data && pagedData.data.length>0) {
+          log.debug('previousData: ', previousData.length);
+          pagedData.data = pagedData.data.concat(previousData);
+          log.debug('combined: ', pagedData.data.length);
+        }
+        else {
+          pagedData.data = previousData;
+        }
+      }
+      return Promise.resolve(pagedData.data);
+    };
+  }
+  return processPagesRecursively(args, connectionInfo, fetchProducts2, processPagedResults);
+};
+
+
+var fetchPaginationInfo = function (args, connectionInfo) {
+  if (!(args && argsAreValid(args))) {
     return Promise.reject('missing required arguments for fetchPaginationInfo()');
   }
-  return fetchProducts(args, connectionInfo)
-    .then(function(result){/*jshint camelcase: false */
+  return fetchProducts2(args, connectionInfo)
+    .then(function (result) {/*jshint camelcase: false */
 
       // HACK - until Vend responses become consistent
       if (result && result.results && !result.pagination) {
@@ -2745,10 +2844,12 @@ module.exports = function(dependencies) {
     args: argsForInput,
     products: {
       fetch: fetchProducts,
+      fetch2: fetchProducts2,
       fetchById: fetchProduct,
       fetchByHandle: fetchProductByHandle,
       fetchBySku: fetchProductBySku,
       fetchAll: fetchAllProducts,
+      fetchAll2: fetchAllProducts2,
       fetchPaginationInfo: fetchPaginationInfo,
       update: updateProductById,
       delete: deleteProductById,
