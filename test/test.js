@@ -541,6 +541,17 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
         });
     });
 
+    it('can fetch ALL products with v2.0 api', function() {
+      this.timeout(30000);
+      return vendSdk.products.fetchAll2(getConnectionInfo()) // NOTE: 2nd (optional) argument can be a custom method to processPagedResults
+        .then(function (allProducts) {
+          //log.debug('can fetch ALL products with v2.0 api', 'allProducts:', allProducts);
+          expect(allProducts).to.exist;
+          expect(allProducts).to.be.instanceof(Array);
+          //log.debug('can fetch ALL products with v2.0 api', 'allProducts.length:', allProducts.length);
+        });
+    });
+
     describe('can fetch ALL products', function() {
       var totalActiveProducts, totalInactiveProducts;
       it('can fetch ALL products (test backward compatibility with old method signature and one argument)', function() {
@@ -622,7 +633,7 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
             log.debug('response', response);
           });
       });
-  
+
       it('can fetch a customer by email', function () {
         // this is just a convenience method
         return vendSdk.customers.fetchByEmail(customer.email, getConnectionInfo())
@@ -638,7 +649,7 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
             expect(response.customers[0].email).to.be.equal(customer.email);
           });
       });
-  
+
       it('can fetch ALL customers', function () {
         var args = vendSdk.args.customers.fetchAll();
         return vendSdk.customers.fetchAll(args, getConnectionInfo())
@@ -889,9 +900,9 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
     });
 
     describe('this will create a sale with all the relevant data', function () {
-  
+
       var customerData, taxData, registers, paymentType;
-  
+
       var registerSale = {
         register_id: null, // jshint ignore:line
         customer_id: null, // jshint ignore:line
@@ -902,12 +913,12 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
         sale_date: new Date().toString(), // jshint ignore:line
         short_code: faker.random.word() // jshint ignore:line
       };
-  
+
       var createPaymentTypesArray = function (paymentTypesArray) {
         paymentType = _.sample(paymentTypesArray, 1);
         return paymentType[0];
       };
-      
+
       var createTaxData = function () {
         var args = vendSdk.args.taxes.create();
         args.body.value = {
@@ -920,7 +931,7 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
             return taxData;
           });
       };
-  
+
       var createRegisterSaleProducts = function (product) {
         var data = {
           register_id: registers.id, // jshint ignore:line
@@ -932,7 +943,7 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
         };
         return registerSale.register_sale_products.push(data); // jshint ignore:line
       };
-  
+
       var createRegisterSalePayments = function (payment) {
         log.debug('The payment that will be attached to the sale', payment);
         return registerSale.register_sale_payments.push({ // jshint ignore:line
@@ -942,7 +953,7 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
           amount: 192
         });
       };
-  
+
       var addMoreRegisterSaleProducts = function (productsArray) {
         return _.each(productsArray, function (product) {
           var data = {
@@ -958,7 +969,7 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
           }
         });
       };
-  
+
       it('can create a customer that will be further get attached to a sale', function () {
         var customer = {
           'first_name': faker.name.firstName(),
@@ -970,7 +981,7 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
             customerData = customerResponse.customer;
           });
       });
-  
+
       it('can fetch registers to which a sale will be created', function () {
         var args = vendSdk.args.registers.fetch();
         return vendSdk.registers.fetch(args, getConnectionInfo())
@@ -983,7 +994,7 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
             log.debug('The register object', registers);
           });
       });
-      
+
       it('will either fetch Normal Sales Tax and add it to the sale or it will create a Normal Sales Tax and then add it to the sale', function () {
         var args = vendSdk.args.taxes.fetch();
         return vendSdk.taxes.fetch(args, getConnectionInfo())
@@ -1003,10 +1014,10 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
             }
           });
       });
-  
+
       it('can create a product for the sale', function () {
         var args = vendSdk.args.products.create();
-    
+
         var randomProduct = {
           'handle': faker.lorem.word(1),
           'has_variants': false, // jshint ignore:line
@@ -1021,7 +1032,7 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
         };
         randomProduct.price = String(Number(randomProduct['supply_price']) + 10.00); // jshint ignore:line
         args.body.value = randomProduct;
-    
+
         return vendSdk.products.create(args, getConnectionInfo())
           .then(function (response) {
             log.debug('Product Response', response);
@@ -1031,9 +1042,9 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
             Promise.resolve(createRegisterSaleProducts(product));
           });
       });
-  
+
       it('can fetch products and add them to the register sale products array', function () {
-    
+
         var args = vendSdk.args.products.fetch();
         args.orderBy.value = 'id';
         args.page.value = 1;
@@ -1047,7 +1058,7 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
             Promise.resolve(addMoreRegisterSaleProducts(products));
           });
       });
-  
+
       it('can fetch all payment types', function () {
         var args = vendSdk.args.paymentTypes.fetch();
         return vendSdk.paymentTypes.fetch(args, getConnectionInfo())
@@ -1062,7 +1073,7 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
             Promise.resolve(createRegisterSalePayments(arrayResponse));
           });
       });
-  
+
       it('can create a register sale', function () {
         registerSale.customer_id = customerData.id; // jshint ignore:line
         registerSale.register_id = registers.id; // jshint ignore:line
