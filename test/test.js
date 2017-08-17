@@ -644,14 +644,21 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
             expect(response.customers).to.exist;
             expect(response.customers).to.be.instanceof(Array);
             expect(response.customers.length).to.be.equal(1);
-            expect(response.customers[0].first_name).to.be.equal(customer.first_name);
-            expect(response.customers[0].last_name).to.be.equal(customer.last_name);
+            expect(response.customers[0].first_name).to.be.equal(customer.first_name); // jshint ignore:line
+            expect(response.customers[0].last_name).to.be.equal(customer.last_name); // jshint ignore:line
             expect(response.customers[0].email).to.be.equal(customer.email);
           });
       });
   
-      xit('TODO: can fetch ALL customers', function () {
-        // TODO: implement it
+      it('can fetch ALL customers', function () {
+        var args = vendSdk.args.customers.fetchAll();
+        return vendSdk.customers.fetchAll(args, getConnectionInfo())
+          .then(function(customers){
+            expect(customers).to.exist;
+            expect(customers).to.be.instanceof(Array);
+            expect(customers.length).to.be.greaterThan(0);
+            log.debug('can fetch ALL customers', 'customers.length:', customers.length);
+          });
       });
     });
 

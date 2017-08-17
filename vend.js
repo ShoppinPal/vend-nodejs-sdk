@@ -612,7 +612,26 @@ var argsForInput = {
           value: undefined // should be in UTC and formatted according to ISO 8601
         }
       };
-    }
+    },
+    fetchAll: function() {
+      return {
+        after: {
+          required: false,
+          key: 'after',
+          value: undefined
+        },
+        before: {
+          required: false,
+          key: 'before',
+          value: undefined
+        },
+        pageSize: {
+          required: false,
+          key: 'page_size',
+          value: undefined
+        }
+      };
+    },
   },
   registers: {
     fetchById: function() {
@@ -1599,6 +1618,69 @@ var fetchCustomers = function(args, connectionInfo, retryCounter) {
   };
 
   return sendRequest(options, args, connectionInfo, fetchCustomers, retryCounter);
+};
+
+var fetchCustomers2 = function(args, connectionInfo, retryCounter) {
+  log.debug('inside fetchCustomers2()');
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    log.debug('retry # ' + retryCounter);
+  }
+
+  var path = '/api/2.0/customers';
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.debug('GET ' + vendUrl);
+  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+
+  var options = {
+    method: 'GET',
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Accept': 'application/json'
+    },
+    qs: {
+      after: args.after.value,
+      before: args.before.value,
+      page_size: args.pageSize.value // jshint ignore:line
+    }
+  };
+
+  return sendRequest(options, args, connectionInfo, fetchCustomers2, retryCounter);
+};
+
+var fetchAllCustomers = function(args, connectionInfo, processPagedResults) {
+  if ( !(args && argsAreValid(args)) ) {
+    return Promise.reject('missing required arguments for createProductTypes()');
+  }
+  if (!args.page || !args.page.value) {
+    args.page = {value:1}; // page has no operational role here, just useful for readable logs
+  }
+  //if (!args.pageSize.value) args.pageSize.value = 10000; // why should we bother to set default pageSize if none is specified?
+
+  // set a default function if none is provided
+  if(!processPagedResults) {
+    processPagedResults = function processPagedResults(pagedData, previousData) {
+      log.debug('fetchAllProducts - default processPagedResults()');
+      if(previousData && previousData.length>0) {
+        //log.verbose(JSON.stringify(pagedData.products,replacer,2));
+        if(pagedData.data && pagedData.data.length>0) {
+          log.debug('previousData: ', previousData.length);
+          pagedData.data = pagedData.data.concat(previousData);
+          log.debug('combined: ', pagedData.data.length);
+        }
+        else {
+          pagedData.data = previousData;
+        }
+      }
+      return Promise.resolve(pagedData.data);
+      // console.log('pagedData', pagedData);
+      // return Promise.resolve();
+    };
+  }
+  return processPagesRecursively(args, connectionInfo, fetchCustomers2, processPagedResults);
 };
 
 var fetchCustomerByEmail = function(email, connectionInfo, retryCounter) {
@@ -2890,6 +2972,7 @@ module.exports = function(dependencies) {
     customers: {
       create: createCustomer,
       fetch: fetchCustomers,
+      fetchAll: fetchAllCustomers,
       fetchByEmail: fetchCustomerByEmail
     },
     consignments: {
