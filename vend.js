@@ -1603,9 +1603,9 @@ var fetchCustomers = function(args, connectionInfo, retryCounter) {
 
 var fetchCustomerByEmail = function(email, connectionInfo, retryCounter) {
   log.debug('inside fetchCustomerByEmail()');
-  var args = args.customers.fetch();
+  var args = argsForInput.customers.fetch();
   args.email.value = email;
-  fetchCustomers(args, connectionInfo, retryCounter);
+  return fetchCustomers(args, connectionInfo, retryCounter);
 };
 
 var fetchRegisters = function(args, connectionInfo, retryCounter) {
