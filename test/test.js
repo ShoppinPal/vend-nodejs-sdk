@@ -610,14 +610,45 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
       });
     });
 
-    it('can create a customer', function () {
-      // create a dummy customer
+    describe('with customers API', function(){
       var customer = {
         'first_name': 'boy',
         'last_name': 'blue',
         'email': 'boy' + Date.now() + '@blue.com'
       };
-      return vendSdk.customers.create(customer, getConnectionInfo());
+      it('can create a customer', function () {
+        return vendSdk.customers.create(customer, getConnectionInfo())
+          .then(function(response){
+            log.debug('response', response);
+          });
+      });
+  
+      it('can fetch a customer by email', function () {
+        // this is just a convenience method
+        return vendSdk.customers.fetchByEmail(customer.email, getConnectionInfo())
+          .then(function(response){
+            log.debug('response', response);
+            expect(response).to.exist;
+            expect(response).to.be.instanceof(Object);
+            expect(response.customers).to.exist;
+            expect(response.customers).to.be.instanceof(Array);
+            expect(response.customers.length).to.be.equal(1);
+            expect(response.customers[0].first_name).to.be.equal(customer.first_name); // jshint ignore:line
+            expect(response.customers[0].last_name).to.be.equal(customer.last_name); // jshint ignore:line
+            expect(response.customers[0].email).to.be.equal(customer.email);
+          });
+      });
+  
+      it('can fetch ALL customers', function () {
+        var args = vendSdk.args.customers.fetchAll();
+        return vendSdk.customers.fetchAll(args, getConnectionInfo())
+          .then(function(customers){
+            expect(customers).to.exist;
+            expect(customers).to.be.instanceof(Array);
+            expect(customers.length).to.be.greaterThan(0);
+            log.debug('can fetch ALL customers', 'customers.length:', customers.length);
+          });
+      });
     });
 
     xit('BROKEN: can create a product', function () {
