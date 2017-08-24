@@ -541,18 +541,37 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
         });
     });
 
-    it('can fetch ALL products with v2.0 api', function() {
-      this.timeout(30000);
-      return vendSdk.products.fetchAll2(getConnectionInfo()) // NOTE: 2nd (optional) argument can be a custom method to processPagedResults
-        .then(function (allProducts) {
-          //log.debug('can fetch ALL products with v2.0 api', 'allProducts:', allProducts);
-          expect(allProducts).to.exist;
-          expect(allProducts).to.be.instanceof(Array);
-          //log.debug('can fetch ALL products with v2.0 api', 'allProducts.length:', allProducts.length);
-        });
+    describe('with products API for v2.0', function() {
+      this.timeout(300000);
+      var productsAcquiredFromVanillaCall, productsAcquiredFromExoticCall;
+      it('can fetch ALL products', function() { // NOTE: default page size is 1000 based on passive observation
+        
+        var args = vendSdk.args.products.fetchAll2();
+        return vendSdk.products.fetchAll2(args, getConnectionInfo()) // NOTE: 3rd (optional) argument can be a custom method to processPagedResults
+          .then(function (allProducts) {
+            //log.debug('can fetch ALL products', 'allProducts:', allProducts);
+            expect(allProducts).to.exist;
+            expect(allProducts).to.be.instanceof(Array);
+            productsAcquiredFromVanillaCall = allProducts.length;
+            //log.debug('can fetch ALL products', 'allProducts.length:', allProducts.length);
+          });
+      });
+      it('can fetch ALL products w/ custom page size', function() {
+        var args = vendSdk.args.products.fetchAll2();
+        args.pageSize.value = 40000; 
+        return vendSdk.products.fetchAll2(args, getConnectionInfo()) // NOTE: 3rd (optional) argument can be a custom method to processPagedResults
+          .then(function (allProducts) {
+            //log.debug('can fetch ALL products w/ custom page size', 'allProducts:', allProducts);
+            expect(allProducts).to.exist;
+            expect(allProducts).to.be.instanceof(Array);
+            productsAcquiredFromExoticCall = allProducts.length;
+            expect(productsAcquiredFromExoticCall).to.be.equal(productsAcquiredFromVanillaCall);
+            //log.debug('can fetch ALL products w/ custom page size', 'allProducts.length:', allProducts.length);
+          });
+      });
     });
 
-    describe('can fetch ALL products', function() {
+    describe('with products API for v0.x', function() {
       var totalActiveProducts, totalInactiveProducts;
       it('can fetch ALL products (test backward compatibility with old method signature and one argument)', function() {
         this.timeout(300000);
