@@ -92,10 +92,8 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
     it('should fail when accessToken is missing', function () {
 
       var args = vendSdk.args.products.fetch();
-      args.orderBy.value = 'id';
       args.page.value = 1;
       args.pageSize.value = 5;
-      args.active.value = true;
 
       var connectionInfo = {
         domainPrefix: nconf.get('domain_prefix')
@@ -115,10 +113,8 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
     it('should fail when given an incorrect or outdated accessToken', function () {
 
       var args = vendSdk.args.products.fetch();
-      args.orderBy.value = 'id';
       args.page.value = 1;
       args.pageSize.value = 5;
-      args.active.value = true;
 
       var connectionInfo = {
         domainPrefix: nconf.get('domain_prefix'),
@@ -150,10 +146,8 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
     it('but invalid - API calls should fail', function () {
 
       var args = vendSdk.args.products.fetch();
-      args.orderBy.value = 'id';
       args.page.value = 1;
       args.pageSize.value = 1;
-      args.active.value = true;
 
       var doNotUseCache = true;
       var connectionInfo = getConnectionInfo(doNotUseCache);
@@ -167,10 +161,8 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
     it('and valid - can regenerate an accessToken for use in API calls', function () {
 
       var args = vendSdk.args.products.fetch();
-      args.orderBy.value = 'id';
       args.page.value = 1;
       args.pageSize.value = 1;
-      args.active.value = true;
 
       var doNotUseCache = true;
       var connectionInfo = getConnectionInfo(doNotUseCache);
@@ -190,90 +182,41 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
 
     });
 
-    it('can fetch products', function () {
-
-      var args = vendSdk.args.products.fetch();
-      args.orderBy.value = 'id';
-      args.page.value = 1;
-      args.pageSize.value = 5;
-      args.active.value = true;
-
-      return vendSdk.products.fetch(args, getConnectionInfo())
-        .then(function (response) {
-          expect(response).to.exist;
-          expect(response.products).to.exist;
-          expect(response.products).to.be.instanceof(Array);
-          expect(response.products).to.have.length.of.at.least(1);
-          expect(response.products).to.have.length.of.at.most(5);
-          if (response.pagination) {/*jshint camelcase: false */
-            expect(response.pagination.results).to.exist;
-            expect(response.pagination.results).to.be.above(0);
-            expect(response.pagination.page).to.exist;
-            expect(response.pagination.page).to.be.equal(1);
-            expect(response.pagination.page_size).to.exist;
-            expect(response.pagination.page_size).to.be.equal(args.pageSize.value);
-            expect(response.pagination.pages).to.exist;
-            expect(response.pagination.pages).to.be.above(0);
-          }
-        })
-        .catch(TypeError, function (error) {
-          expect(error).to.equal(
-            undefined,
-            'the refresh token might be invalid' +
-                        ' \n\t\t look inside vend-nodejs-sdk.log file to confirm' +
-                        ' \n\t\t or turn on console logging by using `NODE_ENV=testing ./node_modules/.bin/mocha`' +
-                        ' \n\t\t to run the tests and confirm' +
-                        ' \n\t\t'
-          );
-        });
-
-    });
-
-    it('can paginate when fetching products', function () {
-      var args = vendSdk.args.products.fetch();
-      args.orderBy.value = 'id';
-      args.page.value = 1;
-      args.pageSize.value = 1;
-      args.active.value = true;
-      return vendSdk.products.fetch(args, getConnectionInfo())
-        .then(function (response) {
-          expect(response).to.exist;
-          expect(response.products).to.exist;
-          expect(response.products).to.be.instanceof(Array);
-          expect(response.products.length).to.equal(1);
-        });
-    });
-
+    var randomProduct;
     var getRandomProduct = function () {
+      if (randomProduct) { // use cached value if available
+        return Promise.resolve(randomProduct);
+      }
       var args = vendSdk.args.products.fetch();
-      args.orderBy.value = 'id';
       args.page.value = 1;
       args.pageSize.value = 100;
-      args.active.value = true;
       return vendSdk.products.fetch(args, getConnectionInfo())
         .then(function (response) {
-          return _.find(response.products, function (eachProduct) {
-            return eachProduct.supplier_code && eachProduct.inventory[0].outlet_id;// jshint ignore:line
+          return Promise.map(
+            response.data || [],
+            function(eachProduct){
+              //console.log('eachProduct', eachProduct.supplier_code, eachProduct.supplier, eachProduct.supplier_id);
+              var inventoryArgs = vendSdk.args.products.fetchProductInventory();
+              inventoryArgs.apiId.value = eachProduct.id;
+              return vendSdk.products.fetchProductInventory(inventoryArgs, getConnectionInfo())
+                .then(function (response) {
+                  eachProduct.inventory = response.data || []; // place inventory inside product, like the good old 0.x days
+                  return Promise.resolve();
+                });
+            },
+            {concurrency: 1}
+          )
+          .then(function(){
+            randomProduct = _.find(response.data, function (eachProduct) { // return the first product that fulfills these conditions
+              return eachProduct.supplier && eachProduct.inventory[0].outlet_id;// jshint ignore:line
+            });
+            return Promise.resolve(randomProduct);
           });
         });
     };
 
-    var getSupplierIdByName = function (name) {
-      var args = vendSdk.args.suppliers.fetch();
-      args.page.value = 1;
-      args.pageSize.value = 100;
-      return vendSdk.suppliers.fetch(args, getConnectionInfo())
-        .then(function (response) {
-          //return _.first(response.suppliers);
-          return Promise.resolve(
-            _.find(response.suppliers, function (supplier) {
-              return supplier.name === name;
-            })
-          );
-        });
-    };
-
     describe('test consignment product APIs', function() {
+      this.timeout(300000); // attaching inventory to 100 random products for v2.0 takes a lot of time
       describe('usecase one', function() {
         var randomProduct, supplier, consignmentProductId, consignmentId;
         it('by preparing a product with a supplier and an outlet', function () {
@@ -281,14 +224,10 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
             .then(function(result){
               randomProduct = result;
               expect(randomProduct).to.exist;
-              return getSupplierIdByName(randomProduct['supplier_name']);// jshint ignore:line
-            })
-            .then(function(result){
-              supplier = result;
-              expect(supplier).to.exist;
-              expect(supplier.name).to.equal(randomProduct['supplier_name']);// jshint ignore:line
               //console.log('randomProduct', randomProduct);
-              //console.log('randomSupplier', supplier);
+              supplier = randomProduct.supplier;
+              expect(supplier).to.exist;
+              expect(supplier.id).to.equal(randomProduct['supplier_id']);// jshint ignore:line
             });
         });
         it('by preparing a new consignment', function () {
@@ -344,11 +283,11 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
               expect(consignmentProductResponse.id).to.exist;
 
               /**
-                   * This assertion would fail if the consignment product wasn't created
-                   * because of a bad product+supplier+outlet combination. In which case,
-                   * the vend api decides to send back the consignment (instead of the consignment PRODUCT)
-                   * to indicate that the work was not performed!
-                   */
+               * This assertion would fail if the consignment product wasn't created
+               * because of a bad product+supplier+outlet combination. In which case,
+               * the vend api decides to send back the consignment (instead of the consignment PRODUCT)
+               * to indicate that the work was not performed!
+               */
               expect(consignmentProductResponse.id).to.not.equal(consignmentId);
 
               expect(consignmentProductResponse['product_id']).to.exist;// jshint ignore:line
@@ -409,12 +348,9 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
             .then(function(result){
               randomProduct = result;
               expect(randomProduct).to.exist;
-              return getSupplierIdByName(randomProduct['supplier_name']);// jshint ignore:line
-            })
-            .then(function(result){
-              supplier = result;
+              supplier = randomProduct.supplier;
               expect(supplier).to.exist;
-              expect(supplier.name).to.equal(randomProduct['supplier_name']);// jshint ignore:line
+              expect(supplier.id).to.equal(randomProduct['supplier_id']);// jshint ignore:line
             });
         });
         it('by preparing a new consignment', function () {
@@ -511,131 +447,126 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
       });
     });
 
-    it('can fetch a product by ID', function () {
-
-      var args = vendSdk.args.products.fetch();
-      args.orderBy.value = 'id';
-      args.page.value = 1;
-      args.pageSize.value = 1;
-      args.active.value = true;
-
-      // get one of any product
-      return vendSdk.products.fetch(args, getConnectionInfo())
-        .then(function (response1) {
-          expect(response1).to.exist;
-          expect(response1.products).to.exist;
-          expect(response1.products).to.be.instanceof(Array);
-          expect(response1.products).to.have.length.of.at.least(1);
-
-          // fetch a product by ID
-          var args = vendSdk.args.products.fetchById();
-          args.apiId.value = _.last(response1.products).id;
-          return vendSdk.products.fetchById(args, getConnectionInfo())
-            .then(function (response2) {
-              expect(response2).to.exist;
-              expect(response2.products).to.exist;
-              expect(response2.products).to.be.instanceof(Array);
-              expect(response2.products.length).to.equal(1);
-              expect(response2.products[0].id).to.equal(_.last(response1.products).id); // IDs should match
-            });
-        });
-    });
-
-    describe('with products API for v2.0', function() {
+    describe('with products API', function() {
       this.timeout(300000);
-      var productsAcquiredFromVanillaCall, productsAcquiredFromExoticCall;
-      it('can fetch ALL products', function() { // NOTE: default page size is 1000 based on passive observation
-        
-        var args = vendSdk.args.products.fetchAll2();
-        return vendSdk.products.fetchAll2(args, getConnectionInfo()) // NOTE: 3rd (optional) argument can be a custom method to processPagedResults
-          .then(function (allProducts) {
-            //log.debug('can fetch ALL products', 'allProducts:', allProducts);
-            expect(allProducts).to.exist;
-            expect(allProducts).to.be.instanceof(Array);
-            productsAcquiredFromVanillaCall = allProducts.length;
-            //log.debug('can fetch ALL products', 'allProducts.length:', allProducts.length);
+
+      var productsForTesting;
+      it('can fetch products', function () {
+        var args = vendSdk.args.products.fetch();
+        args.page.value = 1;
+        args.pageSize.value = 5;
+        return vendSdk.products.fetch(args, getConnectionInfo())
+          .then(function (response) {
+            expect(response).to.exist;
+            expect(response.data).to.exist;
+            expect(response.data).to.be.instanceof(Array);
+            expect(response.data).to.have.length.of.at.least(1);
+            expect(response.data).to.have.length.of.at.most(5);
+            productsForTesting = response.data;
+            if (response.version) {/*jshint camelcase: false */
+              expect(response.version.min).to.exist;
+              expect(response.version.max).to.exist;
+            }
+          })
+          .catch(TypeError, function (error) {
+            expect(error).to.equal(
+              undefined,
+              'the refresh token might be invalid' +
+                          ' \n\t\t look inside vend-nodejs-sdk.log file to confirm' +
+                          ' \n\t\t or turn on console logging by using `NODE_ENV=testing ./node_modules/.bin/mocha`' +
+                          ' \n\t\t to run the tests and confirm' +
+                          ' \n\t\t'
+            );
           });
       });
+
+      /**
+       * `productsForTesting` must be initialized by the previous testcase for this test to work
+       */
+      it('can fetch a product by ID', function () {
+        // fetch a product by ID
+        var args = vendSdk.args.products.fetchById();
+        args.apiId.value = _.last(productsForTesting).id;
+        return vendSdk.products.fetchById(args, getConnectionInfo())
+          .then(function (response2) {
+            expect(response2).to.exist;
+            expect(response2.products).to.exist;
+            expect(response2.products).to.be.instanceof(Array);
+            expect(response2.products.length).to.equal(1);
+            expect(response2.products[0].id).to.equal(_.last(productsForTesting).id); // IDs should match
+          });
+      });
+
+      it('can paginate when fetching products', function () {
+        var args = vendSdk.args.products.fetch();
+        args.page.value = 1;
+        args.pageSize.value = 1;
+        return vendSdk.products.fetch(args, getConnectionInfo())
+          .then(function (response) {
+            expect(response).to.exist;
+            expect(response.data).to.exist;
+            expect(response.data).to.be.instanceof(Array);
+            expect(response.data.length).to.equal(1);
+          });
+      });
+
+      var productsAcquiredWithDefaultPageSize;
+      it('can fetch ALL products w/ default page size', function() { // NOTE: default page size is 1000 based on passive observation
+        var args = vendSdk.args.products.fetchAll();
+        return vendSdk.products.fetchAll(args, getConnectionInfo()) // NOTE: 3rd (optional) argument can be a custom method to processPagedResults
+          .then(function (allProducts) {
+            expect(allProducts).to.exist;
+            expect(allProducts).to.be.instanceof(Array);
+            productsAcquiredWithDefaultPageSize = allProducts.length;
+          });
+      });
+
+      var productsAcquiredWithCustomPageSize;
       it('can fetch ALL products w/ custom page size', function() {
-        var args = vendSdk.args.products.fetchAll2();
-        args.pageSize.value = 40000; 
-        return vendSdk.products.fetchAll2(args, getConnectionInfo()) // NOTE: 3rd (optional) argument can be a custom method to processPagedResults
+        var args = vendSdk.args.products.fetchAll();
+        args.pageSize.value = 40000;
+        return vendSdk.products.fetchAll(args, getConnectionInfo()) // NOTE: 3rd (optional) argument can be a custom method to processPagedResults
           .then(function (allProducts) {
-            //log.debug('can fetch ALL products w/ custom page size', 'allProducts:', allProducts);
             expect(allProducts).to.exist;
             expect(allProducts).to.be.instanceof(Array);
-            productsAcquiredFromExoticCall = allProducts.length;
-            expect(productsAcquiredFromExoticCall).to.be.equal(productsAcquiredFromVanillaCall);
-            //log.debug('can fetch ALL products w/ custom page size', 'allProducts.length:', allProducts.length);
-          });
-      });
-    });
-
-    describe('with products API for v0.x', function() {
-      var totalActiveProducts, totalInactiveProducts;
-      it('can fetch ALL products (test backward compatibility with old method signature and one argument)', function() {
-        this.timeout(300000);
-        return vendSdk.products.fetchAll(getConnectionInfo()) // NOTE: 2nd (optional) argument can be a custom method to processPagedResults
-          .then(function (allProducts) {
-            //log.debug('can fetch ALL products (test backward compatibility with old method signature and one argument)', 'allProducts:', allProducts);
-            expect(allProducts).to.exist;
-            expect(allProducts).to.be.instanceof(Array);
-            totalActiveProducts = allProducts.length;
-            //log.debug('can fetch ALL products (test backward compatibility with old method signature and one argument)', 'allProducts.length:', allProducts.length);
+            productsAcquiredWithCustomPageSize = allProducts.length;
+            expect(productsAcquiredWithCustomPageSize).to.be.equal(productsAcquiredWithDefaultPageSize);
           });
       });
 
-      it('can fetch ALL products (test backward compatibility with old method signature and two arguments)', function() {
-        this.timeout(300000);
-        var processPagedResults = function processPagedResults(pagedData, previousData) {
-          log.debug('fetchAllProducts - default processPagedResults()');
-          if (previousData && previousData.length>0) {
-            //log.verbose(JSON.stringify(pagedData.products,replacer,2));
-            if (pagedData.products && pagedData.products.length>0) {
-              log.debug('previousData: ', previousData.length);
-              pagedData.products = pagedData.products.concat(previousData);
-              log.debug('combined: ', pagedData.products.length);
+      var productsAcquiredWithCustomProcessor;
+      it('can fetch ALL products w/ custom processor', function() {
+        var customProcessor = function processPagedResults(pagedData, previousData) {
+          if(previousData && previousData.length>0) {
+            if(pagedData.data && pagedData.data.length>0) {
+              pagedData.data = pagedData.data.concat(previousData);
             }
             else {
-              pagedData.products = previousData;
+              pagedData.data = previousData;
             }
           }
-          return Promise.resolve(pagedData.products);
+          return Promise.resolve(pagedData.data);
         };
-        return vendSdk.products.fetchAll(getConnectionInfo(), processPagedResults) // NOTE: 2nd (optional) argument can be a custom method to processPagedResults
-          .then(function (allProducts) {
-            //log.debug('can fetch ALL products (test backward compatibility with old method signature and two arguments)', 'allProducts:', allProducts);
-            expect(allProducts).to.exist;
-            expect(allProducts).to.be.instanceof(Array);
-            expect(allProducts.length).to.equal(totalActiveProducts);
-            //log.debug('can fetch ALL products (test backward compatibility with old method signature and two arguments)', 'allProducts.length:', allProducts.length);
-          });
-      });
-
-      it('can fetch ALL inactive products', function() {
         var args = vendSdk.args.products.fetchAll();
-        args.active.value = false;
-        return vendSdk.products.fetchAll(args, getConnectionInfo()) // NOTE: 2nd (optional) argument can be a custom method to processPagedResults
+        args.pageSize.value = 40000;
+        return vendSdk.products.fetchAll(args, getConnectionInfo(), customProcessor) // NOTE: 3rd (optional) argument can be a custom method to processPagedResults
           .then(function (allProducts) {
-            //log.debug('can fetch ALL inactive products', 'allProducts:', allProducts);
             expect(allProducts).to.exist;
             expect(allProducts).to.be.instanceof(Array);
-            totalInactiveProducts = allProducts.length;
-            //log.debug('can fetch ALL inactive products', 'allProducts.length:', allProducts.length);
+            productsAcquiredWithCustomProcessor = allProducts.length;
+            expect(productsAcquiredWithCustomProcessor).to.be.equal(productsAcquiredWithDefaultPageSize);
           });
       });
 
       it('can fetch ALL active and inactive products', function() {
-        this.timeout(300000);
         var args = vendSdk.args.products.fetchAll();
-        args.active.value = undefined; // in Vend API, not specifying this field is a way of saying that you want both: active AND inactive products
-        return vendSdk.products.fetchAll(args, getConnectionInfo()) // NOTE: 2nd (optional) argument can be a custom method to processPagedResults
+        args.pageSize.value = 40000;
+        args.deleted.value = true;
+        return vendSdk.products.fetchAll(args, getConnectionInfo())
           .then(function (allProducts) {
-            //log.debug('can fetch ALL active and inactive products', 'allProducts:', allProducts);
             expect(allProducts).to.exist;
             expect(allProducts).to.be.instanceof(Array);
-            expect(allProducts.length).to.equal(totalActiveProducts + totalInactiveProducts);
-            //log.debug('can fetch ALL active and inactive products', 'allProducts.length:', allProducts.length);
+            expect(allProducts.length).to.be.greaterThan(productsAcquiredWithDefaultPageSize);
           });
       });
     });
@@ -794,7 +725,7 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
         });
     });
 
-    it('can fetch ALL tags', function () {
+    xit('can fetch ALL tags', function () {
       var args = vendSdk.args.tags.fetch();
       args.pageSize.value = 2;
       return vendSdk.tags.fetchAll(args, getConnectionInfo())
@@ -1063,15 +994,12 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
       });
 
       it('can fetch products and add them to the register sale products array', function () {
-
         var args = vendSdk.args.products.fetch();
-        args.orderBy.value = 'id';
         args.page.value = 1;
         args.pageSize.value = 50;
-        args.active.value = true;
         return vendSdk.products.fetch(args, getConnectionInfo())
           .then(function (response) {
-            return _.sample(response.products, 5);
+            return _.sample(response.data, 5);
           })
           .then(function (products) {
             Promise.resolve(addMoreRegisterSaleProducts(products));
