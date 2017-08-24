@@ -3,6 +3,4 @@ node_modules/
 prod.json
 npm-debug.log
 vend-nodejs-sdk.log
-config/oauth.json
-config/test.json
-config/devTest.json
+config/*
