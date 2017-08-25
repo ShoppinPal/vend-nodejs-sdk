@@ -601,6 +601,42 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
       });
     });
 
+    describe('with inventory API', function() {
+
+      var getProductsForTesting = function() {
+        var args = vendSdk.args.products.fetch();
+        args.page.value = 1;
+        args.pageSize.value = 5;
+        return vendSdk.products.fetch(args, getConnectionInfo())
+          .then(function (response) {
+            expect(response.data).to.exist;
+            return Promise.resolve(response.data);
+          });
+      };
+
+      it('can fetch inventory by product ID', function() {
+        return getProductsForTesting()
+          .then(function (productsForTesting) {
+            var productForTesting = _.find(productsForTesting, function (eachProduct) { // return the first product that fulfills these conditions
+              return eachProduct.has_inventory; // jshint ignore:line
+            });
+            expect(productForTesting).to.exist; // otherwise, you may need to expand the test to look for larger # of products
+            var args = vendSdk.args.inventory.fetchByProductId();
+            args.apiId.value = productForTesting.id;
+            return vendSdk.inventory.fetchByProductId(args, getConnectionInfo())
+              .then(function(response) {
+                expect(response).to.exist;
+                expect(response.data).to.exist;
+                expect(response.data).to.be.instanceof(Array);
+                expect(response.data).to.have.length.of.at.least(1);
+                _.each(response.data, function(inventoryEntry) {
+                  expect(inventoryEntry.product_id).to.equal(productForTesting.id); // jshint ignore:line
+                });
+              });
+          });
+      });
+    });
+
     describe('with customers API', function(){
       var customer = {
         'first_name': 'boy',
