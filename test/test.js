@@ -609,7 +609,7 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
         args.pageSize.value = 5;
         return vendSdk.products.fetch(args, getConnectionInfo())
           .then(function (response) {
-            expect(response.data).to.exist;
+            expect(response.data).to.exist; // otherwise, you may need to expand the test to look for larger # of products
             return Promise.resolve(response.data);
           });
       };
@@ -633,6 +633,23 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
                   expect(inventoryEntry.product_id).to.equal(productForTesting.id); // jshint ignore:line
                 });
               });
+          });
+      });
+
+      it('can fetch inventory', function() {
+        var args = vendSdk.args.inventory.fetch();
+        args.pageSize.value = 5;
+        return vendSdk.inventory.fetch(args, getConnectionInfo())
+          .then(function (response) {
+            expect(response).to.exist;
+            expect(response.data).to.exist;
+            expect(response.data).to.be.instanceof(Array);
+            expect(response.data).to.have.length.of.at.least(1);
+            expect(response.data).to.have.length.of.at.most(5);
+            if (response.version) {/*jshint camelcase: false */
+              expect(response.version.min).to.exist;
+              expect(response.version.max).to.exist;
+            }
           });
       });
     });
