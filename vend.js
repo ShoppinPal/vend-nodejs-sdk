@@ -1992,7 +1992,7 @@ module.exports = function(dependencies) {
 
   inventory = require('./lib/inventory.js')(dependencies);
   argsForInput.inventory = inventory.args;
-  dependencies.inventory = inventory;
+  product.setInventory(inventory);
 
   // (3) expose the SDK
   return {

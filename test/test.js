@@ -599,6 +599,32 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
             expect(allProducts.length).to.be.greaterThan(productsAcquiredWithDefaultPageSize);
           });
       });
+
+      it('TODO: can fetch ALL products w/ inventory data included too', function() {
+        return vendSdk.products.fetchAllWithInventory(null, getConnectionInfo())
+          .then(function(productsWithInventory) {
+            expect(productsWithInventory).to.exist;
+            //var strange = [];
+            _.each(productsWithInventory, function(product) {
+              /*if (product.has_inventory && !product.inventory) {
+                strange.push(product); // TODO: ask Vend why has_inventory remains true even when inventory for that product, does not exist
+              }*/
+              if (product.inventory) {
+                expect(product.inventory).to.exist;
+                expect(product.inventory).to.be.instanceof(Array);
+                expect(product.inventory.length).to.be.greaterThan(0);
+                _.each(product.inventory, function(inventoryEntry) {
+                  expect(inventoryEntry.product_id).to.equal(product.id); // jshint ignore:line
+                });
+              }
+              else {
+                expect(product.inventory).to.be.undefined;
+              }
+            });
+            //console.log('strange.length', strange.length);
+            //console.log(strange);
+          });
+      });
     });
 
     describe('with inventory API', function() {
