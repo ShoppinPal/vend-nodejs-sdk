@@ -636,7 +636,23 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
           });
       });
 
-      it('can fetch inventory', function() {
+      it('can fetch inventory w/ default page size', function() {
+        var args = vendSdk.args.inventory.fetch();
+        return vendSdk.inventory.fetch(args, getConnectionInfo())
+          .then(function (response) {
+            expect(response).to.exist;
+            expect(response.data).to.exist;
+            expect(response.data).to.be.instanceof(Array);
+            expect(response.data).to.have.length.of.at.least(1);
+            expect(response.data).to.have.length.of.at.most(25); // currently observed default - no guarantees
+            if (response.version) {/*jshint camelcase: false */
+              expect(response.version.min).to.exist;
+              expect(response.version.max).to.exist;
+            }
+          });
+      });
+
+      it('can fetch inventory w/ custom page size', function() {
         var args = vendSdk.args.inventory.fetch();
         args.pageSize.value = 5;
         return vendSdk.inventory.fetch(args, getConnectionInfo())
@@ -650,6 +666,17 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
               expect(response.version.min).to.exist;
               expect(response.version.max).to.exist;
             }
+          });
+      });
+
+      it('can fetch ALL inventory', function() {
+        var args = vendSdk.args.inventory.fetchAll();
+        args.pageSize.value = 500; // currently observed maximum - no guarantees - asking for more still gives only 500 per page
+        return vendSdk.inventory.fetchAll(args, getConnectionInfo())
+          .then(function (inventory) {
+            expect(inventory).to.exist;
+            expect(inventory).to.be.instanceof(Array);
+            expect(inventory).to.have.length.of.at.least(1);
           });
       });
     });
