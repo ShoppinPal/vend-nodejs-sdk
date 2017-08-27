@@ -523,9 +523,9 @@ var fetchStockOrdersForSuppliers = function(args, connectionInfo, retryCounter) 
       'Authorization': authString,
       'Accept': 'application/json'
     },
-    qs: {/*jshint camelcase: false */
+    qs: {
       page: args.page.value,
-      page_size: args.pageSize.value
+      page_size: args.pageSize.value // eslint-disable-line camelcase
     }
   };
 
@@ -542,10 +542,10 @@ var fetchAllStockOrdersForSuppliers = function(connectionInfo, processPagedResul
     processPagedResults = function(pagedData, previousData){
       if (previousData && previousData.length>0) {
         if (pagedData.consignments.length>0) {
-        log.debug('previousData: ', previousData.length);
-        pagedData.consignments = pagedData.consignments.concat(previousData);
-        log.debug('combined: ', pagedData.consignments.length);
-      }
+          log.debug('previousData: ', previousData.length);
+          pagedData.consignments = pagedData.consignments.concat(previousData);
+          log.debug('combined: ', pagedData.consignments.length);
+        }
         else {
           pagedData.consignments = previousData;
         }
@@ -576,36 +576,35 @@ var fetchProductsByConsignment  = function(args, connectionInfo, retryCounter) {
       'Authorization': authString,
       'Accept': 'application/json'
     },
-    qs: {/*jshint camelcase: false */
-      consignment_id: args.consignmentId.value,
+    qs: {
+      consignment_id: args.consignmentId.value, // eslint-disable-line camelcase
       page: args.page.value,
-      page_size: args.pageSize.value
+      page_size: args.pageSize.value // eslint-disable-line camelcase
     }
   };
 
   return utils.sendRequest(options, args, connectionInfo, fetchProductsByConsignment, retryCounter);
 };
 
-var defaultMethod_ForProcessingPagedResults_ForConsignmentProducts = function(pagedData, previousData){// jshint ignore:line
-  /*jshint camelcase: false */
+var defaultMethod_ForProcessingPagedResults_ForConsignmentProducts = function(pagedData, previousData){ // eslint-disable-line camelcase
   log.debug('defaultMethod_ForProcessingPagedResults_ForConsignmentProducts');
   if (previousData && previousData.length>0) {
     //log.verbose(JSON.stringify(pagedData.consignment_products,replacer,2));
     if (pagedData.consignment_products && pagedData.consignment_products.length>0) {
       log.debug('previousData: ', previousData.length);
-        pagedData.consignment_products = pagedData.consignment_products.concat(previousData);
+      pagedData.consignment_products = pagedData.consignment_products.concat(previousData); // eslint-disable-line camelcase
       log.debug('combined: ', pagedData.consignment_products.length);
-      }
+    }
     else {
-      pagedData.consignment_products = previousData;
+      pagedData.consignment_products = previousData; // eslint-disable-line camelcase
     }
   }
   //log.silly('finalData: ', pagedData.consignment_products);
   log.debug('finalData.length: ', pagedData.consignment_products.length);
-      return Promise.resolve(pagedData.consignment_products);
+  return Promise.resolve(pagedData.consignment_products);
 };
 
-var defaultMethod_ForProcessingPagedResults_ForSuppliers = function processPagedResults(pagedData, previousData){// jshint ignore:line
+var defaultMethod_ForProcessingPagedResults_ForSuppliers = function processPagedResults(pagedData, previousData) { // eslint-disable-line camelcase
   log.debug('defaultMethod_ForProcessingPagedResults_ForSuppliers');
   if (previousData && previousData.length>0) {
     //log.verbose(JSON.stringify(pagedData.suppliers,replacer,2));
@@ -626,7 +625,7 @@ var fetchAllProductsByConsignment = function(args, connectionInfo, processPagedR
   args.pageSize = {value: 200};
   // set a default function if none is provided
   if (!processPagedResults) {
-    processPagedResults = defaultMethod_ForProcessingPagedResults_ForConsignmentProducts;// jshint ignore:line
+    processPagedResults = defaultMethod_ForProcessingPagedResults_ForConsignmentProducts; // eslint-disable-line camelcase
   }
   return utils.processPagesRecursively(args, connectionInfo, fetchProductsByConsignment, processPagedResults);
 };
@@ -655,10 +654,10 @@ var fetchAllProductsByConsignments = function(args, connectionInfo, processPaged
       //log.silly('previousData ', previousData);
       if (previousData && previousData.length>0) {
         if (newData.length>0) {
-        log.debug('previousData.length: ', previousData.length);
-        newData = newData.concat(previousData);
-        log.debug('combinedData.length: ', newData.length);
-      }
+          log.debug('previousData.length: ', previousData.length);
+          newData = newData.concat(previousData);
+          log.debug('combinedData.length: ', newData.length);
+        }
         else {
           newData = previousData;
         }
@@ -796,7 +795,7 @@ var fetchCustomers2 = function(args, connectionInfo, retryCounter) {
     qs: {
       after: args.after.value,
       before: args.before.value,
-      page_size: args.pageSize.value // jshint ignore:line
+      page_size: args.pageSize.value // eslint-disable-line camelcase
     }
   };
 
@@ -863,9 +862,9 @@ var fetchRegisters = function(args, connectionInfo, retryCounter) {
       'Authorization': authString,
       'Accept': 'application/json'
     },
-    qs: {/*jshint camelcase: false */
+    qs: {
       page: args.page.value,
-      page_size: args.pageSize.value
+      page_size: args.pageSize.value // eslint-disable-line camelcase
     }
   };
 
@@ -975,9 +974,9 @@ var fetchProductTypes = function(args, connectionInfo, retryCounter) {
     // WARN: 0.x and 1.0 use `page` and `page_size`, which may or may NOT be implemented on Vend server side for all entities!
     // WARN: 2.0 uses `after` and even though `page_size` is not documented, it is still useable.
     //       Server side no longer limits you to pages of size 200 and it can handle north of 10000 easy
-    qs: { /*jshint camelcase: false */
+    qs: {
       after: args.after.value,
-      page_size: args.pageSize.value
+      page_size: args.pageSize.value // eslint-disable-line camelcase
     }
   };
 
@@ -1098,9 +1097,9 @@ var fetchBrands = function(args, connectionInfo, retryCounter) {
     // WARN: 0.x and 1.0 use `page` and `page_size`, which may or may NOT be implemented on Vend server side for all entities!
     // WARN: 2.0 uses `after` and even though `page_size` is not documented, it is still useable.
     //       Server side no longer limits you to pages of size 200 and it can handle north of 10000 easy
-    qs: { /*jshint camelcase: false */
+    qs: {
       after: args.after.value,
-      page_size: args.pageSize.value
+      page_size: args.pageSize.value // eslint-disable-line camelcase
     }
   };
 
@@ -1163,9 +1162,9 @@ var fetchTags = function(args, connectionInfo, retryCounter) {
     // WARN: 0.x and 1.0 use `page` and `page_size`, which may or may NOT be implemented on Vend server side for all entities!
     // WARN: 2.0 uses `after` and even though `page_size` is not documented, it is still useable.
     //       Server side no longer limits you to pages of size 200 and it can handle north of 10000 easy
-    qs: { /*jshint camelcase: false */
+    qs: {
       after: args.after.value,
-      page_size: args.pageSize.value
+      page_size: args.pageSize.value // eslint-disable-line camelcase
     }
   };
 
@@ -1261,13 +1260,13 @@ var fetchRegisterSales = function(args, connectionInfo, retryCounter) {
       'Authorization': authString,
       'Accept': 'application/json'
     },
-    qs: {/*jshint camelcase: false */
+    qs: {
       since: args.since.value,
-      outlet_id: args.outletApiId.value,
+      outlet_id: args.outletApiId.value, // eslint-disable-line camelcase
       tag: args.tag.value,
       // WARN: 0.x and 1.0 use `page` and `page_size`, which may or may NOT be implemented on Vend server side for all entities!
       page: args.page.value,
-      page_size: args.pageSize.value
+      page_size: args.pageSize.value // eslint-disable-line camelcase
     }
   };
 
@@ -1283,17 +1282,17 @@ var fetchAllRegisterSales = function(args, connectionInfo, processPagedResults) 
 
   // set a default function if none is provided
   if (!processPagedResults) {
-    processPagedResults = function processPagedResults(pagedData, previousData){/*jshint camelcase: false */
+    processPagedResults = function processPagedResults(pagedData, previousData){
       log.debug('fetchAllRegisterSales - default processPagedResults()');
       if (previousData && previousData.length>0) {
         //log.verbose(JSON.stringify(pagedData.products,replacer,2));
         if (pagedData.register_sales && pagedData.register_sales.length>0) {
           log.debug('previousData: ', previousData.length);
-          pagedData.register_sales = pagedData.register_sales.concat(previousData);
+          pagedData.register_sales = pagedData.register_sales.concat(previousData); // eslint-disable-line camelcase
           log.debug('combined: ', pagedData.register_sales.length);
         }
         else {
-          pagedData.register_sales = previousData;
+          pagedData.register_sales = previousData; // eslint-disable-line camelcase
         }
       }
       return Promise.resolve(pagedData.register_sales);
@@ -1329,9 +1328,9 @@ var fetchOutlets = function(args, connectionInfo, retryCounter) {
     // WARN: 0.x and 1.0 use `page` and `page_size`, which may or may NOT be implemented on Vend server side for all entities!
     // WARN: 2.0 uses `after` and even though `page_size` is not documented, it is still useable.
     //       Server side no longer limits you to pages of size 200 and it can handle north of 10000 easy
-    qs: { /*jshint camelcase: false */
+    qs: {
       after: args.after.value,
-      page_size: args.pageSize.value
+      page_size: args.pageSize.value // eslint-disable-line camelcase
     }
   };
 
@@ -1450,9 +1449,9 @@ var fetchSuppliers = function(args, connectionInfo, retryCounter) {
   };
   if (args.page && args.pageSize){
     // NOTE: page and page_size work! For ex: page=1,page_size=1 return just one result in response.suppliers
-    options.qs = {/*jshint camelcase: false */
+    options.qs = {
       page: args.page.value,
-      page_size: args.pageSize.value
+      page_size: args.pageSize.value // eslint-disable-line camelcase
     };
     log.debug(options);
     // NOTE: BUT for this endpoint, the paging properties in the response are part of the immediate response,
@@ -1469,7 +1468,7 @@ var fetchAllSuppliers = function(connectionInfo, processPagedResults) {
 
   // set a default function if none is provided
   if (!processPagedResults) {
-    processPagedResults = defaultMethod_ForProcessingPagedResults_ForSuppliers;// jshint ignore:line
+    processPagedResults = defaultMethod_ForProcessingPagedResults_ForSuppliers; // eslint-disable-line camelcase
   }
   return utils.processPagesRecursively(args, connectionInfo, fetchSuppliers, processPagedResults);
 };
