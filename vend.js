@@ -8,10 +8,13 @@ var log = null;
 
 var utils = null;
 var product = null;
+var inventory = null;
 
 // the API consumer will get the args and fill in the blanks
 // the SDK will pull out the non-empty values and execute the request
 var argsForInput = {
+  // products: product.args, // cannot be initialized here, moved to the `exports` function
+  // inventory: inventory.args, // cannot be initialized here, moved to the `exports` function
   consignments: {
     fetchById: function() {
       return {
@@ -1982,16 +1985,20 @@ module.exports = function(dependencies) {
   // (2) initialize any module-scoped variables which need the dependencies
   utils = require('./lib/utils.js')(dependencies);
   dependencies.utils = utils;
-  //product = require('./lib/product.js')(dependencies);
+
   product = require('./lib/product.js')(dependencies);
-  //console.log('product', product);
   argsForInput.products = product.args;
-  //console.log('argsForInput', argsForInput);
+  dependencies.product = product;
+
+  inventory = require('./lib/inventory.js')(dependencies);
+  argsForInput.inventory = inventory.args;
+  product.setInventory(inventory);
 
   // (3) expose the SDK
   return {
     args: argsForInput,
     products: product.endpoints,
+    inventory: inventory.endpoints,
     registers: {
       fetch: fetchRegisters,
       fetchAll: fetchAllRegisters,
