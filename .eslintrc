@@ -32,6 +32,7 @@
       "error",
       "single"
     ],
+    "no-trailing-spaces": "error",
     "no-undef": "error",
     "no-unused-vars": "error",
     "linebreak-style": "error",

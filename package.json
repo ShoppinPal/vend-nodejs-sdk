@@ -22,16 +22,16 @@
   "scripts": {
     "eslint": "eslint",
     "commit": "commit-wizard",
-    "test": "jshint . && NODE_ENV=test mocha"
+    "test": "eslint . && NODE_ENV=test mocha"
   },
   "config": {
     "pre-git": {
       "commit-msg": [],
       "pre-commit": [
-        "./node_modules/.bin/jshint ."
+        "./node_modules/.bin/eslint ."
       ],
       "pre-push": [
-        "./node_modules/.bin/jshint .",
+        "./node_modules/.bin/eslint .",
         "NODE_ENV=test ./node_modules/.bin/mocha"
       ],
       "post-commit": [],
@@ -64,7 +64,6 @@
     "chai-as-promised": "5.3.0",
     "eslint": "4.3.0",
     "faker": "3.1.0",
-    "jshint": "2.9.3",
     "mocha": "3.5.0",
     "pre-git": "3.7.0"
   }

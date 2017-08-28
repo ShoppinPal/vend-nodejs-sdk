@@ -51,7 +51,7 @@ var getConnectionInfo = function (noCache) {
   }
 };
 
-describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
+describe('vend-nodejs-sdk', function () {
 
   describe('requires proper configuration to run tests', function () {
     it('NODE_ENV must be set', function () {
@@ -206,12 +206,12 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
             },
             {concurrency: 1}
           )
-          .then(function(){
-            randomProduct = _.find(response.data, function (eachProduct) { // return the first product that fulfills these conditions
-              return eachProduct.supplier && eachProduct.inventory[0].outlet_id;// jshint ignore:line
+            .then(function(){
+              randomProduct = _.find(response.data, function (eachProduct) { // return the first product that fulfills these conditions
+                return eachProduct.supplier && eachProduct.inventory[0].outlet_id;
+              });
+              return Promise.resolve(randomProduct);
             });
-            return Promise.resolve(randomProduct);
-          });
         });
     };
 
@@ -227,13 +227,13 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
               //console.log('randomProduct', randomProduct);
               supplier = randomProduct.supplier;
               expect(supplier).to.exist;
-              expect(supplier.id).to.equal(randomProduct['supplier_id']);// jshint ignore:line
+              expect(supplier.id).to.equal(randomProduct['supplier_id']);
             });
         });
         it('by preparing a new consignment', function () {
           var consignmentArgs = vendSdk.args.consignments.stockOrders.create();
           consignmentArgs.name.value = faker.lorem.word(10);
-          consignmentArgs.outletId.value = randomProduct.inventory[0].outlet_id;// jshint ignore:line
+          consignmentArgs.outletId.value = randomProduct.inventory[0].outlet_id;
           consignmentArgs.supplierId.value = supplier.id;
           return vendSdk.consignments.stockOrders.create(consignmentArgs, getConnectionInfo())
             .tap(function (consignmentResponse) {
@@ -290,10 +290,10 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
                */
               expect(consignmentProductResponse.id).to.not.equal(consignmentId);
 
-              expect(consignmentProductResponse['product_id']).to.exist;// jshint ignore:line
-              expect(consignmentProductResponse['product_id']).to.equal(randomProduct.id);// jshint ignore:line
-              expect(consignmentProductResponse['consignment_id']).to.exist;// jshint ignore:line
-              expect(consignmentProductResponse['consignment_id']).to.equal(consignmentId);// jshint ignore:line
+              expect(consignmentProductResponse['product_id']).to.exist;
+              expect(consignmentProductResponse['product_id']).to.equal(randomProduct.id);
+              expect(consignmentProductResponse['consignment_id']).to.exist;
+              expect(consignmentProductResponse['consignment_id']).to.equal(consignmentId);
 
               consignmentProductId = consignmentProductResponse.id;
             });
@@ -308,10 +308,10 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
               expect(fetchConsignmentByProductIdResponse).to.exist;
               expect(fetchConsignmentByProductIdResponse.id).to.exist;
               expect(fetchConsignmentByProductIdResponse.id).to.not.equal(consignmentId);
-              expect(fetchConsignmentByProductIdResponse['product_id']).to.exist;// jshint ignore:line
-              expect(fetchConsignmentByProductIdResponse['product_id']).to.equal(randomProduct.id);// jshint ignore:line
-              expect(fetchConsignmentByProductIdResponse['consignment_id']).to.exist;// jshint ignore:line
-              expect(fetchConsignmentByProductIdResponse['consignment_id']).to.equal(consignmentId);// jshint ignore:line
+              expect(fetchConsignmentByProductIdResponse['product_id']).to.exist;
+              expect(fetchConsignmentByProductIdResponse['product_id']).to.equal(randomProduct.id);
+              expect(fetchConsignmentByProductIdResponse['consignment_id']).to.exist;
+              expect(fetchConsignmentByProductIdResponse['consignment_id']).to.equal(consignmentId);
 
               // validate if what was created, is what we fetched now
               expect(fetchConsignmentByProductIdResponse.id).to.equal(consignmentProductId);
@@ -350,13 +350,13 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
               expect(randomProduct).to.exist;
               supplier = randomProduct.supplier;
               expect(supplier).to.exist;
-              expect(supplier.id).to.equal(randomProduct['supplier_id']);// jshint ignore:line
+              expect(supplier.id).to.equal(randomProduct['supplier_id']);
             });
         });
         it('by preparing a new consignment', function () {
           var consignmentArgs = vendSdk.args.consignments.stockOrders.create();
           consignmentArgs.name.value = faker.lorem.word(10);
-          consignmentArgs.outletId.value = randomProduct.inventory[0].outlet_id;// jshint ignore:line
+          consignmentArgs.outletId.value = randomProduct.inventory[0].outlet_id;
           consignmentArgs.supplierId.value = supplier.id;
           return vendSdk.consignments.stockOrders.create(consignmentArgs, getConnectionInfo())
             .tap(function (consignmentResponse) {
@@ -413,10 +413,10 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
                    */
               expect(consignmentProductResponse.id).to.not.equal(consignmentId);
 
-              expect(consignmentProductResponse['product_id']).to.exist;// jshint ignore:line
-              expect(consignmentProductResponse['product_id']).to.equal(randomProduct.id);// jshint ignore:line
-              expect(consignmentProductResponse['consignment_id']).to.exist;// jshint ignore:line
-              expect(consignmentProductResponse['consignment_id']).to.equal(consignmentId);// jshint ignore:line
+              expect(consignmentProductResponse['product_id']).to.exist;
+              expect(consignmentProductResponse['product_id']).to.equal(randomProduct.id);
+              expect(consignmentProductResponse['consignment_id']).to.exist;
+              expect(consignmentProductResponse['consignment_id']).to.equal(consignmentId);
 
               consignmentProductId = consignmentProductResponse.id;
             });
@@ -453,7 +453,7 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
       xit('BROKEN: can create a product', function () {
         // TODO: implement it - doesn't work right now
         var args = vendSdk.args.products.create();
-  
+
         var randomProduct = {
           'handle': faker.lorem.word(1),
           'has_variants': false,
@@ -463,19 +463,19 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
           'sku': faker.fake('{{random.number}}'), // faker.random.number,
           'supply_price': faker.fake('{{commerce.price}}') // faker.commerce.price
         };
-        randomProduct.price = String(Number(randomProduct['supply_price']) + 10.00); // jshint ignore:line
+        randomProduct.price = String(Number(randomProduct['supply_price']) + 10.00);
         args.body.value = randomProduct;
-  
+
         return vendSdk.products.create(args, getConnectionInfo())
           .then(function (response) {
             log.debug('response', response);
           });
       });
-  
+
       xit('TODO: can fetch a product that was just created', function () {
         // TODO: implement it
       });
-  
+
       xit('UNVERIFIED: can upload product image', function () {
         // TODO: implement it
       });
@@ -493,7 +493,7 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
             expect(response.data).to.have.length.of.at.least(1);
             expect(response.data).to.have.length.of.at.most(5);
             productsForTesting = response.data;
-            if (response.version) {/*jshint camelcase: false */
+            if (response.version) {
               expect(response.version.min).to.exist;
               expect(response.version.max).to.exist;
             }
@@ -614,7 +614,7 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
                 expect(product.inventory).to.be.instanceof(Array);
                 expect(product.inventory.length).to.be.greaterThan(0);
                 _.each(product.inventory, function(inventoryEntry) {
-                  expect(inventoryEntry.product_id).to.equal(product.id); // jshint ignore:line
+                  expect(inventoryEntry.product_id).to.equal(product.id);
                 });
               }
               else {
@@ -644,7 +644,7 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
         return getProductsForTesting()
           .then(function (productsForTesting) {
             var productForTesting = _.find(productsForTesting, function (eachProduct) { // return the first product that fulfills these conditions
-              return eachProduct.has_inventory; // jshint ignore:line
+              return eachProduct.has_inventory;
             });
             expect(productForTesting).to.exist; // otherwise, you may need to expand the test to look for larger # of products
             var args = vendSdk.args.inventory.fetchByProductId();
@@ -656,7 +656,7 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
                 expect(response.data).to.be.instanceof(Array);
                 expect(response.data).to.have.length.of.at.least(1);
                 _.each(response.data, function(inventoryEntry) {
-                  expect(inventoryEntry.product_id).to.equal(productForTesting.id); // jshint ignore:line
+                  expect(inventoryEntry.product_id).to.equal(productForTesting.id);
                 });
               });
           });
@@ -671,7 +671,7 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
             expect(response.data).to.be.instanceof(Array);
             expect(response.data).to.have.length.of.at.least(1);
             expect(response.data).to.have.length.of.at.most(25); // currently observed default - no guarantees
-            if (response.version) {/*jshint camelcase: false */
+            if (response.version) {
               expect(response.version.min).to.exist;
               expect(response.version.max).to.exist;
             }
@@ -688,7 +688,7 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
             expect(response.data).to.be.instanceof(Array);
             expect(response.data).to.have.length.of.at.least(1);
             expect(response.data).to.have.length.of.at.most(5);
-            if (response.version) {/*jshint camelcase: false */
+            if (response.version) {
               expect(response.version.min).to.exist;
               expect(response.version.max).to.exist;
             }
@@ -730,8 +730,8 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
             expect(response.customers).to.exist;
             expect(response.customers).to.be.instanceof(Array);
             expect(response.customers.length).to.be.equal(1);
-            expect(response.customers[0].first_name).to.be.equal(customer.first_name); // jshint ignore:line
-            expect(response.customers[0].last_name).to.be.equal(customer.last_name); // jshint ignore:line
+            expect(response.customers[0].first_name).to.be.equal(customer.first_name);
+            expect(response.customers[0].last_name).to.be.equal(customer.last_name);
             expect(response.customers[0].email).to.be.equal(customer.email);
           });
       });
@@ -759,7 +759,7 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
             expect(response.registers).to.be.instanceof(Array);
           });
       });
-  
+
       it('cannot paginate when fetching registers - it is not supported by vend in 0.x', function () {
         var args = vendSdk.args.registers.fetch();
         args.page.value = 1;
@@ -773,7 +773,7 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
             expect(response.registers).to.have.length.above(1); // TODO: what if no more than 1 registers exist?
           });
       });
-  
+
       it('can fetch a register by ID', function () {
         var args = vendSdk.args.registers.fetch();
         return vendSdk.registers.fetch(args, getConnectionInfo())
@@ -782,7 +782,7 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
             expect(response1.registers).to.exist;
             expect(response1.registers).to.be.instanceof(Array);
             expect(response1.registers).to.have.length.of.at.least(1); // TODO: what if no registers exist at all?
-  
+
             // fetch a register by ID
             var args = vendSdk.args.registers.fetchById();
             args.apiId.value = _.last(response1.registers).id;
@@ -795,7 +795,7 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
               });
           });
       });
-  
+
       xit('SKIP: can fetch ALL registers', function () {
         log.info('This test is pointless because pagination is not supported for registes by Vend.' +
                   '\nSo while we can fetch a max of 200 registers, there is no way we can page' +
@@ -807,7 +807,7 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
       it('UNVERIFIED: can create a tag', function () {
         // TODO: implement it - create some tags so fetch can be more relevant/concrete
       });
-  
+
       it('can fetch tags', function () {
         var args = vendSdk.args.tags.fetch();
         return vendSdk.tags.fetch(args, getConnectionInfo())
@@ -819,7 +819,7 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
             //log.debug('can fetch tags', 'response.data.length:', response.data.length);
           });
       });
-  
+
       it('can paginate when fetching tags', function () {
         var args = vendSdk.args.tags.fetch();
         args.pageSize.value = 2;
@@ -833,7 +833,7 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
             //log.debug('can paginate when fetching tags', 'response.data.length:', response.data.length);
           });
       });
-  
+
       xit('can fetch ALL tags', function () {
         var args = vendSdk.args.tags.fetch();
         args.pageSize.value = 2;
@@ -845,7 +845,7 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
             //log.debug('can fetch ALL tags', 'allTags.length:', allTags.length);
           });
       });
-  
+
       xit('DUPLICATE: can paginate when fetching tags and start AFTER a given point in time', function () {
         log.debug('The previous test already executes code which does this internally' +
                   ' by starting AFTER version 0 by default.' +
@@ -871,7 +871,7 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
             //log.debug('can fetch outlets', 'response.outlets.length:', response.outlets.length);
           });
       });
-  
+
       it('can fetch an outlet by ID', function () {
         var args = vendSdk.args.outlets.fetch();
         return vendSdk.outlets.fetch(args, getConnectionInfo())
@@ -882,7 +882,7 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
             expect(response1.outlets).to.be.instanceof(Array);
             expect(response1.outlets).to.have.length.of.at.least(1);
             //log.debug('can fetch an outlet by ID', 'response1.outlets.length:', response1.outlets.length);
-  
+
             // fetch a product by ID
             var args = vendSdk.args.outlets.fetchById();
             args.apiId.value = _.last(response1.outlets).id;
@@ -896,7 +896,7 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
               });
           });
       });
-  
+
       it('can fetch ALL outlets', function () {
         // NOTE: no need for fetchAll since hardly any Vend customers have more than 200 outlets
         var args = vendSdk.args.outlets.fetch();
@@ -909,7 +909,7 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
             //log.debug('can fetch ALL outlets', 'outlets.length:', outlets.length);
           });
       });
-  
+
       xit('FEATURE REQUEST: can fetch ALL outlets AFTER a given point in time', function () {
         // TODO: implement it
       });
@@ -923,7 +923,7 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
         };
         return vendSdk.productTypes.create(args, getConnectionInfo());
       });
-  
+
       it('can fetch product-types', function () {
         var args = vendSdk.args.productTypes.fetch();
         return vendSdk.productTypes.fetch(args, getConnectionInfo())
@@ -942,7 +942,7 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
       it('UNVERIFIED: can create a brand', function () {
         // TODO: implement it
       });
-  
+
       it('can fetch brands', function () {
         var args = vendSdk.args.brands.fetch();
         return vendSdk.brands.fetch(args, getConnectionInfo())
@@ -971,25 +971,25 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
 
     describe('with sales API', function(){
       describe('this will create a sale with all the relevant data', function () {
-        
+
         var customerData, taxData, registers, paymentType;
-  
-        var registerSale = {
-          register_id: null, // jshint ignore:line
-          customer_id: null, // jshint ignore:line
-          register_sale_products: [], // jshint ignore:line
-          register_sale_payments: [], // jshint ignore:line
+
+        var registerSale = { /* eslint-disable camelcase */
+          register_id: null,
+          customer_id: null,
+          register_sale_products: [],
+          register_sale_payments: [],
           note: 'This sale is created by a test',
           status: 'CLOSED',
-          sale_date: new Date().toString(), // jshint ignore:line
-          short_code: faker.random.word() // jshint ignore:line
-        };
-  
+          sale_date: new Date().toString(),
+          short_code: faker.random.word()
+        }; /* eslint-enable camelcase */
+
         var createPaymentTypesArray = function (paymentTypesArray) {
           paymentType = _.sample(paymentTypesArray, 1);
           return paymentType[0];
         };
-  
+
         var createTaxData = function () {
           var args = vendSdk.args.taxes.create();
           args.body.value = {
@@ -1002,45 +1002,45 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
               return taxData;
             });
         };
-  
+
         var createRegisterSaleProducts = function (product) {
-          var data = {
-            register_id: registers.id, // jshint ignore:line
-            product_id: product.id, // jshint ignore:line
+          var data = { /* eslint-disable camelcase */
+            register_id: registers.id,
+            product_id: product.id,
             quantity: 1,
-            price: product.supply_price, // jshint ignore:line
+            price: product.supply_price,
             tax: taxData.rate,
-            tax_id: taxData.id // jshint ignore:line
-          };
-          return registerSale.register_sale_products.push(data); // jshint ignore:line
+            tax_id: taxData.id
+          }; /* eslint-enable camelcase */
+          return registerSale.register_sale_products.push(data);
         };
-  
+
         var createRegisterSalePayments = function (payment) {
           log.debug('The payment that will be attached to the sale', payment);
-          return registerSale.register_sale_payments.push({ // jshint ignore:line
-            retailer_payment_type_id: payment.id, // jshint ignore:line
-            register_id: registers.id, // jshint ignore:line
-            payment_date: new Date().toString(), // jshint ignore:line
+          return registerSale.register_sale_payments.push({ /* eslint-disable camelcase */
+            retailer_payment_type_id: payment.id,
+            register_id: registers.id,
+            payment_date: new Date().toString(),
             amount: 192
-          });
+          }); /* eslint-enable camelcase */
         };
-  
+
         var addMoreRegisterSaleProducts = function (productsArray) {
           return _.each(productsArray, function (product) {
-            var data = {
-              register_id: registers.id, // jshint ignore:line
-              product_id: product.id, // jshint ignore:line
+            var data = { /* eslint-disable camelcase */
+              register_id: registers.id,
+              product_id: product.id,
               quantity: 1,
-              price: product.supply_price, // jshint ignore:line
+              price: product.supply_price,
               tax: product.tax,
-              tax_id: product.tax_id // jshint ignore:line
-            };
-            if (registerSale.register_sale_products.indexOf(data) === -1) { // jshint ignore:line
-              return registerSale.register_sale_products.push(data) // jshint ignore:line
+              tax_id: product.tax_id
+            }; /* eslint-enable camelcase */
+            if (registerSale.register_sale_products.indexOf(data) === -1) {
+              return registerSale.register_sale_products.push(data)
             }
           });
         };
-  
+
         it('can create a customer that will be further get attached to a sale', function () {
           var customer = {
             'first_name': faker.name.firstName(),
@@ -1052,7 +1052,7 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
               customerData = customerResponse.customer;
             });
         });
-  
+
         it('can fetch registers to which a sale will be created', function () {
           var args = vendSdk.args.registers.fetch();
           return vendSdk.registers.fetch(args, getConnectionInfo())
@@ -1065,7 +1065,7 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
               log.debug('The register object', registers);
             });
         });
-  
+
         it('will either fetch Normal Sales Tax and add it to the sale or it will create a Normal Sales Tax and then add it to the sale', function () {
           var args = vendSdk.args.taxes.fetch();
           return vendSdk.taxes.fetch(args, getConnectionInfo())
@@ -1085,25 +1085,25 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
               }
             });
         });
-  
+
         it('can create a product for the sale', function () {
           var args = vendSdk.args.products.create();
-  
+
           var randomProduct = {
             'handle': faker.lorem.word(1),
-            'has_variants': false, // jshint ignore:line
+            'has_variants': false,
             //'active':true,
             'name': faker.commerce.productName(),
-            'retail_price': faker.fake('{{random.number}}'), // jshint ignore:line
+            'retail_price': faker.fake('{{random.number}}'),
             'description': faker.lorem.sentence(),
-            'tax_id': null, // jshint ignore:line
+            'tax_id': null,
             'tax': null,
             'sku': faker.fake('{{random.number}}'), // faker.random.number,
-            'supply_price': faker.fake('{{commerce.price}}') // faker.commerce.price // jshint ignore:line
+            'supply_price': faker.fake('{{commerce.price}}') // faker.commerce.price 
           };
-          randomProduct.price = String(Number(randomProduct['supply_price']) + 10.00); // jshint ignore:line
+          randomProduct.price = String(Number(randomProduct['supply_price']) + 10.00);
           args.body.value = randomProduct;
-  
+
           return vendSdk.products.create(args, getConnectionInfo())
             .then(function (response) {
               log.debug('Product Response', response);
@@ -1113,7 +1113,7 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
               Promise.resolve(createRegisterSaleProducts(product));
             });
         });
-  
+
         it('can fetch products and add them to the register sale products array', function () {
           var args = vendSdk.args.products.fetch();
           args.page.value = 1;
@@ -1126,13 +1126,13 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
               Promise.resolve(addMoreRegisterSaleProducts(products));
             });
         });
-  
+
         it('can fetch all payment types', function () {
           var args = vendSdk.args.paymentTypes.fetch();
           return vendSdk.paymentTypes.fetch(args, getConnectionInfo())
             .then(function (response) {
               log.debug(response);
-              return response.payment_types; // jshint ignore:line
+              return response.payment_types;
             })
             .then(function (paymentTypes) {
               return Promise.resolve(createPaymentTypesArray(paymentTypes));
@@ -1141,31 +1141,31 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
               Promise.resolve(createRegisterSalePayments(arrayResponse));
             });
         });
-  
+
         it('can create a register sale', function () {
-          registerSale.customer_id = customerData.id; // jshint ignore:line
-          registerSale.register_id = registers.id; // jshint ignore:line
+          registerSale.customer_id = customerData.id; // eslint-disable-line camelcase
+          registerSale.register_id = registers.id; // eslint-disable-line camelcase
           return vendSdk.sales.create(registerSale, getConnectionInfo())
             .then(function (saleResponse) {
               log.debug('SALE-RESPONSE', JSON.stringify(saleResponse, undefined, 2));
               expect(saleResponse).to.exist;
-              expect(saleResponse.register_sale).to.exist; // jshint ignore:line
-              expect(saleResponse.register_sale.id).to.exist; // jshint ignore:line
-              expect(saleResponse.register_sale.customer_id).to.exist; // jshint ignore:line
-              expect(saleResponse.register_sale.customer_id).to.equal(customerData.id); // jshint ignore:line
-              expect(saleResponse.register_sale.register_id).to.exist; // jshint ignore:line
-              expect(saleResponse.register_sale.register_id).to.equal(registers.id); // jshint ignore:line
-              expect(saleResponse.register_sale.register_sale_payments).to.exist; // jshint ignore:line
-              expect(saleResponse.register_sale.register_sale_payments).to.exist; // jshint ignore:line
-              expect(saleResponse.register_sale.register_sale_payments).to.be.instanceOf(Array); // jshint ignore:line
-              expect(saleResponse.register_sale.register_sale_payments.length).to.equal(1); // jshint ignore:line
-              expect(saleResponse.register_sale.register_sale_products).to.exist; // jshint ignore:line
-              expect(saleResponse.register_sale.register_sale_products).to.be.instanceOf(Array); // jshint ignore:line
-              expect(saleResponse.register_sale.register_sale_products.length).to.equal(6); // jshint ignore:line
+              expect(saleResponse.register_sale).to.exist;
+              expect(saleResponse.register_sale.id).to.exist;
+              expect(saleResponse.register_sale.customer_id).to.exist;
+              expect(saleResponse.register_sale.customer_id).to.equal(customerData.id);
+              expect(saleResponse.register_sale.register_id).to.exist;
+              expect(saleResponse.register_sale.register_id).to.equal(registers.id);
+              expect(saleResponse.register_sale.register_sale_payments).to.exist;
+              expect(saleResponse.register_sale.register_sale_payments).to.exist;
+              expect(saleResponse.register_sale.register_sale_payments).to.be.instanceOf(Array);
+              expect(saleResponse.register_sale.register_sale_payments.length).to.equal(1);
+              expect(saleResponse.register_sale.register_sale_products).to.exist;
+              expect(saleResponse.register_sale.register_sale_products).to.be.instanceOf(Array);
+              expect(saleResponse.register_sale.register_sale_products.length).to.equal(6);
             });
         });
       });
-  
+
       describe('then after preparing a sale', function () {
         var product, register, sale;
         it('by preparing a product', function () {
@@ -1187,19 +1187,18 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
             });
         });
         it('we can create a sale', function () {
-          var saleBody = { // jshint ignore:line
+          var saleBody = {
             'register_id': register.id,
             //'user_id': '???',
             'status': 'OPEN',
             'register_sale_products': [{
-                'product_id': product.id
-                , 'quantity': 1
-                , 'price': 12
-                , 'tax': 1.8
-                //'tax_id': '???'
+              'product_id': product.id,
+              'quantity': 1,
+              'price': 12,
+              'tax': 1.8
+              //'tax_id': '???'
             }]
           };
-          /* jshint ignore:start */
           return vendSdk.sales.create(saleBody, getConnectionInfo())
             .then(function (response) {
               expect(response).to.exist;
@@ -1219,12 +1218,10 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
               expect(response.register_sale.register_sale_products.length).to.be.greaterThan(0);
               sale = response.register_sale;
             });
-            /* jshint ignore:end */
         });
         it('can fetch a sale by ID', function () {
           var args = vendSdk.args.sales.fetchById();
           args.apiId.value = sale.id;
-          /* jshint ignore:start */
           return vendSdk.sales.fetchById(args, getConnectionInfo())
             .then(function (response) {
               expect(response.data).to.exist;
@@ -1242,7 +1239,6 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
               expect(response.data.line_items).to.be.instanceof(Array);
               expect(response.data.line_items.length).to.be.greaterThan(0);
             });
-            /* jshint ignore:end */
         });
       });
     });
