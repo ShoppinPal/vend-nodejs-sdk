@@ -22,7 +22,8 @@
   "scripts": {
     "eslint": "eslint",
     "commit": "commit-wizard",
-    "test": "eslint . && NODE_ENV=test mocha"
+    "pretest": "eslint .",
+    "test": "NODE_ENV=test istanbul cover node_modules/mocha/bin/_mocha -- -R spec && open coverage/lcov-report/index.html"
   },
   "config": {
     "pre-git": {
@@ -64,6 +65,7 @@
     "chai-as-promised": "5.3.0",
     "eslint": "4.3.0",
     "faker": "3.1.0",
+    "istanbul": "0.4.5",
     "mocha": "3.5.0",
     "pre-git": "3.7.0"
   }
