@@ -51,7 +51,7 @@ var getConnectionInfo = function (noCache) {
   }
 };
 
-describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
+describe('vend-nodejs-sdk', function () {
 
   describe('requires proper configuration to run tests', function () {
     it('NODE_ENV must be set', function () {
@@ -493,7 +493,7 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
             expect(response.data).to.have.length.of.at.least(1);
             expect(response.data).to.have.length.of.at.most(5);
             productsForTesting = response.data;
-            if (response.version) {/*jshint camelcase: false */
+            if (response.version) {
               expect(response.version.min).to.exist;
               expect(response.version.max).to.exist;
             }
@@ -671,7 +671,7 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
             expect(response.data).to.be.instanceof(Array);
             expect(response.data).to.have.length.of.at.least(1);
             expect(response.data).to.have.length.of.at.most(25); // currently observed default - no guarantees
-            if (response.version) {/*jshint camelcase: false */
+            if (response.version) {
               expect(response.version.min).to.exist;
               expect(response.version.max).to.exist;
             }
@@ -688,7 +688,7 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
             expect(response.data).to.be.instanceof(Array);
             expect(response.data).to.have.length.of.at.least(1);
             expect(response.data).to.have.length.of.at.most(5);
-            if (response.version) {/*jshint camelcase: false */
+            if (response.version) {
               expect(response.version.min).to.exist;
               expect(response.version.max).to.exist;
             }
@@ -1199,7 +1199,6 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
               //'tax_id': '???'
             }]
           };
-          /* jshint ignore:start */
           return vendSdk.sales.create(saleBody, getConnectionInfo())
             .then(function (response) {
               expect(response).to.exist;
@@ -1219,12 +1218,10 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
               expect(response.register_sale.register_sale_products.length).to.be.greaterThan(0);
               sale = response.register_sale;
             });
-          /* jshint ignore:end */
         });
         it('can fetch a sale by ID', function () {
           var args = vendSdk.args.sales.fetchById();
           args.apiId.value = sale.id;
-          /* jshint ignore:start */
           return vendSdk.sales.fetchById(args, getConnectionInfo())
             .then(function (response) {
               expect(response.data).to.exist;
@@ -1242,7 +1239,6 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
               expect(response.data.line_items).to.be.instanceof(Array);
               expect(response.data.line_items.length).to.be.greaterThan(0);
             });
-          /* jshint ignore:end */
         });
       });
     });

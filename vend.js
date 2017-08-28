@@ -703,7 +703,7 @@ var resolveMissingSuppliers = function(args, connectionInfo) {
     args.getArray(),
     args.getArrayIndex(),
     args,
-    function mergeStrategy(newData, previousData, args){/*jshint camelcase: false */
+    function mergeStrategy(newData, previousData, args){
       log.debug('resolveMissingSuppliers - inside mergeStrategy()');
       var product = newData.products[0];
       //log.silly('newData: ', newData);
