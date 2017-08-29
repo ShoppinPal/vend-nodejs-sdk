@@ -957,7 +957,8 @@ describe('vend-nodejs-sdk', function () {
       });
     });
 
-    describe('with suppliers API', function(){
+    describe('with suppliers API', function() {
+      var supplier;
       it('can create a supplier', function () {
         var args = vendSdk.args.suppliers.create();
         args.body.value = {
@@ -968,12 +969,46 @@ describe('vend-nodejs-sdk', function () {
           .then(function (response) {
             log.debug('response:', response);
             expect(response).to.exist;
-            var supplier = response;
+            supplier = response;
             expect(supplier.id).to.exist;
             expect(supplier.retailer_id).to.exist;
             expect(supplier.name).to.equal(args.body.value.name);
             expect(supplier.contact).to.exist;
             expect(supplier.contact.company_name).to.equal(args.body.value.name);
+          });
+      });
+
+      it('cannot create a supplier without name', function () {
+        var args = vendSdk.args.suppliers.create();
+        args.body.value = {
+          'description': faker.company.companyName()
+        };
+        return vendSdk.suppliers.create(args, getConnectionInfo())
+          .then(function (response) {
+            log.debug('response:', response);
+            expect(response).to.exist;
+            expect(response.status).to.exist;
+            expect(response.status).to.be.a('string');
+            expect(response.status).to.equal('error');
+            expect(response.error).to.exist;
+            expect(response.error).to.be.a('string');
+            expect(response.error).to.equal('Could not Add Supplier');
+            expect(response.details).to.exist;
+            expect(response.details).to.be.a('string');
+            expect(response.details).to.equal('Supplier creation error. Please ensure you pass the required field(s) of: name.');
+          });
+      });
+
+      it('can delete a supplier', function () {
+        var args = vendSdk.args.suppliers.delete();
+        args.apiId.value = supplier.id;
+        return vendSdk.suppliers.delete(args, getConnectionInfo())
+          .then(function (response) {
+            log.debug('response:', response);
+            expect(response).to.exist;
+            expect(response.status).to.exist;
+            expect(response.status).to.be.a('string');
+            expect(response.status).to.equal('success');
           });
       });
     });

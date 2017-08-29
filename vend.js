@@ -10,6 +10,7 @@ var utils = null;
 var product = null;
 var inventory = null;
 var consignment = null;
+var supplier = null;
 
 // the API consumer will get the args and fill in the blanks
 // the SDK will pull out the non-empty values and execute the request
@@ -17,6 +18,7 @@ var argsForInput = {
   // products: product.args, // cannot be initialized here, moved to the `exports` function
   // inventory: inventory.args, // cannot be initialized here, moved to the `exports` function
   // consignments: consignment.args, // cannot be initialized here, moved to the `exports` function
+  // suppliers: supplier.args, // cannot be initialized here, moved to the `exports` function
   customers: {
     fetch: function() {
       return {
@@ -304,61 +306,7 @@ var argsForInput = {
         }
       };
     }
-  },
-  suppliers: {
-    fetchAll: function() {
-      return {
-        page: {
-          required: false,
-          key: 'page',
-          value: undefined
-        },
-        pageSize: {
-          required: false,
-          key: 'page_size',
-          value: undefined
-        }
-      };
-    },
-    fetch: function() {
-      return {
-        page: {
-          required: false,
-          key: 'page',
-          value: undefined
-        },
-        pageSize: {
-          required: false,
-          key: 'page_size',
-          value: undefined
-        }
-      };
-    },
-    create: function () {
-      return {
-        body: {
-          required: true,
-          value: undefined
-        }
-      };
-    }
   }
-};
-
-var defaultMethod_ForProcessingPagedResults_ForSuppliers = function processPagedResults(pagedData, previousData) { // eslint-disable-line camelcase
-  log.debug('defaultMethod_ForProcessingPagedResults_ForSuppliers');
-  if (previousData && previousData.length>0) {
-    //log.verbose(JSON.stringify(pagedData.suppliers,replacer,2));
-    if (pagedData.suppliers && pagedData.suppliers.length>0) {
-      log.debug('previousData: ', previousData.length);
-      pagedData.suppliers = pagedData.suppliers.concat(previousData);
-      log.debug('combined: ', pagedData.suppliers.length);
-    }
-    else {
-      pagedData.suppliers = previousData;
-    }
-  }
-  return Promise.resolve(pagedData.suppliers);
 };
 
 var fetchCustomers = function(args, connectionInfo, retryCounter) {
@@ -1021,112 +969,6 @@ var fetchOutlet = function(args, connectionInfo, retryCounter) {
   return utils.sendRequest(options, args, connectionInfo, fetchOutlet, retryCounter);
 };
 
-var fetchSupplier = function(args, connectionInfo, retryCounter) {
-  log.debug('inside fetchSuppliers()');
-  if (!retryCounter) {
-    retryCounter = 0;
-  } else {
-    log.debug('retry # ' + retryCounter);
-  }
-
-  var path = '/api/supplier/' + args.apiId.value;
-  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
-  var authString = 'Bearer ' + connectionInfo.accessToken;
-  log.debug('GET ' + vendUrl);
-  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
-
-  var options = {
-    method: 'GET',
-    url: vendUrl,
-    headers: {
-      'Authorization': authString,
-      'Accept': 'application/json'
-    }
-  };
-
-  return utils.sendRequest(options, args, connectionInfo, fetchSupplier, retryCounter);
-};
-
-var fetchSuppliers = function(args, connectionInfo, retryCounter) {
-  log.debug('inside fetchSuppliers()');
-  if (!retryCounter) {
-    retryCounter = 0;
-  } else {
-    log.debug('retry # ' + retryCounter);
-  }
-
-  var path = '/api/supplier';
-  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
-  var authString = 'Bearer ' + connectionInfo.accessToken;
-  log.debug('GET ' + vendUrl);
-  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
-
-  var options = {
-    method: 'GET',
-    url: vendUrl,
-    headers: {
-      'Authorization': authString,
-      'Accept': 'application/json'
-    }
-  };
-  if (args.page && args.pageSize){
-    // NOTE: page and page_size work! For ex: page=1,page_size=1 return just one result in response.suppliers
-    options.qs = {
-      page: args.page.value,
-      page_size: args.pageSize.value // eslint-disable-line camelcase
-    };
-    log.debug(options);
-    // NOTE: BUT for this endpoint, the paging properties in the response are part of the immediate response,
-    //       instead of being nested one-level-down under the response.pagination structure!
-  }
-
-  return utils.sendRequest(options, args, connectionInfo, fetchSuppliers, retryCounter);
-};
-
-var fetchAllSuppliers = function(connectionInfo, processPagedResults) {
-  var args = argsForInput.suppliers.fetchAll();
-  args.page.value = 1;
-  args.pageSize.value = 200;
-
-  // set a default function if none is provided
-  if (!processPagedResults) {
-    processPagedResults = defaultMethod_ForProcessingPagedResults_ForSuppliers; // eslint-disable-line camelcase
-  }
-  return utils.processPagesRecursively(args, connectionInfo, fetchSuppliers, processPagedResults);
-};
-
-var createSupplier = function(args, connectionInfo, retryCounter) {
-  if ( !(args && utils.argsAreValid(args)) ) {
-    return Promise.reject('missing required arguments for createSupplier()');
-  }
-
-  if (!retryCounter) {
-    retryCounter = 0;
-  } else {
-    log.debug('retry # ' + retryCounter);
-  }
-
-  var path = '/api/supplier';
-  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
-  var authString = 'Bearer ' + connectionInfo.accessToken;
-  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
-  var body = args.body.value;
-
-  var options = {
-    method: 'POST',
-    url: vendUrl,
-    headers: {
-      'Authorization': authString,
-      'Content-Type': 'application/json',
-      'Accept': 'application/json'
-    },
-    json: body
-  };
-  log.debug(options.method + ' ' + options.url);
-
-  return utils.sendRequest(options, args, connectionInfo, createSupplier, retryCounter);
-};
-
 var createCustomer = function(body, connectionInfo, retryCounter) {
   log.debug('inside createCustomer()');
   if (!retryCounter) {
@@ -1303,12 +1145,16 @@ module.exports = function(dependencies) {
   consignment = require('./lib/consignment.js')(dependencies);
   argsForInput.consignments = consignment.args;
 
+  supplier = require('./lib/supplier.js')(dependencies);
+  argsForInput.suppliers = supplier.args;
+
   // (3) expose the SDK
   return {
     args: argsForInput,
     products: product.endpoints,
     inventory: inventory.endpoints,
     consignments: consignment.endpoints,
+    suppliers: supplier.endpoints,
     registers: {
       fetch: fetchRegisters,
       fetchAll: fetchAllRegisters,
@@ -1350,12 +1196,6 @@ module.exports = function(dependencies) {
       fetchAll: fetchAllOutlets,
       fetch: fetchOutlets, // no need for fetchAll since hardly any Vend customers have more than 200 outlets
       fetchById: fetchOutlet
-    },
-    suppliers:{
-      fetchById: fetchSupplier,
-      fetch: fetchSuppliers,
-      fetchAll: fetchAllSuppliers,
-      create: createSupplier
     },
     hasAccessTokenExpired: hasAccessTokenExpired,
     getInitialAccessToken: utils.getInitialAccessToken,
