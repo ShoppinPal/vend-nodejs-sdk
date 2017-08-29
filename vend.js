@@ -1061,14 +1061,6 @@ var createRegisterSale = function(body, connectionInfo, retryCounter) {
   return utils.sendRequest(options, body, connectionInfo, createRegisterSale, retryCounter);
 };
 
-/**
- * @param expiresAt - time unit from Vend is in unix epoch format
- * @returns {*} true if the the token will be considered as expired in 2 mins from now
- */
-var hasAccessTokenExpired = function(expiresAt) {
-  return (moment.unix(expiresAt).isBefore(moment().add(2, 'minutes')));
-};
-
 var replacer = function(key, value) {
   if(value !== undefined  && value !== null) {
     if(typeof value === 'string') {
@@ -1197,7 +1189,7 @@ module.exports = function(dependencies) {
       fetch: fetchOutlets, // no need for fetchAll since hardly any Vend customers have more than 200 outlets
       fetchById: fetchOutlet
     },
-    hasAccessTokenExpired: hasAccessTokenExpired,
+    hasAccessTokenExpired: utils.hasAccessTokenExpired,
     getInitialAccessToken: utils.getInitialAccessToken,
     refreshAccessToken: utils.refreshAccessToken,
     replacer: replacer
