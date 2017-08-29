@@ -450,25 +450,25 @@ describe('vend-nodejs-sdk', function () {
     describe('with products API', function() {
       this.timeout(300000);
 
-      xit('BROKEN: can create a product', function () {
-        // TODO: implement it - doesn't work right now
+      it('can create a product', function () {
         var args = vendSdk.args.products.create();
 
+        var cost = faker.fake('{{commerce.price}}'); // faker.commerce.price
+        var sku = faker.fake('{{random.number}}'); // faker.random.number,
         var randomProduct = {
-          'handle': faker.lorem.word(1),
-          'has_variants': false,
-          //'active':true,
-          'name': faker.commerce.productName(),
-          'description': faker.lorem.sentence(),
-          'sku': faker.fake('{{random.number}}'), // faker.random.number,
-          'supply_price': faker.fake('{{commerce.price}}') // faker.commerce.price
+          'name': faker.commerce.productName(), // REQUIRED
+          'sku': sku, // REQUIRED
+          'handle': faker.lorem.word(1), // REQUIRED
+          'retail_price': cost + 5.00, // REQUIRED
+          'supply_price': cost,
+          'description': faker.lorem.sentence()
         };
         randomProduct.price = String(Number(randomProduct['supply_price']) + 10.00);
         args.body.value = randomProduct;
 
         return vendSdk.products.create(args, getConnectionInfo())
           .then(function (response) {
-            log.debug('response', response);
+            log.debug('response:', response);
           });
       });
 
