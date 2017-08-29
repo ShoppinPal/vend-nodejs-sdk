@@ -958,8 +958,23 @@ describe('vend-nodejs-sdk', function () {
     });
 
     describe('with suppliers API', function(){
-      it('UNVERIFIED: can create a supplier', function () {
-        // TODO: implement it
+      it('can create a supplier', function () {
+        var args = vendSdk.args.suppliers.create();
+        args.body.value = {
+          'name': faker.company.companyName(), // REQUIRED
+          //'supplier_code': faker.finance.accountName() // there is some uncertainity about where this field belongs and how it functions
+        };
+        return vendSdk.suppliers.create(args, getConnectionInfo())
+          .then(function (response) {
+            log.debug('response:', response);
+            expect(response).to.exist;
+            var supplier = response;
+            expect(supplier.id).to.exist;
+            expect(supplier.retailer_id).to.exist;
+            expect(supplier.name).to.equal(args.body.value.name);
+            expect(supplier.contact).to.exist;
+            expect(supplier.contact.company_name).to.equal(args.body.value.name);
+          });
       });
     });
 
