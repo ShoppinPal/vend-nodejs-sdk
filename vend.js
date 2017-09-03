@@ -741,7 +741,34 @@ var argsForInput = {
     }
   },
   sales: {
+    fetchById: function() {
+      return {
+        apiId: {
+          required: true,
+          value: undefined
+        }
+      };
+    },
     fetch: function() {
+      return {
+        after: {
+          required: false,
+          key: 'after',
+          value: undefined
+        },
+        page: {
+          required: false,
+          key: 'page',
+          value: undefined
+        },
+        pageSize: {
+          required: false,
+          key: 'page_size',
+          value: undefined
+        }
+      };
+    },
+    fetchAll: function() {
       return {
         since: {
           deprecated: true,
@@ -1858,32 +1885,27 @@ var createTag = function(args, connectionInfo, retryCounter) {
 };
 
 var fetchRegisterSales = function(args, connectionInfo, retryCounter) {
-  log.debug('inside fetchRegisterSales()');
   if (!retryCounter) {
     retryCounter = 0;
   } else {
     log.debug('retry # ' + retryCounter);
   }
 
-  var path = '/api/register_sales';
+  var path = '/api/2.0/sales';
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
   log.debug('GET ' + vendUrl);
   log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   var options = {
-    method: 'GET',
     url: vendUrl,
     headers: {
       'Authorization': authString,
       'Accept': 'application/json'
     },
     qs: {/*jshint camelcase: false */
-      since: args.since.value,
-      outlet_id: args.outletApiId.value,
-      tag: args.tag.value,
-      // WARN: 0.x and 1.0 use `page` and `page_size`, which may or may NOT be implemented on Vend server side for all entities!
-      page: args.page.value,
+      after: args.after.value,
+      before: args.before.value,
       page_size: args.pageSize.value
     }
   };
@@ -1893,7 +1915,7 @@ var fetchRegisterSales = function(args, connectionInfo, retryCounter) {
 
 var fetchAllRegisterSales = function(args, connectionInfo, processPagedResults) {
   if (!args) {
-    args = argsForInput.sales.fetch();
+    args = argsForInput.sales.fetchAll();
   }
   args.page = {value:1};
   args.pageSize = {value:200};
@@ -2561,6 +2583,68 @@ var fetchAllUsers = function(connectionInfo, processPagedResults) {
   return processPagesRecursively(args, connectionInfo, fetchUsers, processPagedResults);
 };
 
+var fetchRegisterSale = function(args, connectionInfo, retryCounter) {
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    log.debug('retry # ' + retryCounter);
+  }
+
+  var path = '/api/2.0/sales/' + args.apiId.value;
+
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  log.debug('Requesting vend sale ' + vendUrl);
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.debug('GET ' + vendUrl);
+  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+
+  var options = {
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Accept': 'application/json'
+    }
+  };
+
+  return sendRequest(options, args, connectionInfo, fetchRegisterSale, retryCounter);
+};
+
+var updateRegisterSale = function(body, connectionInfo, retryCounter) {
+  log.debug('inside updateRegisterSale()');
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    log.debug('retry # ' + retryCounter);
+  }
+
+  var path = '/api/register_sales';
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+
+  try {
+    body = _.isObject(body) ? body : JSON.parse(body);
+  }
+  catch(exception) {
+    log.error('updateRegisterSale', exception);
+    return Promise.reject('inside updateRegisterSale() - failed to parse the sale body');
+  }
+
+  var options = {
+    method: 'POST',
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    },
+    json: body
+  };
+  log.debug(options.method + ' ' + options.url);
+
+  return sendRequest(options, body, connectionInfo, updateRegisterSale, retryCounter);
+};
+
 var getInitialAccessToken = function(tokenService, clientId, clientSecret, redirectUri, code, domainPrefix, state) {
   // TODO: tweak winston logs to prefix method signature (like breadcrumbs) when logging?
   log.debug('getInitialAccessToken - token_service: ' + tokenService);
@@ -2762,9 +2846,11 @@ module.exports = function(dependencies) {
       create: createTag
     },
     sales: {
-      create: createRegisterSale,
       fetch: fetchRegisterSales,
-      fetchAll: fetchAllRegisterSales
+      fetchById: fetchRegisterSale,
+      fetchAll: fetchAllRegisterSales,
+      create: createRegisterSale,
+      update: updateRegisterSale,
     },
     customers: {
       create: createCustomer,
