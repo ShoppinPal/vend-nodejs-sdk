@@ -252,7 +252,7 @@ describe('vend-nodejs-sdk', function () {
 
         var addMoreRegisterSaleProducts = function (productsArray) {
           return _.each(productsArray, function (product) {
-            console.log(product.id, product.tax, product.tax_id, JSON.stringify(product,null,2));
+            //console.log(product.id, product.tax, product.tax_id, JSON.stringify(product,null,2));
             prepareRegisterSaleProduct(product);
             // if (registerSale.register_sale_products.indexOf(data) === -1) {
             //   return registerSale.register_sale_products.push(data)
@@ -330,7 +330,7 @@ describe('vend-nodejs-sdk', function () {
               }));
             })
             .then(function (sampleResponse) {
-              return _.sampleSize(sampleResponse, 5);
+              return _.sampleSize(sampleResponse, 2);
             })
             .then(function (products) {
               addMoreRegisterSaleProducts(products);
@@ -371,9 +371,10 @@ describe('vend-nodejs-sdk', function () {
               expect(saleResponse.register_sale.register_sale_payments.length).to.equal(1);
               expect(saleResponse.register_sale.register_sale_products).to.exist;
               expect(saleResponse.register_sale.register_sale_products).to.be.instanceOf(Array);
-              expect(saleResponse.register_sale.register_sale_products.length).to.equal(6);
+              expect(saleResponse.register_sale.register_sale_products.length).to.equal(3);
             });
         });
+
       });
 
     });
