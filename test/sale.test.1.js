@@ -12,7 +12,7 @@ chai.use(chaiAsPromised);
 var vendSdk = require('./../vend')({
   debugRequests: process.env.REQUEST_LOG_LEVEL_FOR_VEND_NODEJS_SDK || false // flip it to true to see detailed request/response logs
 });
-var _ = require('underscore');
+var _ = require('lodash');
 var faker = require('faker');
 var Promise = require('bluebird');
 
@@ -212,7 +212,7 @@ describe('vend-nodejs-sdk', function () {
         }; /* eslint-enable camelcase */
 
         var createPaymentTypesArray = function (paymentTypesArray) {
-          paymentType = _.sample(paymentTypesArray, 1);
+          paymentType = _.sampleSize(paymentTypesArray, 1);
           return paymentType[0];
         };
 
@@ -229,7 +229,7 @@ describe('vend-nodejs-sdk', function () {
             });
         };
 
-        var createRegisterSaleProducts = function (product) {
+        var prepareRegisterSaleProduct = function (product) {
           var data = { /* eslint-disable camelcase */
             register_id: registers.id,
             product_id: product.id,
@@ -253,17 +253,10 @@ describe('vend-nodejs-sdk', function () {
         var addMoreRegisterSaleProducts = function (productsArray) {
           return _.each(productsArray, function (product) {
             console.log(product.id, product.tax, product.tax_id, JSON.stringify(product,null,2));
-            var data = { /* eslint-disable camelcase */
-              register_id: registers.id,
-              product_id: product.id,
-              quantity: 1,
-              price: product.supply_price,
-              tax: product.tax * product.supply_price, // TODO: this is wrong ... tax should be outlet specific
-              tax_id: product.tax_id // TODO: should be outlet specific ... what happens if we don't provide this field?
-            }; /* eslint-enable camelcase */
-            if (registerSale.register_sale_products.indexOf(data) === -1) {
-              return registerSale.register_sale_products.push(data)
-            }
+            prepareRegisterSaleProduct(product);
+            // if (registerSale.register_sale_products.indexOf(data) === -1) {
+            //   return registerSale.register_sale_products.push(data)
+            // }
           });
         };
 
@@ -284,7 +277,7 @@ describe('vend-nodejs-sdk', function () {
           return vendSdk.registers.fetch(args, getConnectionInfo())
             .then(function (response) {
               log.debug(response);
-              return _.sample(response.registers, 1);
+              return _.sampleSize(response.registers, 1);
             })
             .then(function (registersArray) {
               registers = registersArray[0];
@@ -322,7 +315,7 @@ describe('vend-nodejs-sdk', function () {
               return response.product; // this is 0.x response to product creation
             })
             .then(function (product) {
-              Promise.resolve(createRegisterSaleProducts(product));
+              prepareRegisterSaleProduct(product);
             });
         });
 
@@ -337,10 +330,10 @@ describe('vend-nodejs-sdk', function () {
               }));
             })
             .then(function (sampleResponse) {
-              return _.sample(sampleResponse, 5);
+              return _.sampleSize(sampleResponse, 5);
             })
             .then(function (products) {
-              Promise.resolve(addMoreRegisterSaleProducts(products));
+              addMoreRegisterSaleProducts(products);
             });
         });
 
