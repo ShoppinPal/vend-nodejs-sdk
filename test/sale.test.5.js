@@ -12,7 +12,7 @@ chai.use(chaiAsPromised);
 var vendSdk = require('./../vend')({
   debugRequests: process.env.REQUEST_LOG_LEVEL_FOR_VEND_NODEJS_SDK || false // flip it to true to see detailed request/response logs
 });
-var _ = require('underscore');
+var _ = require('lodash');
 var faker = require('faker');
 var Promise = require('bluebird');
 
@@ -197,8 +197,9 @@ describe('vend-nodejs-sdk', function () {
     describe.only('with sales API', function(){
 
       /**
-       * Conclusion - Vend tends to create the sale amount if it's not added to the payload.
+       * Conclusion - Vend does NOT create the sale amount if it's not added to the payload.
        * If tax and taxId are not attached to the product payload then it adds a default tax
+       * and shows the taxName in Vend UI but it doesn't calculate the correct taxAmount and leaves it as zero.
        */
       describe('this will create a sale with all the relevant data but without sale payment', function () {
 
@@ -216,7 +217,7 @@ describe('vend-nodejs-sdk', function () {
         }; /* eslint-enable camelcase */
 
         var createPaymentTypesArray = function (paymentTypesArray) {
-          paymentType = _.sample(paymentTypesArray, 1);
+          paymentType = _.sampleSize(paymentTypesArray, 1);
           return paymentType[0];
         };
 
@@ -233,14 +234,12 @@ describe('vend-nodejs-sdk', function () {
             });
         };
 
-        var createRegisterSaleProducts = function (product) {
+        var prepareRegisterSaleProduct = function (product) {
           var data = { /* eslint-disable camelcase */
             register_id: registers.id,
             product_id: product.id,
             quantity: 1,
-            price: product.supply_price,
-            tax: (taxData.rate * product.supply_price),
-            tax_id: taxData.id
+            price: product.supply_price
           }; /* eslint-enable camelcase */
           return registerSale.register_sale_products.push(data);
         };
@@ -256,29 +255,18 @@ describe('vend-nodejs-sdk', function () {
 
         var addMoreRegisterSaleProducts = function (productsArray) {
           return _.each(productsArray, function (product) {
-            if(product.supply_price > 0){
-              var data = {
-                /* eslint-disable camelcase */
-                register_id: registers.id,
-                product_id: product.id,
-                quantity: 1,
-                price: product.supply_price,
-                tax: (product.tax * product.supply_price),
-                tax_id: product.tax_id
-              };
-              /* eslint-enable camelcase */
-              if (registerSale.register_sale_products.indexOf(data) === -1 && registerSale.register_sale_products.length < 6) {
-                return registerSale.register_sale_products.push(data);
-              }
-            }
+            prepareRegisterSaleProduct(product);
+            // if (registerSale.register_sale_products.indexOf(data) === -1 && registerSale.register_sale_products.length < 6) {
+            //   return registerSale.register_sale_products.push(data);
+            // }
           });
         };
 
         it('can create a customer that will be further get attached to a sale', function () {
           var customer = {
             'first_name': faker.name.firstName(),
-            'last_name': 'Bhattacharjee',
-            'email': faker.lorem.word() + '@tinker.com'
+            'last_name': faker.name.lastName(),
+            'email': faker.lorem.word() + '@tinkertank.com'
           };
           return vendSdk.customers.create(customer, getConnectionInfo())
             .then(function (customerResponse) {
@@ -291,7 +279,7 @@ describe('vend-nodejs-sdk', function () {
           return vendSdk.registers.fetch(args, getConnectionInfo())
             .then(function (response) {
               log.debug(response);
-              return _.sample(response.registers, 1);
+              return _.sampleSize(response.registers, 1);
             })
             .then(function (registersArray) {
               registers = registersArray[0];
@@ -326,10 +314,10 @@ describe('vend-nodejs-sdk', function () {
           return vendSdk.products.create(args, getConnectionInfo())
             .then(function (response) {
               log.debug('Product Response', response);
-              return response.product;
+              return response.product; // this is 0.x response to product creation
             })
             .then(function (product) {
-              Promise.resolve(createRegisterSaleProducts(product));
+              prepareRegisterSaleProduct(product);
             });
         });
 
@@ -337,12 +325,17 @@ describe('vend-nodejs-sdk', function () {
           var args = vendSdk.args.products.fetch();
           args.page.value = 1;
           args.pageSize.value = 200;
-          return vendSdk.products.fetch(args, getConnectionInfo())
+          return vendSdk.products.fetch(args, getConnectionInfo()) // this is 2.x response to fetch products
             .then(function (response) {
-              return response.data;
+              return Promise.resolve(_.filter(response.data, function (item) {
+                return item.supply_price > 0;
+              }));
+            })
+            .then(function (sampleResponse) {
+              return _.sampleSize(sampleResponse, 2);
             })
             .then(function (products) {
-              Promise.resolve(addMoreRegisterSaleProducts(products));
+              addMoreRegisterSaleProducts(products);
             });
         });
 
@@ -357,7 +350,7 @@ describe('vend-nodejs-sdk', function () {
               return Promise.resolve(createPaymentTypesArray(paymentTypes));
             })
             .then(function (arrayResponse) {
-              Promise.resolve(createRegisterSalePayments(arrayResponse));
+              createRegisterSalePayments(arrayResponse);
             });
         });
 
@@ -366,7 +359,6 @@ describe('vend-nodejs-sdk', function () {
           registerSale.register_id = registers.id; // eslint-disable-line camelcase
           return vendSdk.sales.create(registerSale, getConnectionInfo())
             .then(function (saleResponse) {
-              // console.log('SALE-RESPONSE', JSON.stringify(saleResponse, undefined, 2));
               log.debug('SALE-RESPONSE', JSON.stringify(saleResponse, undefined, 2));
               expect(saleResponse).to.exist;
               expect(saleResponse.register_sale).to.exist;
@@ -381,9 +373,10 @@ describe('vend-nodejs-sdk', function () {
               expect(saleResponse.register_sale.register_sale_payments.length).to.equal(1);
               expect(saleResponse.register_sale.register_sale_products).to.exist;
               expect(saleResponse.register_sale.register_sale_products).to.be.instanceOf(Array);
-              expect(saleResponse.register_sale.register_sale_products.length).to.equal(6);
+              expect(saleResponse.register_sale.register_sale_products.length).to.equal(3);
             });
         });
+
       });
 
     });
