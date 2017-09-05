@@ -1097,21 +1097,29 @@ module.exports = function(dependencies) {
    */
   log = dependencies.winston || require('winston');
   if (!dependencies.winston) { // if winston is being instantiated within this method then take these actions
-    log.remove(log.transports.Console);
-    if (process.env.NODE_ENV !== 'test') { // TODO: we want the ability to turn off these logs in production/staging too
-      log.add(log.transports.Console, {
-        colorize: true,
-        timestamp: false,
-        prettyPrint: true,
-        level: process.env.LOG_LEVEL_FOR_VEND_NODEJS_SDK || 'debug'
-      });
+    try {
+      log.remove(log.transports.Console);
+      if (process.env.NODE_ENV !== 'test') { // TODO: we want the ability to turn off these logs in production/staging too
+        log.add(log.transports.Console, {
+          colorize: true,
+          timestamp: false,
+          prettyPrint: true,
+          level: process.env.LOG_LEVEL_FOR_VEND_NODEJS_SDK || 'debug'
+        });
+      }
+      else {
+        // while testing, log only to file, leaving stdout free for unit test status messages
+        log.add(log.transports.File, {
+          filename: 'vend-nodejs-sdk.log',
+          level: process.env.LOG_LEVEL_FOR_VEND_NODEJS_SDK || 'debug'
+        });
+      }
     }
-    else {
-      // while testing, log only to file, leaving stdout free for unit test status messages
-      log.add(log.transports.File, {
-        filename: 'vend-nodejs-sdk.log',
-        level: process.env.LOG_LEVEL_FOR_VEND_NODEJS_SDK || 'debug'
-      });
+    catch(err) {
+      // Using the same/cached winston instance multiple times, will give errors such as:
+      //   - Transport console not attached to this instance
+      //   - Transport already attached
+      // but we choose to ignore/eat these.
     }
   }
 
