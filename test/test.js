@@ -593,28 +593,31 @@ describe('vend-nodejs-sdk', function () {
       });
     });
 
+    var generateNewProductBody = function generateNewProduct() {
+      var newProduct = {
+        'name': faker.commerce.productName(), // REQUIRED
+        'sku': faker.fake('{{random.number}}'), // REQUIRED
+        'handle': faker.lorem.word(1), // REQUIRED
+        'retail_price': faker.commerce.price(10.01, 100.00, 2), // REQUIRED
+        'description': faker.lorem.sentence()
+      };
+      newProduct.supply_price = newProduct.retail_price - 10.00; // eslint-disable-line camelcase
+      return newProduct;
+    };
+
     describe('with products API', function() {
       this.timeout(300000);
 
       it('can create a product', function () {
         var args = vendSdk.args.products.create();
-
-        var cost = faker.fake('{{commerce.price}}'); // faker.commerce.price
-        var sku = faker.fake('{{random.number}}'); // faker.random.number,
-        var randomProduct = {
-          'name': faker.commerce.productName(), // REQUIRED
-          'sku': sku, // REQUIRED
-          'handle': faker.lorem.word(1), // REQUIRED
-          'retail_price': cost + 5.00, // REQUIRED
-          'supply_price': cost,
-          'description': faker.lorem.sentence()
-        };
-        randomProduct.price = String(Number(randomProduct['supply_price']) + 10.00);
-        args.body.value = randomProduct;
+        args.body.value = generateNewProductBody();
 
         return vendSdk.products.create(args, getConnectionInfo())
           .then(function (response) {
             log.debug('response:', response);
+            expect(response).to.exist;
+            expect(response.product).to.exist;
+            expect(response.product.id).to.exist;
           });
       });
 
@@ -1162,280 +1165,6 @@ describe('vend-nodejs-sdk', function () {
     describe('with taxes API', function(){
       it('UNVERIFIED: can create a tax', function () {
         // TODO: implement it
-      });
-    });
-
-    describe('with sales API', function(){
-      describe('this will create a sale with all the relevant data', function () {
-
-        var customerData, taxData, registers, paymentType;
-
-        var registerSale = { /* eslint-disable camelcase */
-          register_id: null,
-          customer_id: null,
-          register_sale_products: [],
-          register_sale_payments: [],
-          note: 'This sale is created by a test',
-          status: 'CLOSED',
-          sale_date: new Date().toString(),
-          short_code: faker.random.word()
-        }; /* eslint-enable camelcase */
-
-        var createPaymentTypesArray = function (paymentTypesArray) {
-          paymentType = _.sample(paymentTypesArray, 1);
-          return paymentType[0];
-        };
-
-        var createTaxData = function () {
-          var args = vendSdk.args.taxes.create();
-          args.body.value = {
-            name: 'Normal Sales Tax',
-            rate: 0.06
-          };
-          return vendSdk.taxes.create(args, getConnectionInfo())
-            .then(function (response) {
-              taxData = response;
-              return taxData;
-            });
-        };
-
-        var createRegisterSaleProducts = function (product) {
-          var data = { /* eslint-disable camelcase */
-            register_id: registers.id,
-            product_id: product.id,
-            quantity: 1,
-            price: product.supply_price,
-            tax: taxData.rate,
-            tax_id: taxData.id
-          }; /* eslint-enable camelcase */
-          return registerSale.register_sale_products.push(data);
-        };
-
-        var createRegisterSalePayments = function (payment) {
-          log.debug('The payment that will be attached to the sale', payment);
-          return registerSale.register_sale_payments.push({ /* eslint-disable camelcase */
-            retailer_payment_type_id: payment.id,
-            register_id: registers.id,
-            payment_date: new Date().toString(),
-            amount: 192
-          }); /* eslint-enable camelcase */
-        };
-
-        var addMoreRegisterSaleProducts = function (productsArray) {
-          return _.each(productsArray, function (product) {
-            var data = { /* eslint-disable camelcase */
-              register_id: registers.id,
-              product_id: product.id,
-              quantity: 1,
-              price: product.supply_price,
-              tax: product.tax,
-              tax_id: product.tax_id
-            }; /* eslint-enable camelcase */
-            if (registerSale.register_sale_products.indexOf(data) === -1) {
-              return registerSale.register_sale_products.push(data)
-            }
-          });
-        };
-
-        it('can create a customer that will be further get attached to a sale', function () {
-          var customer = {
-            'first_name': faker.name.firstName(),
-            'last_name': faker.name.lastName(),
-            'email': faker.lorem.word() + '@tinker.com'
-          };
-          return vendSdk.customers.create(customer, getConnectionInfo())
-            .then(function (customerResponse) {
-              customerData = customerResponse.customer;
-            });
-        });
-
-        it('can fetch registers to which a sale will be created', function () {
-          var args = vendSdk.args.registers.fetch();
-          return vendSdk.registers.fetch(args, getConnectionInfo())
-            .then(function (response) {
-              log.debug(response);
-              return _.sample(response.registers, 1);
-            })
-            .then(function (registersArray) {
-              registers = registersArray[0];
-              log.debug('The register object', registers);
-            });
-        });
-
-        it('will either fetch Normal Sales Tax and add it to the sale or it will create a Normal Sales Tax and then add it to the sale', function () {
-          var args = vendSdk.args.taxes.fetch();
-          return vendSdk.taxes.fetch(args, getConnectionInfo())
-            .then(function (response) {
-              return Promise.resolve(
-                _.find(response.taxes, function (tax) {
-                  return tax.name === 'Normal Sales Tax' && tax.active === true;
-                })
-              );
-            })
-            .then(function (tax) {
-              if(tax === undefined){
-                return createTaxData();
-              }
-              else{
-                taxData = tax;
-              }
-            });
-        });
-
-        it('can create a product for the sale', function () {
-          var args = vendSdk.args.products.create();
-
-          var randomProduct = {
-            'handle': faker.lorem.word(1),
-            'has_variants': false,
-            //'active':true,
-            'name': faker.commerce.productName(),
-            'retail_price': faker.fake('{{random.number}}'),
-            'description': faker.lorem.sentence(),
-            'tax_id': null,
-            'tax': null,
-            'sku': faker.fake('{{random.number}}'), // faker.random.number,
-            'supply_price': faker.fake('{{commerce.price}}') // faker.commerce.price 
-          };
-          randomProduct.price = String(Number(randomProduct['supply_price']) + 10.00);
-          args.body.value = randomProduct;
-
-          return vendSdk.products.create(args, getConnectionInfo())
-            .then(function (response) {
-              log.debug('Product Response', response);
-              return response.product;
-            })
-            .then(function (product) {
-              Promise.resolve(createRegisterSaleProducts(product));
-            });
-        });
-
-        it('can fetch products and add them to the register sale products array', function () {
-          var args = vendSdk.args.products.fetch();
-          args.page.value = 1;
-          args.pageSize.value = 50;
-          return vendSdk.products.fetch(args, getConnectionInfo())
-            .then(function (response) {
-              return _.sample(response.data, 5);
-            })
-            .then(function (products) {
-              Promise.resolve(addMoreRegisterSaleProducts(products));
-            });
-        });
-
-        it('can fetch all payment types', function () {
-          var args = vendSdk.args.paymentTypes.fetch();
-          return vendSdk.paymentTypes.fetch(args, getConnectionInfo())
-            .then(function (response) {
-              log.debug(response);
-              return response.payment_types;
-            })
-            .then(function (paymentTypes) {
-              return Promise.resolve(createPaymentTypesArray(paymentTypes));
-            })
-            .then(function (arrayResponse) {
-              Promise.resolve(createRegisterSalePayments(arrayResponse));
-            });
-        });
-
-        it('can create a register sale', function () {
-          registerSale.customer_id = customerData.id; // eslint-disable-line camelcase
-          registerSale.register_id = registers.id; // eslint-disable-line camelcase
-          return vendSdk.sales.create(registerSale, getConnectionInfo())
-            .then(function (saleResponse) {
-              log.debug('SALE-RESPONSE', JSON.stringify(saleResponse, undefined, 2));
-              expect(saleResponse).to.exist;
-              expect(saleResponse.register_sale).to.exist;
-              expect(saleResponse.register_sale.id).to.exist;
-              expect(saleResponse.register_sale.customer_id).to.exist;
-              expect(saleResponse.register_sale.customer_id).to.equal(customerData.id);
-              expect(saleResponse.register_sale.register_id).to.exist;
-              expect(saleResponse.register_sale.register_id).to.equal(registers.id);
-              expect(saleResponse.register_sale.register_sale_payments).to.exist;
-              expect(saleResponse.register_sale.register_sale_payments).to.exist;
-              expect(saleResponse.register_sale.register_sale_payments).to.be.instanceOf(Array);
-              expect(saleResponse.register_sale.register_sale_payments.length).to.equal(1);
-              expect(saleResponse.register_sale.register_sale_products).to.exist;
-              expect(saleResponse.register_sale.register_sale_products).to.be.instanceOf(Array);
-              expect(saleResponse.register_sale.register_sale_products.length).to.equal(6);
-            });
-        });
-      });
-
-      describe('then after preparing a sale', function () {
-        var product, register, sale;
-        it('by preparing a product', function () {
-          return getRandomProduct()
-            .then(function(result){
-              expect(result).to.exist;
-              product = result;
-            });
-        });
-        it('by preparing a register', function () {
-          var args = vendSdk.args.registers.fetch();
-          return vendSdk.registers.fetch(args, getConnectionInfo())
-            .then(function (response) {
-              expect(response).to.exist;
-              expect(response.registers).to.exist;
-              expect(response.registers).to.be.instanceof(Array);
-              expect(response.registers.length).to.be.greaterThan(0);
-              register = response.registers[0];
-            });
-        });
-        it('we can create a sale', function () {
-          var saleBody = {
-            'register_id': register.id,
-            //'user_id': '???',
-            'status': 'OPEN',
-            'register_sale_products': [{
-              'product_id': product.id,
-              'quantity': 1,
-              'price': 12,
-              'tax': 1.8
-              //'tax_id': '???'
-            }]
-          };
-          return vendSdk.sales.create(saleBody, getConnectionInfo())
-            .then(function (response) {
-              expect(response).to.exist;
-              expect(response.register_sale).to.exist;
-              expect(response.register_sale.id).to.exist;
-              expect(response.register_sale.source).to.exist;
-              expect(response.register_sale.register_id).to.exist;
-              expect(response.register_sale.register_id).to.equal(register.id);
-              expect(response.register_sale.user_id).to.exist;
-              expect(response.register_sale.total_price).to.exist;
-              expect(response.register_sale.total_price).to.equal(12);
-              expect(response.register_sale.total_tax).to.exist;
-              expect(response.register_sale.total_tax).to.equal(1.8);
-              // NOTE: in the response for creating the sale, products are in register_sale; but when fetching sales they are in line_items
-              expect(response.register_sale.register_sale_products).to.exist;
-              expect(response.register_sale.register_sale_products).to.be.instanceof(Array);
-              expect(response.register_sale.register_sale_products.length).to.be.greaterThan(0);
-              sale = response.register_sale;
-            });
-        });
-        it('can fetch a sale by ID', function () {
-          var args = vendSdk.args.sales.fetchById();
-          args.apiId.value = sale.id;
-          return vendSdk.sales.fetchById(args, getConnectionInfo())
-            .then(function (response) {
-              expect(response.data).to.exist;
-              expect(response.data.id).to.exist;
-              expect(response.data.source).to.exist;
-              expect(response.data.register_id).to.exist;
-              expect(response.data.register_id).to.equal(register.id);
-              expect(response.data.user_id).to.exist;
-              expect(response.data.total_price).to.exist;
-              expect(response.data.total_price).to.equal(12);
-              expect(response.data.total_tax).to.exist;
-              expect(response.data.total_tax).to.equal(1.8);
-              // NOTE: in the response for creating the sale, products are in register_sale; but when fetching sales they are in line_items
-              expect(response.data.line_items).to.exist;
-              expect(response.data.line_items).to.be.instanceof(Array);
-              expect(response.data.line_items.length).to.be.greaterThan(0);
-            });
-        });
       });
     });
 
