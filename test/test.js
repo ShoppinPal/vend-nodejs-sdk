@@ -593,28 +593,31 @@ describe('vend-nodejs-sdk', function () {
       });
     });
 
+    var generateNewProductBody = function generateNewProduct() {
+      var newProduct = {
+        'name': faker.commerce.productName(), // REQUIRED
+        'sku': faker.fake('{{random.number}}'), // REQUIRED
+        'handle': faker.lorem.word(1), // REQUIRED
+        'retail_price': faker.commerce.price(10.01, 100.00, 2), // REQUIRED
+        'description': faker.lorem.sentence()
+      };
+      newProduct.supply_price = newProduct.retail_price - 10.00; // eslint-disable-line camelcase
+      return newProduct;
+    };
+
     describe('with products API', function() {
       this.timeout(300000);
 
       it('can create a product', function () {
         var args = vendSdk.args.products.create();
-
-        var cost = faker.fake('{{commerce.price}}'); // faker.commerce.price
-        var sku = faker.fake('{{random.number}}'); // faker.random.number,
-        var randomProduct = {
-          'name': faker.commerce.productName(), // REQUIRED
-          'sku': sku, // REQUIRED
-          'handle': faker.lorem.word(1), // REQUIRED
-          'retail_price': cost + 5.00, // REQUIRED
-          'supply_price': cost,
-          'description': faker.lorem.sentence()
-        };
-        randomProduct.price = String(Number(randomProduct['supply_price']) + 10.00);
-        args.body.value = randomProduct;
+        args.body.value = generateNewProductBody();
 
         return vendSdk.products.create(args, getConnectionInfo())
           .then(function (response) {
             log.debug('response:', response);
+            expect(response).to.exist;
+            expect(response.product).to.exist;
+            expect(response.product.id).to.exist;
           });
       });
 
@@ -1284,21 +1287,7 @@ describe('vend-nodejs-sdk', function () {
 
         it('can create a product for the sale', function () {
           var args = vendSdk.args.products.create();
-
-          var randomProduct = {
-            'handle': faker.lorem.word(1),
-            'has_variants': false,
-            //'active':true,
-            'name': faker.commerce.productName(),
-            'retail_price': faker.fake('{{random.number}}'),
-            'description': faker.lorem.sentence(),
-            'tax_id': null,
-            'tax': null,
-            'sku': faker.fake('{{random.number}}'), // faker.random.number,
-            'supply_price': faker.fake('{{commerce.price}}') // faker.commerce.price
-          };
-          randomProduct.price = String(Number(randomProduct['supply_price']) + 10.00);
-          args.body.value = randomProduct;
+          args.body.value = generateNewProductBody();
 
           return vendSdk.products.create(args, getConnectionInfo())
             .then(function (response) {
@@ -1485,21 +1474,7 @@ describe('vend-nodejs-sdk', function () {
 
         it('can create a product for the sale', function () {
           var args = vendSdk.args.products.create();
-
-          var randomProduct = {
-            'handle': faker.lorem.word(1),
-            'has_variants': false,
-            //'active':true,
-            'name': faker.commerce.productName(),
-            'retail_price': faker.fake('{{random.number}}'),
-            'description': faker.lorem.sentence(),
-            'tax_id': null,
-            'tax': null,
-            'sku': faker.fake('{{random.number}}'), // faker.random.number,
-            'supply_price': faker.fake('{{commerce.price}}') // faker.commerce.price
-          };
-          randomProduct.price = String(Number(randomProduct['supply_price']) + 10.00);
-          args.body.value = randomProduct;
+          args.body.value = generateNewProductBody();
 
           return vendSdk.products.create(args, getConnectionInfo())
             .then(function (response) {
@@ -1563,7 +1538,6 @@ describe('vend-nodejs-sdk', function () {
         });
 
       });
-
 
       /**
        * Conclusion - Tax rate does the job, creates a valid sale.
@@ -1684,21 +1658,7 @@ describe('vend-nodejs-sdk', function () {
 
         it('can create a product for the sale', function () {
           var args = vendSdk.args.products.create();
-
-          var randomProduct = {
-            'handle': faker.lorem.word(1),
-            'has_variants': false,
-            //'active':true,
-            'name': faker.commerce.productName(),
-            'retail_price': faker.fake('{{random.number}}'),
-            'description': faker.lorem.sentence(),
-            'tax_id': null,
-            'tax': null,
-            'sku': faker.fake('{{random.number}}'), // faker.random.number,
-            'supply_price': faker.fake('{{commerce.price}}') // faker.commerce.price
-          };
-          randomProduct.price = String(Number(randomProduct['supply_price']) + 10.00);
-          args.body.value = randomProduct;
+          args.body.value = generateNewProductBody();
 
           return vendSdk.products.create(args, getConnectionInfo())
             .then(function (response) {
@@ -1883,21 +1843,7 @@ describe('vend-nodejs-sdk', function () {
 
         it('can create a product for the sale', function () {
           var args = vendSdk.args.products.create();
-
-          var randomProduct = {
-            'handle': faker.lorem.word(1),
-            'has_variants': false,
-            //'active':true,
-            'name': faker.commerce.productName(),
-            'retail_price': faker.fake('{{random.number}}'),
-            'description': faker.lorem.sentence(),
-            'tax_id': null,
-            'tax': null,
-            'sku': faker.fake('{{random.number}}'), // faker.random.number,
-            'supply_price': faker.fake('{{commerce.price}}') // faker.commerce.price
-          };
-          randomProduct.price = String(Number(randomProduct['supply_price']) + 10.00);
-          args.body.value = randomProduct;
+          args.body.value = generateNewProductBody();
 
           return vendSdk.products.create(args, getConnectionInfo())
             .then(function (response) {
@@ -2086,21 +2032,7 @@ describe('vend-nodejs-sdk', function () {
 
         it('can create a product for the sale', function () {
           var args = vendSdk.args.products.create();
-
-          var randomProduct = {
-            'handle': faker.lorem.word(1),
-            'has_variants': false,
-            //'active':true,
-            'name': faker.commerce.productName(),
-            'retail_price': faker.fake('{{random.number}}'),
-            'description': faker.lorem.sentence(),
-            'tax_id': null,
-            'tax': null,
-            'sku': faker.fake('{{random.number}}'), // faker.random.number,
-            'supply_price': faker.fake('{{commerce.price}}') // faker.commerce.price
-          };
-          randomProduct.price = String(Number(randomProduct['supply_price']) + 10.00);
-          args.body.value = randomProduct;
+          args.body.value = generateNewProductBody();
 
           return vendSdk.products.create(args, getConnectionInfo())
             .then(function (response) {
