@@ -350,7 +350,7 @@ describe('vend-nodejs-sdk', function () {
               return Promise.resolve(createPaymentTypesArray(paymentTypes));
             })
             .then(function (arrayResponse) {
-              Promise.resolve(createRegisterSalePayments(arrayResponse));
+              createRegisterSalePayments(arrayResponse);
             });
         });
 
