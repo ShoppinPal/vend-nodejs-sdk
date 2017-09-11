@@ -395,6 +395,16 @@ var argsForInput = {
     stockOrders: {
       create: function() {
         return {
+          type: {
+            required: true,
+            key: 'type',
+            value: 'SUPPLIER'
+          },
+          status: {
+            required: true,
+            key: 'status',
+            value: 'OPEN'
+          },
           name: {
             required: true,
             key: 'name',
@@ -413,6 +423,11 @@ var argsForInput = {
           dueAt: {
             required: false, // can be null, ok by Vend
             key: 'due_at',
+            value: undefined
+          },
+          transactionId: {
+            required: false, // can be null, ok by Vend
+            key: 'accounts_transaction_id',
             value: undefined
           }
         };
@@ -2237,13 +2252,14 @@ var createStockOrder = function(args, connectionInfo, retryCounter) {
   log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   var body = {
-    'type': 'SUPPLIER',
-    'status': 'OPEN',
+    'type': args.type.value,
+    'status': args.status.value,
     'name': args.name.value,
     'date': moment().format('YYYY-MM-DD HH:mm:ss'), //'2010-01-01 14:01:01',
     'due_at': args.dueAt.value,
     'outlet_id': args.outletId.value,
-    'supplier_id': args.supplierId.value
+    'supplier_id': args.supplierId.value,
+    'accounts_transaction_id': args.transactionId.value
   };
   var options = {
     method: 'POST',
