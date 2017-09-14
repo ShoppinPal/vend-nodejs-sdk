@@ -395,6 +395,16 @@ var argsForInput = {
     stockOrders: {
       create: function() {
         return {
+          type: {
+            required: true,
+            key: 'type',
+            value: 'SUPPLIER'
+          },
+          status: {
+            required: true,
+            key: 'status',
+            value: 'OPEN'
+          },
           name: {
             required: true,
             key: 'name',
@@ -413,6 +423,11 @@ var argsForInput = {
           dueAt: {
             required: false, // can be null, ok by Vend
             key: 'due_at',
+            value: undefined
+          },
+          transactionId: {
+            required: false, // can be null, ok by Vend
+            key: 'accounts_transaction_id',
             value: undefined
           }
         };
@@ -741,7 +756,34 @@ var argsForInput = {
     }
   },
   sales: {
+    fetchById: function() {
+      return {
+        apiId: {
+          required: true,
+          value: undefined
+        }
+      };
+    },
     fetch: function() {
+      return {
+        after: {
+          required: false,
+          key: 'after',
+          value: undefined
+        },
+        page: {
+          required: false,
+          key: 'page',
+          value: undefined
+        },
+        pageSize: {
+          required: false,
+          key: 'page_size',
+          value: undefined
+        }
+      };
+    },
+    fetchAll: function() {
       return {
         since: {
           deprecated: true,
@@ -813,6 +855,40 @@ var argsForInput = {
       return {
         body: {
           required: true,
+          value: undefined
+        }
+      };
+    }
+  },
+  users: {
+    fetchById: function() {
+      return {
+        apiId: {
+          required: true,
+          value: undefined
+        }
+      };
+    },
+    fetch: function() {
+      return {
+        after: {
+          required: false,
+          key: 'after',
+          value: undefined
+        },
+        before: {
+          required: false,
+          key: 'before',
+          value: undefined
+        },
+        page: {
+          required: false,
+          key: 'page',
+          value: undefined
+        },
+        pageSize: {
+          required: false,
+          key: 'page_size',
           value: undefined
         }
       };
@@ -1824,32 +1900,27 @@ var createTag = function(args, connectionInfo, retryCounter) {
 };
 
 var fetchRegisterSales = function(args, connectionInfo, retryCounter) {
-  log.debug('inside fetchRegisterSales()');
   if (!retryCounter) {
     retryCounter = 0;
   } else {
     log.debug('retry # ' + retryCounter);
   }
 
-  var path = '/api/register_sales';
+  var path = '/api/2.0/sales';
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
   log.debug('GET ' + vendUrl);
   log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   var options = {
-    method: 'GET',
     url: vendUrl,
     headers: {
       'Authorization': authString,
       'Accept': 'application/json'
     },
     qs: {/*jshint camelcase: false */
-      since: args.since.value,
-      outlet_id: args.outletApiId.value,
-      tag: args.tag.value,
-      // WARN: 0.x and 1.0 use `page` and `page_size`, which may or may NOT be implemented on Vend server side for all entities!
-      page: args.page.value,
+      after: args.after.value,
+      before: args.before.value,
       page_size: args.pageSize.value
     }
   };
@@ -1859,7 +1930,7 @@ var fetchRegisterSales = function(args, connectionInfo, retryCounter) {
 
 var fetchAllRegisterSales = function(args, connectionInfo, processPagedResults) {
   if (!args) {
-    args = argsForInput.sales.fetch();
+    args = argsForInput.sales.fetchAll();
   }
   args.page = {value:1};
   args.pageSize = {value:200};
@@ -2181,13 +2252,14 @@ var createStockOrder = function(args, connectionInfo, retryCounter) {
   log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   var body = {
-    'type': 'SUPPLIER',
-    'status': 'OPEN',
+    'type': args.type.value,
+    'status': args.status.value,
     'name': args.name.value,
     'date': moment().format('YYYY-MM-DD HH:mm:ss'), //'2010-01-01 14:01:01',
     'due_at': args.dueAt.value,
     'outlet_id': args.outletId.value,
-    'supplier_id': args.supplierId.value
+    'supplier_id': args.supplierId.value,
+    'accounts_transaction_id': args.transactionId.value
   };
   var options = {
     method: 'POST',
@@ -2443,6 +2515,152 @@ var deleteConsignmentProduct = function(args, connectionInfo, retryCounter) {
   return sendRequest(options, args, connectionInfo, deleteConsignmentProduct, retryCounter);
 };
 
+var fetchUser = function(args, connectionInfo, retryCounter) {
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    log.debug('retry # ' + retryCounter);
+  }
+
+  var path = '/api/2.0/users/' + args.apiId.value;
+
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  log.debug('Requesting vend users ' + vendUrl);
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.debug('GET ' + vendUrl);
+  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+
+  var options = {
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Accept': 'application/json'
+    }
+  };
+
+  return sendRequest(options, args, connectionInfo, fetchUser, retryCounter);
+};
+
+var fetchUsers = function(args, connectionInfo, retryCounter) {
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    log.debug('retry # ' + retryCounter);
+  }
+
+  var path = '/api/2.0/users';
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.debug('GET ' + vendUrl);
+  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+
+  var options = {
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Accept': 'application/json'
+    },
+    qs: {
+      after: args.after.value,
+      before: args.before.value,
+      page_size: args.pageSize.value
+    }
+  };
+  if (args.page.value) {
+    log.debug('Requesting users page ' + args.page.value);
+  }
+
+  return sendRequest(options, args, connectionInfo, fetchProducts, retryCounter);
+};
+
+var fetchAllUsers = function(connectionInfo, processPagedResults) {
+  var args = argsForInput.users.fetch();
+  args.page.value = 1;
+  args.pageSize.value = 200;
+
+  // set a default function if none is provided
+  if (!processPagedResults) {
+    processPagedResults = function processPagedResults(pagedData, previousData){
+      log.debug('fetchAllUsers - default processPagedResults()');
+      if (previousData && previousData.length>0) {
+        //log.verbose(JSON.stringify(pagedData.products,replacer,2));
+        if (pagedData.users && pagedData.users.length>0) {
+          log.debug('previousData: ', previousData.length);
+          pagedData.users = pagedData.users.concat(previousData);
+          log.debug('combined: ', pagedData.users.length);
+        }
+        else {
+          pagedData.users = previousData;
+        }
+      }
+      return Promise.resolve(pagedData.users);
+    };
+  }
+  return processPagesRecursively(args, connectionInfo, fetchUsers, processPagedResults);
+};
+
+var fetchRegisterSale = function(args, connectionInfo, retryCounter) {
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    log.debug('retry # ' + retryCounter);
+  }
+
+  var path = '/api/2.0/sales/' + args.apiId.value;
+
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  log.debug('Requesting vend sale ' + vendUrl);
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.debug('GET ' + vendUrl);
+  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+
+  var options = {
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Accept': 'application/json'
+    }
+  };
+
+  return sendRequest(options, args, connectionInfo, fetchRegisterSale, retryCounter);
+};
+
+var updateRegisterSale = function(body, connectionInfo, retryCounter) {
+  log.debug('inside updateRegisterSale()');
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    log.debug('retry # ' + retryCounter);
+  }
+
+  var path = '/api/register_sales';
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+
+  try {
+    body = _.isObject(body) ? body : JSON.parse(body);
+  }
+  catch(exception) {
+    log.error('updateRegisterSale', exception);
+    return Promise.reject('inside updateRegisterSale() - failed to parse the sale body');
+  }
+
+  var options = {
+    method: 'POST',
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    },
+    json: body
+  };
+  log.debug(options.method + ' ' + options.url);
+
+  return sendRequest(options, body, connectionInfo, updateRegisterSale, retryCounter);
+};
+
 var getInitialAccessToken = function(tokenService, clientId, clientSecret, redirectUri, code, domainPrefix, state) {
   // TODO: tweak winston logs to prefix method signature (like breadcrumbs) when logging?
   log.debug('getInitialAccessToken - token_service: ' + tokenService);
@@ -2644,9 +2862,11 @@ module.exports = function(dependencies) {
       create: createTag
     },
     sales: {
-      create: createRegisterSale,
       fetch: fetchRegisterSales,
-      fetchAll: fetchAllRegisterSales
+      fetchById: fetchRegisterSale,
+      fetchAll: fetchAllRegisterSales,
+      create: createRegisterSale,
+      update: updateRegisterSale,
     },
     customers: {
       create: createCustomer,
@@ -2683,6 +2903,11 @@ module.exports = function(dependencies) {
       fetch: fetchSuppliers,
       fetchAll: fetchAllSuppliers,
       create: createSupplier
+    },
+    users:{
+      fetchById: fetchUser,
+      fetch: fetchUsers,
+      fetchAll: fetchAllUsers,
     },
     hasAccessTokenExpired: hasAccessTokenExpired,
     getInitialAccessToken: getInitialAccessToken,
