@@ -303,6 +303,10 @@ var argsForInput = {
         apiId: {
           required: true,
           value: undefined
+        },
+        apiVersion: {
+          required: false,
+          value: undefined
         }
       };
     }
@@ -1008,7 +1012,16 @@ var fetchRegisterSalesById  = function(args, connectionInfo, retryCounter) {
     log.debug('retry # ' + retryCounter);
   }
 
-  var path = '/api/2.0/sales/' + args.apiId.value;
+  var path;
+  if (args.apiVersion.value === '0.9') {
+    path = '/api/register_sales/' + args.apiId.value;
+  }
+  else if (args.apiVersion.value === '1.0') {
+    path = '/api/1.0/register_sale/' + args.apiId.value;
+  }
+  else {
+    path = '/api/2.0/sales/' + args.apiId.value; // default
+  }
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   log.debug('Requesting sale by ID ' + vendUrl);
   var authString = 'Bearer ' + connectionInfo.accessToken;
