@@ -244,6 +244,7 @@ describe('vend-nodejs-sdk', function () {
         var createRegisterSalePayments = function (payment) {
           log.debug('The payment that will be attached to the sale', payment);
           return registerSale.register_sale_payments.push({ /* eslint-disable camelcase */
+            amount: 9.99,
             retailer_payment_type_id: payment.id,
             register_id: registers.id,
             payment_date: new Date().toString()
@@ -352,15 +353,18 @@ describe('vend-nodejs-sdk', function () {
             });
         });
 
+        var registerSale;
         it('can create a register sale', function () {
           registerSale.customer_id = customerData.id; // eslint-disable-line camelcase
           registerSale.register_id = registers.id; // eslint-disable-line camelcase
+          registerSale.invoice_sequence = faker.random.number(10000); // eslint-disable-line camelcase
           return vendSdk.sales.create(registerSale, getConnectionInfo())
             .then(function (saleResponse) {
-              log.debug('SALE-RESPONSE', JSON.stringify(saleResponse, undefined, 2));
               expect(saleResponse).to.exist;
               expect(saleResponse.register_sale).to.exist;
               expect(saleResponse.register_sale.id).to.exist;
+              expect(saleResponse.register_sale.invoice_sequence).to.not.equal(registerSale.invoice_sequence); // vend allows you to set it during submission but it doesn't use it
+              expect(saleResponse.register_sale.invoice_number).to.not.equal(registerSale.invoice_sequence); // vend allows you to set it during submission but it doesn't use it
               expect(saleResponse.register_sale.customer_id).to.exist;
               expect(saleResponse.register_sale.customer_id).to.equal(customerData.id);
               expect(saleResponse.register_sale.register_id).to.exist;
