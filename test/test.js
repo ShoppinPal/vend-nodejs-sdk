@@ -173,10 +173,10 @@ describe('vend-nodejs-sdk', function () {
           expect(error).to.equal(
             undefined,
             'the refresh token might be invalid' +
-                        ' \n\t\t look inside vend-nodejs-sdk.log file to confirm' +
-                        ' \n\t\t or turn on console logging by using `NODE_ENV=testing ./node_modules/.bin/mocha`' +
-                        ' \n\t\t to run the tests and confirm' +
-                        ' \n\t\t'
+            ' \n\t\t look inside vend-nodejs-sdk.log file to confirm' +
+            ' \n\t\t or turn on console logging by using `NODE_ENV=testing ./node_modules/.bin/mocha`' +
+            ' \n\t\t to run the tests and confirm' +
+            ' \n\t\t'
           );
         });
 
@@ -194,7 +194,7 @@ describe('vend-nodejs-sdk', function () {
         .then(function (response) {
           return Promise.map(
             response.data || [],
-            function(eachProduct){
+            function (eachProduct) {
               //console.log('eachProduct', eachProduct.supplier_code, eachProduct.supplier, eachProduct.supplier_id);
               var inventoryArgs = vendSdk.args.products.fetchProductInventory();
               inventoryArgs.apiId.value = eachProduct.id;
@@ -206,7 +206,7 @@ describe('vend-nodejs-sdk', function () {
             },
             {concurrency: 1}
           )
-            .then(function(){
+            .then(function () {
               randomProduct = _.find(response.data, function (eachProduct) { // return the first product that fulfills these conditions
                 return eachProduct.supplier && eachProduct.inventory[0].outlet_id;
               });
@@ -215,13 +215,13 @@ describe('vend-nodejs-sdk', function () {
         });
     };
 
-    describe('test consignment product APIs', function() {
+    describe('test consignment product APIs', function () {
       this.timeout(300000); // attaching inventory to 100 random products for v2.0 takes a lot of time
-      describe('usecase one', function() {
+      describe('usecase one', function () {
         var randomProduct, supplier, consignmentProductId, consignmentId;
         it('by preparing a product with a supplier and an outlet', function () {
           return getRandomProduct()
-            .then(function(result){
+            .then(function (result) {
               randomProduct = result;
               expect(randomProduct).to.exist;
               //console.log('randomProduct', randomProduct);
@@ -341,11 +341,11 @@ describe('vend-nodejs-sdk', function () {
             });
         });
       });
-      describe('usecase two', function() {
+      describe('usecase two', function () {
         var randomProduct, supplier, consignmentProductId, consignmentId;
         it('by preparing a product with a supplier and an outlet', function () {
           return getRandomProduct()
-            .then(function(result){
+            .then(function (result) {
               randomProduct = result;
               expect(randomProduct).to.exist;
               supplier = randomProduct.supplier;
@@ -406,11 +406,11 @@ describe('vend-nodejs-sdk', function () {
               expect(consignmentProductResponse.id).to.exist;
 
               /**
-                   * This assertion would fail if the consignment product wasn't created
-                   * because of a bad product+supplier+outlet combination. In which case,
-                   * the vend api decides to send back the consignment (instead of the consignment PRODUCT)
-                   * to indicate that the work was not performed!
-                   */
+               * This assertion would fail if the consignment product wasn't created
+               * because of a bad product+supplier+outlet combination. In which case,
+               * the vend api decides to send back the consignment (instead of the consignment PRODUCT)
+               * to indicate that the work was not performed!
+               */
               expect(consignmentProductResponse.id).to.not.equal(consignmentId);
 
               expect(consignmentProductResponse['product_id']).to.exist;
@@ -445,11 +445,11 @@ describe('vend-nodejs-sdk', function () {
             });
         });
       });
-      describe('usecase three', function() {
+      describe('usecase three', function () {
         var randomProduct, supplier, consignmentProduct, consignment;
         it('by preparing a product with a supplier and an outlet', function () {
           return getRandomProduct()
-            .then(function(result){
+            .then(function (result) {
               randomProduct = result;
               expect(randomProduct).to.exist;
               supplier = randomProduct.supplier;
@@ -498,7 +498,7 @@ describe('vend-nodejs-sdk', function () {
           args.consignmentId.value = consignment.id;
           args.productId.value = randomProduct.id;
           args.cost.value = faker.random.number(4);
-          args.count.value = faker.random.number({min:5, max:10}); // set ordered/expected quantity with a random number between 5 and 10
+          args.count.value = faker.random.number({min: 5, max: 10}); // set ordered/expected quantity with a random number between 5 and 10
           args.sequenceNumber.value = faker.random.number();
           return vendSdk.consignments.products.create(args, getConnectionInfo())
             .then(function (createConsignmentProductResponse) {
@@ -522,7 +522,7 @@ describe('vend-nodejs-sdk', function () {
             });
         });
         it('by updating a consignment product with received quantity', function () {
-          consignmentProduct.received = faker.random.number({min:5, max:10}); // update the received quantity with a random number between 5 and 10
+          consignmentProduct.received = faker.random.number({min: 5, max: 10}); // update the received quantity with a random number between 5 and 10
           var args = vendSdk.args.consignments.products.update();
           args.apiId.value = consignmentProduct.id;
           args.body.value = consignmentProduct;
@@ -605,7 +605,7 @@ describe('vend-nodejs-sdk', function () {
       return newProduct;
     };
 
-    describe('with products API', function() {
+    describe('with products API', function () {
       this.timeout(300000);
 
       it('can create a product', function () {
@@ -651,10 +651,10 @@ describe('vend-nodejs-sdk', function () {
             expect(error).to.equal(
               undefined,
               'the refresh token might be invalid' +
-                          ' \n\t\t look inside vend-nodejs-sdk.log file to confirm' +
-                          ' \n\t\t or turn on console logging by using `NODE_ENV=testing ./node_modules/.bin/mocha`' +
-                          ' \n\t\t to run the tests and confirm' +
-                          ' \n\t\t'
+              ' \n\t\t look inside vend-nodejs-sdk.log file to confirm' +
+              ' \n\t\t or turn on console logging by using `NODE_ENV=testing ./node_modules/.bin/mocha`' +
+              ' \n\t\t to run the tests and confirm' +
+              ' \n\t\t'
             );
           });
       });
@@ -690,7 +690,7 @@ describe('vend-nodejs-sdk', function () {
       });
 
       var productsAcquiredWithDefaultPageSize;
-      it('can fetch ALL products w/ default page size', function() { // NOTE: default page size is 1000 based on passive observation
+      it('can fetch ALL products w/ default page size', function () { // NOTE: default page size is 1000 based on passive observation
         var args = vendSdk.args.products.fetchAll();
         return vendSdk.products.fetchAll(args, getConnectionInfo()) // NOTE: 3rd (optional) argument can be a custom method to processPagedResults
           .then(function (allProducts) {
@@ -701,7 +701,7 @@ describe('vend-nodejs-sdk', function () {
       });
 
       var productsAcquiredWithCustomPageSize;
-      it('can fetch ALL products w/ custom page size', function() {
+      it('can fetch ALL products w/ custom page size', function () {
         var args = vendSdk.args.products.fetchAll();
         args.pageSize.value = 40000;
         return vendSdk.products.fetchAll(args, getConnectionInfo()) // NOTE: 3rd (optional) argument can be a custom method to processPagedResults
@@ -714,10 +714,10 @@ describe('vend-nodejs-sdk', function () {
       });
 
       var productsAcquiredWithCustomProcessor;
-      it('can fetch ALL products w/ custom processor', function() {
+      it('can fetch ALL products w/ custom processor', function () {
         var customProcessor = function processPagedResults(pagedData, previousData) {
-          if(previousData && previousData.length>0) {
-            if(pagedData.data && pagedData.data.length>0) {
+          if (previousData && previousData.length>0) {
+            if (pagedData.data && pagedData.data.length>0) {
               pagedData.data = pagedData.data.concat(previousData);
             }
             else {
@@ -737,7 +737,7 @@ describe('vend-nodejs-sdk', function () {
           });
       });
 
-      it('can fetch ALL active and inactive products', function() {
+      it('can fetch ALL active and inactive products', function () {
         var args = vendSdk.args.products.fetchAll();
         args.pageSize.value = 40000;
         args.deleted.value = true;
@@ -749,20 +749,20 @@ describe('vend-nodejs-sdk', function () {
           });
       });
 
-      it('TODO: can fetch ALL products w/ inventory data included too', function() {
+      it('TODO: can fetch ALL products w/ inventory data included too', function () {
         return vendSdk.products.fetchAllWithInventory(null, getConnectionInfo())
-          .then(function(productsWithInventory) {
+          .then(function (productsWithInventory) {
             expect(productsWithInventory).to.exist;
             //var strange = [];
-            _.each(productsWithInventory, function(product) {
+            _.each(productsWithInventory, function (product) {
               /*if (product.has_inventory && !product.inventory) {
-                strange.push(product); // TODO: ask Vend why has_inventory remains true even when inventory for that product, does not exist
-              }*/
+               strange.push(product); // TODO: ask Vend why has_inventory remains true even when inventory for that product, does not exist
+               }*/
               if (product.inventory) {
                 expect(product.inventory).to.exist;
                 expect(product.inventory).to.be.instanceof(Array);
                 expect(product.inventory.length).to.be.greaterThan(0);
-                _.each(product.inventory, function(inventoryEntry) {
+                _.each(product.inventory, function (inventoryEntry) {
                   expect(inventoryEntry.product_id).to.equal(product.id);
                 });
               }
@@ -776,9 +776,32 @@ describe('vend-nodejs-sdk', function () {
       });
     });
 
-    describe('with inventory API', function() {
+    describe.only('with versions API', function () {
+      this.timeout(300000);
 
-      var getProductsForTesting = function() {
+      it('can fetch latest versions of all data in Vend', function () {
+        return vendSdk.versions.fetchAll(getConnectionInfo())
+          .then(function (response) {
+            expect(response).to.exist;
+            expect(response.data).to.exist;
+            expect(response.data).to.be.instanceof(Object);
+          })
+          .catch(TypeError, function (error) {
+            expect(error).to.equal(
+              undefined,
+              'the refresh token might be invalid' +
+              ' \n\t\t look inside vend-nodejs-sdk.log file to confirm' +
+              ' \n\t\t or turn on console logging by using `NODE_ENV=testing ./node_modules/.bin/mocha`' +
+              ' \n\t\t to run the tests and confirm' +
+              ' \n\t\t'
+            );
+          });
+      });
+    });
+
+    describe('with inventory API', function () {
+
+      var getProductsForTesting = function () {
         var args = vendSdk.args.products.fetch();
         args.page.value = 1;
         args.pageSize.value = 5;
@@ -789,7 +812,7 @@ describe('vend-nodejs-sdk', function () {
           });
       };
 
-      it('can fetch inventory by product ID', function() {
+      it('can fetch inventory by product ID', function () {
         return getProductsForTesting()
           .then(function (productsForTesting) {
             var productForTesting = _.find(productsForTesting, function (eachProduct) { // return the first product that fulfills these conditions
@@ -799,19 +822,19 @@ describe('vend-nodejs-sdk', function () {
             var args = vendSdk.args.inventory.fetchByProductId();
             args.apiId.value = productForTesting.id;
             return vendSdk.inventory.fetchByProductId(args, getConnectionInfo())
-              .then(function(response) {
+              .then(function (response) {
                 expect(response).to.exist;
                 expect(response.data).to.exist;
                 expect(response.data).to.be.instanceof(Array);
                 expect(response.data).to.have.length.of.at.least(1);
-                _.each(response.data, function(inventoryEntry) {
+                _.each(response.data, function (inventoryEntry) {
                   expect(inventoryEntry.product_id).to.equal(productForTesting.id);
                 });
               });
           });
       });
 
-      it('can fetch inventory w/ default page size', function() {
+      it('can fetch inventory w/ default page size', function () {
         var args = vendSdk.args.inventory.fetch();
         return vendSdk.inventory.fetch(args, getConnectionInfo())
           .then(function (response) {
@@ -827,7 +850,7 @@ describe('vend-nodejs-sdk', function () {
           });
       });
 
-      it('can fetch inventory w/ custom page size', function() {
+      it('can fetch inventory w/ custom page size', function () {
         var args = vendSdk.args.inventory.fetch();
         args.pageSize.value = 5;
         return vendSdk.inventory.fetch(args, getConnectionInfo())
@@ -844,7 +867,7 @@ describe('vend-nodejs-sdk', function () {
           });
       });
 
-      it('can fetch ALL inventory', function() {
+      it('can fetch ALL inventory', function () {
         var args = vendSdk.args.inventory.fetchAll();
         args.pageSize.value = 500; // currently observed maximum - no guarantees - asking for more still gives only 500 per page
         return vendSdk.inventory.fetchAll(args, getConnectionInfo())
@@ -856,7 +879,7 @@ describe('vend-nodejs-sdk', function () {
       });
     });
 
-    describe('with customers API', function(){
+    describe('with customers API', function () {
       var customer = {
         'first_name': 'boy',
         'last_name': 'blue',
@@ -864,7 +887,7 @@ describe('vend-nodejs-sdk', function () {
       };
       it('can create a customer', function () {
         return vendSdk.customers.create(customer, getConnectionInfo())
-          .then(function(response){
+          .then(function (response) {
             log.debug('response', response);
           });
       });
@@ -872,7 +895,7 @@ describe('vend-nodejs-sdk', function () {
       it('can fetch a customer by email', function () {
         // this is just a convenience method
         return vendSdk.customers.fetchByEmail(customer.email, getConnectionInfo())
-          .then(function(response){
+          .then(function (response) {
             log.debug('response', response);
             expect(response).to.exist;
             expect(response).to.be.instanceof(Object);
@@ -888,7 +911,7 @@ describe('vend-nodejs-sdk', function () {
       it('can fetch ALL customers', function () {
         var args = vendSdk.args.customers.fetchAll();
         return vendSdk.customers.fetchAll(args, getConnectionInfo())
-          .then(function(customers){
+          .then(function (customers) {
             expect(customers).to.exist;
             expect(customers).to.be.instanceof(Array);
             expect(customers.length).to.be.greaterThan(0);
@@ -897,7 +920,7 @@ describe('vend-nodejs-sdk', function () {
       });
     });
 
-    describe('with registers API', function(){
+    describe('with registers API', function () {
       it('can fetch registers', function () {
         var args = vendSdk.args.registers.fetch();
         return vendSdk.registers.fetch(args, getConnectionInfo())
@@ -947,12 +970,12 @@ describe('vend-nodejs-sdk', function () {
 
       xit('SKIP: can fetch ALL registers', function () {
         log.info('This test is pointless because pagination is not supported for registes by Vend.' +
-                  '\nSo while we can fetch a max of 200 registers, there is no way we can page' +
-                  '\nthrough and fetch more than that if they existed.\n');
+          '\nSo while we can fetch a max of 200 registers, there is no way we can page' +
+          '\nthrough and fetch more than that if they existed.\n');
       });
     });
 
-    describe('with tags API', function(){
+    describe('with tags API', function () {
       it('UNVERIFIED: can create a tag', function () {
         // TODO: implement it - create some tags so fetch can be more relevant/concrete
       });
@@ -997,9 +1020,9 @@ describe('vend-nodejs-sdk', function () {
 
       xit('DUPLICATE: can paginate when fetching tags and start AFTER a given point in time', function () {
         log.debug('The previous test already executes code which does this internally' +
-                  ' by starting AFTER version 0 by default.' +
-                  '\n While it would be nice to give a different version to start "AFTER" than 0,' +
-                  ' a valid/meaningful version to use in tests will be different in every Vend subdomain');
+          ' by starting AFTER version 0 by default.' +
+          '\n While it would be nice to give a different version to start "AFTER" than 0,' +
+          ' a valid/meaningful version to use in tests will be different in every Vend subdomain');
       });
 
       xit('FEATURE REQUEST: can fetch ALL tags AFTER a given point in time', function () {
@@ -1007,7 +1030,7 @@ describe('vend-nodejs-sdk', function () {
       });
     });
 
-    describe('with outlets API', function(){
+    describe('with outlets API', function () {
       it('can fetch outlets', function () {
         var args = vendSdk.args.outlets.fetch();
         return vendSdk.outlets.fetch(args, getConnectionInfo())
@@ -1064,7 +1087,7 @@ describe('vend-nodejs-sdk', function () {
       });
     });
 
-    describe('with product types API', function(){
+    describe('with product types API', function () {
       xit('UNVERIFIED: can create a product-type', function () {
         var args = vendSdk.args.productTypes.create();
         args.body.value = {
@@ -1087,7 +1110,7 @@ describe('vend-nodejs-sdk', function () {
       });
     });
 
-    describe('with brands API', function(){
+    describe('with brands API', function () {
       it('UNVERIFIED: can create a brand', function () {
         // TODO: implement it
       });
@@ -1106,7 +1129,7 @@ describe('vend-nodejs-sdk', function () {
       });
     });
 
-    describe('with suppliers API', function() {
+    describe('with suppliers API', function () {
       var supplier;
       it('can create a supplier', function () {
         var args = vendSdk.args.suppliers.create();
@@ -1162,7 +1185,7 @@ describe('vend-nodejs-sdk', function () {
       });
     });
 
-    describe('with taxes API', function(){
+    describe('with taxes API', function () {
       it('UNVERIFIED: can create a tax', function () {
         // TODO: implement it
       });

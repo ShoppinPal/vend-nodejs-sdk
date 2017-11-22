@@ -20,7 +20,7 @@ var argsForInput = {
   // consignments: consignment.args, // cannot be initialized here, moved to the `exports` function
   // suppliers: supplier.args, // cannot be initialized here, moved to the `exports` function
   customers: {
-    fetch: function() {
+    fetch: function () {
       return {
         apiId: {
           required: false,
@@ -45,7 +45,7 @@ var argsForInput = {
         }
       };
     },
-    fetchAll: function() {
+    fetchAll: function () {
       return {
         after: {
           required: false,
@@ -66,7 +66,7 @@ var argsForInput = {
     },
   },
   registers: {
-    fetchById: function() {
+    fetchById: function () {
       return {
         apiId: {
           required: true,
@@ -74,7 +74,7 @@ var argsForInput = {
         }
       };
     },
-    fetch: function() {
+    fetch: function () {
       return {
         page: {
           required: false,
@@ -90,7 +90,7 @@ var argsForInput = {
     }
   },
   outlets: {
-    fetch: function() {
+    fetch: function () {
       return {
         after: {
           required: false,
@@ -109,7 +109,7 @@ var argsForInput = {
         }
       };
     },
-    fetchById: function() {
+    fetchById: function () {
       return {
         apiId: {
           required: true,
@@ -119,7 +119,7 @@ var argsForInput = {
     }
   },
   paymentTypes: {
-    fetch: function() {
+    fetch: function () {
       return {
         page: {
           required: false,
@@ -135,7 +135,7 @@ var argsForInput = {
     }
   },
   productTypes: {
-    fetch: function() {
+    fetch: function () {
       return {
         after: {
           required: false,
@@ -164,7 +164,7 @@ var argsForInput = {
     }
   },
   taxes: {
-    fetch: function() {
+    fetch: function () {
       return {
         page: {
           required: false,
@@ -188,7 +188,7 @@ var argsForInput = {
     }
   },
   brands: {
-    fetch: function() {
+    fetch: function () {
       return {
         after: {
           required: false,
@@ -217,7 +217,7 @@ var argsForInput = {
     }
   },
   tags: {
-    fetch: function() {
+    fetch: function () {
       return {
         after: {
           required: false,
@@ -246,26 +246,26 @@ var argsForInput = {
     }
   },
   sales: {
-    fetch: function() {
+    fetch: function () {
       return {
         since: {
           deprecated: true,
           notes: 'Deprecated since version 1.0: ' +
-            'If you need to be notified of register sales, ' +
-            'and modifications to register sales, ' +
-            'use a register_sale.update webhook instead.\n' +
-            '' +
-            'http://support.vendhq.com/hc/en-us/requests/32281\n' +
-            '' +
-            'The deprecation notice was added by one of our sysadmins trying to reduce database load. ' +
-            'Feel free to ignore this deprecation and I\'ll remove it.\n' +
-            'We will eventually be deprecating a time-based "since" ' +
-            'but not until we replace it with real alternative ' +
-            '(likely to be some sort of incrementing integer value ' +
-            '- so same effect, but nicer on the database).\n' +
-            'Thanks,\n' +
-            'Keri Henare\n' +
-            'Senior Developer Evangelist @ Vend',
+          'If you need to be notified of register sales, ' +
+          'and modifications to register sales, ' +
+          'use a register_sale.update webhook instead.\n' +
+          '' +
+          'http://support.vendhq.com/hc/en-us/requests/32281\n' +
+          '' +
+          'The deprecation notice was added by one of our sysadmins trying to reduce database load. ' +
+          'Feel free to ignore this deprecation and I\'ll remove it.\n' +
+          'We will eventually be deprecating a time-based "since" ' +
+          'but not until we replace it with real alternative ' +
+          '(likely to be some sort of incrementing integer value ' +
+          '- so same effect, but nicer on the database).\n' +
+          'Thanks,\n' +
+          'Keri Henare\n' +
+          'Senior Developer Evangelist @ Vend',
           required: false,
           key: 'since',
           value: undefined
@@ -282,10 +282,10 @@ var argsForInput = {
         },
         // TODO: docs are a bit odd, don't want to introduce this until docs make sense
         /*status: {
-          required: false,
-          key: 'status[]',
-          value: undefined
-        },*/
+         required: false,
+         key: 'status[]',
+         value: undefined
+         },*/
         page: {
           required: false,
           key: 'page',
@@ -313,11 +313,11 @@ var argsForInput = {
   }
 };
 
-var fetchCustomers = function(args, connectionInfo, retryCounter) {
+var fetchCustomers = function (args, connectionInfo, retryCounter) {
   log.debug('inside fetchCustomers()');
   if (!retryCounter) {
     retryCounter = 0;
-  } else {
+  }else {
     log.debug('retry # ' + retryCounter);
   }
 
@@ -345,11 +345,11 @@ var fetchCustomers = function(args, connectionInfo, retryCounter) {
   return utils.sendRequest(options, args, connectionInfo, fetchCustomers, retryCounter);
 };
 
-var fetchCustomers2 = function(args, connectionInfo, retryCounter) {
+var fetchCustomers2 = function (args, connectionInfo, retryCounter) {
   log.debug('inside fetchCustomers2()');
   if (!retryCounter) {
     retryCounter = 0;
-  } else {
+  }else {
     log.debug('retry # ' + retryCounter);
   }
 
@@ -376,22 +376,22 @@ var fetchCustomers2 = function(args, connectionInfo, retryCounter) {
   return utils.sendRequest(options, args, connectionInfo, fetchCustomers2, retryCounter);
 };
 
-var fetchAllCustomers = function(args, connectionInfo, processPagedResults) {
-  if ( !(args && utils.argsAreValid(args)) ) {
+var fetchAllCustomers = function (args, connectionInfo, processPagedResults) {
+  if (!(args && utils.argsAreValid(args))) {
     return Promise.reject('missing required arguments for createProductTypes()');
   }
   if (!args.page || !args.page.value) {
-    args.page = {value:1}; // page has no operational role here, just useful for readable logs
+    args.page = {value: 1}; // page has no operational role here, just useful for readable logs
   }
   //if (!args.pageSize.value) args.pageSize.value = 10000; // why should we bother to set default pageSize if none is specified?
 
   // set a default function if none is provided
-  if(!processPagedResults) {
+  if (!processPagedResults) {
     processPagedResults = function processPagedResults(pagedData, previousData) {
       log.debug('fetchAllProducts - default processPagedResults()');
-      if(previousData && previousData.length>0) {
+      if (previousData && previousData.length>0) {
         //log.verbose(JSON.stringify(pagedData.products,replacer,2));
-        if(pagedData.data && pagedData.data.length>0) {
+        if (pagedData.data && pagedData.data.length>0) {
           log.debug('previousData: ', previousData.length);
           pagedData.data = pagedData.data.concat(previousData);
           log.debug('combined: ', pagedData.data.length);
@@ -408,18 +408,18 @@ var fetchAllCustomers = function(args, connectionInfo, processPagedResults) {
   return utils.processPagesRecursively(args, connectionInfo, fetchCustomers2, processPagedResults);
 };
 
-var fetchCustomerByEmail = function(email, connectionInfo, retryCounter) {
+var fetchCustomerByEmail = function (email, connectionInfo, retryCounter) {
   log.debug('inside fetchCustomerByEmail()');
   var args = argsForInput.customers.fetch();
   args.email.value = email;
   return fetchCustomers(args, connectionInfo, retryCounter);
 };
 
-var fetchRegisters = function(args, connectionInfo, retryCounter) {
+var fetchRegisters = function (args, connectionInfo, retryCounter) {
   log.debug('inside fetchRegisters()');
   if (!retryCounter) {
     retryCounter = 0;
-  } else {
+  }else {
     log.debug('retry # ' + retryCounter);
   }
 
@@ -445,16 +445,16 @@ var fetchRegisters = function(args, connectionInfo, retryCounter) {
   return utils.sendRequest(options, args, connectionInfo, fetchRegisters, retryCounter);
 };
 
-var fetchAllRegisters = function(args, connectionInfo, processPagedResults) {
+var fetchAllRegisters = function (args, connectionInfo, processPagedResults) {
   if (!args) {
     args = argsForInput.registers.fetch();
   }
-  args.page = {value:1};
-  args.pageSize = {value:200};
+  args.page = {value: 1};
+  args.pageSize = {value: 200};
 
   // set a default function if none is provided
   if (!processPagedResults) {
-    processPagedResults = function processPagedResults(pagedData, previousData){
+    processPagedResults = function processPagedResults(pagedData, previousData) {
       log.debug('fetchAllRegisters - default processPagedResults()');
       if (previousData && previousData.length>0) {
         //log.verbose(JSON.stringify(pagedData.products,replacer,2));
@@ -473,10 +473,10 @@ var fetchAllRegisters = function(args, connectionInfo, processPagedResults) {
   return utils.processPagesRecursively(args, connectionInfo, fetchRegisters, processPagedResults);
 };
 
-var fetchRegister  = function(args, connectionInfo, retryCounter) {
+var fetchRegister = function (args, connectionInfo, retryCounter) {
   if (!retryCounter) {
     retryCounter = 0;
-  } else {
+  }else {
     log.debug('retry # ' + retryCounter);
   }
 
@@ -498,11 +498,11 @@ var fetchRegister  = function(args, connectionInfo, retryCounter) {
   return utils.sendRequest(options, args, connectionInfo, fetchRegister, retryCounter);
 };
 
-var fetchPaymentTypes = function(args, connectionInfo, retryCounter) {
+var fetchPaymentTypes = function (args, connectionInfo, retryCounter) {
   log.debug('inside fetchPaymentTypes()');
   if (!retryCounter) {
     retryCounter = 0;
-  } else {
+  }else {
     log.debug('retry # ' + retryCounter);
   }
 
@@ -524,11 +524,44 @@ var fetchPaymentTypes = function(args, connectionInfo, retryCounter) {
   return utils.sendRequest(options, args, connectionInfo, fetchPaymentTypes, retryCounter);
 };
 
-var fetchProductTypes = function(args, connectionInfo, retryCounter) {
+var fetchAllVersions = function (args, connectionInfo, retryCounter) {
+
+  //In case if args is not passed while calling function
+  if (args.accessToken && args.domainPrefix) {
+    connectionInfo = args;
+    args = {}; //No args are required for this
+  }
+
+  log.debug('inside fetchAllVersions()');
+  if (!retryCounter) {
+    retryCounter = 0;
+  }
+  else {
+    log.debug('retry #' + JSON.stringify(retryCounter, null, 2));
+  }
+
+  var path = '/api/2.0/versions';
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.debug('GET ' + vendUrl);
+  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
+
+  var options = {
+    method: 'GET',
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Accept': 'application/json'
+    }
+  };
+  return utils.sendRequest(options, args, connectionInfo, fetchAllVersions, retryCounter);
+};
+
+var fetchProductTypes = function (args, connectionInfo, retryCounter) {
   log.debug('inside fetchProductTypes()');
   if (!retryCounter) {
     retryCounter = 0;
-  } else {
+  }else {
     log.debug('retry # ' + retryCounter);
   }
 
@@ -557,14 +590,14 @@ var fetchProductTypes = function(args, connectionInfo, retryCounter) {
   return utils.sendRequest(options, args, connectionInfo, fetchProductTypes, retryCounter);
 };
 
-var createProductTypes = function(args, connectionInfo, retryCounter) {
-  if ( !(args && utils.argsAreValid(args)) ) {
+var createProductTypes = function (args, connectionInfo, retryCounter) {
+  if (!(args && utils.argsAreValid(args))) {
     return Promise.reject('missing required arguments for createProductTypes()');
   }
 
   if (!retryCounter) {
     retryCounter = 0;
-  } else {
+  }else {
     log.debug('retry # ' + retryCounter);
   }
 
@@ -589,11 +622,11 @@ var createProductTypes = function(args, connectionInfo, retryCounter) {
   return utils.sendRequest(options, args, connectionInfo, createProductTypes, retryCounter);
 };
 
-var fetchTaxes = function(args, connectionInfo, retryCounter) {
+var fetchTaxes = function (args, connectionInfo, retryCounter) {
   log.debug('inside fetchTaxes()');
   if (!retryCounter) {
     retryCounter = 0;
-  } else {
+  }else {
     log.debug('retry # ' + retryCounter);
   }
 
@@ -615,14 +648,14 @@ var fetchTaxes = function(args, connectionInfo, retryCounter) {
   return utils.sendRequest(options, args, connectionInfo, fetchTaxes, retryCounter);
 };
 
-var createTax = function(args, connectionInfo, retryCounter) {
-  if ( !(args && utils.argsAreValid(args)) ) {
+var createTax = function (args, connectionInfo, retryCounter) {
+  if (!(args && utils.argsAreValid(args))) {
     return Promise.reject('missing required arguments for createTax()');
   }
 
   if (!retryCounter) {
     retryCounter = 0;
-  } else {
+  }else {
     log.debug('retry # ' + retryCounter);
   }
 
@@ -647,11 +680,11 @@ var createTax = function(args, connectionInfo, retryCounter) {
   return utils.sendRequest(options, args, connectionInfo, createTax, retryCounter);
 };
 
-var fetchBrands = function(args, connectionInfo, retryCounter) {
+var fetchBrands = function (args, connectionInfo, retryCounter) {
   log.debug('inside fetchBrands()');
   if (!retryCounter) {
     retryCounter = 0;
-  } else {
+  }else {
     log.debug('retry # ' + retryCounter);
   }
 
@@ -680,14 +713,14 @@ var fetchBrands = function(args, connectionInfo, retryCounter) {
   return utils.sendRequest(options, args, connectionInfo, fetchBrands, retryCounter);
 };
 
-var createBrand = function(args, connectionInfo, retryCounter) {
-  if ( !(args && utils.argsAreValid(args)) ) {
+var createBrand = function (args, connectionInfo, retryCounter) {
+  if (!(args && utils.argsAreValid(args))) {
     return Promise.reject('missing required arguments for createBrand()');
   }
 
   if (!retryCounter) {
     retryCounter = 0;
-  } else {
+  }else {
     log.debug('retry # ' + retryCounter);
   }
 
@@ -712,11 +745,11 @@ var createBrand = function(args, connectionInfo, retryCounter) {
   return utils.sendRequest(options, args, connectionInfo, createBrand, retryCounter);
 };
 
-var fetchTags = function(args, connectionInfo, retryCounter) {
+var fetchTags = function (args, connectionInfo, retryCounter) {
   log.debug('inside fetchTags()');
   if (!retryCounter) {
     retryCounter = 0;
-  } else {
+  }else {
     log.debug('retry # ' + retryCounter);
   }
 
@@ -745,24 +778,24 @@ var fetchTags = function(args, connectionInfo, retryCounter) {
   return utils.sendRequest(options, args, connectionInfo, fetchTags, retryCounter);
 };
 
-var fetchAllTags = function(args, connectionInfo, processPagedResults) {
+var fetchAllTags = function (args, connectionInfo, processPagedResults) {
   log.debug('inside fetchAllTags()');
   if (!args) {
     args = argsForInput.tags.fetch();
   }
   if (!args.after || !args.after.value) {
-    args.after = {value:0};
+    args.after = {value: 0};
   }
   if (!args.page || !args.page.value) {
-    args.page = {value:1}; // page has no operational role here, just useful for readable logs
+    args.page = {value: 1}; // page has no operational role here, just useful for readable logs
   }
   if (!args.pageSize || !args.pageSize.value) {
-    args.pageSize = {value:200};
+    args.pageSize = {value: 200};
   }
 
   // set a default function if none is provided
   if (!processPagedResults) {
-    processPagedResults = function processPagedResults(pagedData, previousData){
+    processPagedResults = function processPagedResults(pagedData, previousData) {
       log.debug('fetchAllTags - default processPagedResults()');
       if (previousData && previousData.length>0) {
         //log.verbose(JSON.stringify(pagedData.data,replacer,2));
@@ -781,14 +814,14 @@ var fetchAllTags = function(args, connectionInfo, processPagedResults) {
   return utils.processPagesRecursively(args, connectionInfo, fetchTags, processPagedResults);
 };
 
-var createTag = function(args, connectionInfo, retryCounter) {
-  if ( !(args && utils.argsAreValid(args)) ) {
+var createTag = function (args, connectionInfo, retryCounter) {
+  if (!(args && utils.argsAreValid(args))) {
     return Promise.reject('missing required arguments for createTag()');
   }
 
   if (!retryCounter) {
     retryCounter = 0;
-  } else {
+  }else {
     log.debug('retry # ' + retryCounter);
   }
 
@@ -813,11 +846,11 @@ var createTag = function(args, connectionInfo, retryCounter) {
   return utils.sendRequest(options, args, connectionInfo, createTag, retryCounter);
 };
 
-var fetchRegisterSales = function(args, connectionInfo, retryCounter) {
+var fetchRegisterSales = function (args, connectionInfo, retryCounter) {
   log.debug('inside fetchRegisterSales()');
   if (!retryCounter) {
     retryCounter = 0;
-  } else {
+  }else {
     log.debug('retry # ' + retryCounter);
   }
 
@@ -847,16 +880,16 @@ var fetchRegisterSales = function(args, connectionInfo, retryCounter) {
   return utils.sendRequest(options, args, connectionInfo, fetchRegisterSales, retryCounter);
 };
 
-var fetchAllRegisterSales = function(args, connectionInfo, processPagedResults) {
+var fetchAllRegisterSales = function (args, connectionInfo, processPagedResults) {
   if (!args) {
     args = argsForInput.sales.fetch();
   }
-  args.page = {value:1};
-  args.pageSize = {value:200};
+  args.page = {value: 1};
+  args.pageSize = {value: 200};
 
   // set a default function if none is provided
   if (!processPagedResults) {
-    processPagedResults = function processPagedResults(pagedData, previousData){
+    processPagedResults = function processPagedResults(pagedData, previousData) {
       log.debug('fetchAllRegisterSales - default processPagedResults()');
       if (previousData && previousData.length>0) {
         //log.verbose(JSON.stringify(pagedData.products,replacer,2));
@@ -875,11 +908,11 @@ var fetchAllRegisterSales = function(args, connectionInfo, processPagedResults) 
   return utils.processPagesRecursively(args, connectionInfo, fetchRegisterSales, processPagedResults);
 };
 
-var fetchOutlets = function(args, connectionInfo, retryCounter) {
+var fetchOutlets = function (args, connectionInfo, retryCounter) {
   log.debug('inside fetchOutlets()');
   if (!retryCounter) {
     retryCounter = 0;
-  } else {
+  }else {
     log.debug('retry # ' + retryCounter);
   }
 
@@ -911,25 +944,25 @@ var fetchOutlets = function(args, connectionInfo, retryCounter) {
   return utils.sendRequest(options, args, connectionInfo, fetchOutlets, retryCounter);
 };
 
-var fetchAllOutlets = function(args, connectionInfo, processPagedResults) {
+var fetchAllOutlets = function (args, connectionInfo, processPagedResults) {
   log.debug('inside fetchAllOutlets()');
   if (!args) {
     args = argsForInput.outlets.fetch();
   }
   if (!args.after || !args.after.value) {
-    args.after = {value:0};
+    args.after = {value: 0};
   }
   if (!args.page || !args.page.value) {
-    args.page = {value:1}; // page has no operational role here, just useful for readable logs
+    args.page = {value: 1}; // page has no operational role here, just useful for readable logs
   }
   if (!args.pageSize || !args.pageSize.value) {
-    args.pageSize = {value:200};
+    args.pageSize = {value: 200};
   }
-  args.path = {value:'/api/2.0/outlets'};
+  args.path = {value: '/api/2.0/outlets'};
 
   // set a default function if none is provided
   if (!processPagedResults) {
-    processPagedResults = function processPagedResults(pagedData, previousData){
+    processPagedResults = function processPagedResults(pagedData, previousData) {
       log.debug('fetchAllOutlets - default processPagedResults()');
       if (previousData && previousData.length>0) {
         //log.verbose(JSON.stringify(pagedData.data,replacer,2));
@@ -948,10 +981,10 @@ var fetchAllOutlets = function(args, connectionInfo, processPagedResults) {
   return utils.processPagesRecursively(args, connectionInfo, fetchOutlets, processPagedResults);
 };
 
-var fetchOutlet = function(args, connectionInfo, retryCounter) {
+var fetchOutlet = function (args, connectionInfo, retryCounter) {
   if (!retryCounter) {
     retryCounter = 0;
-  } else {
+  }else {
     log.debug('retry # ' + retryCounter);
   }
 
@@ -973,11 +1006,11 @@ var fetchOutlet = function(args, connectionInfo, retryCounter) {
   return utils.sendRequest(options, args, connectionInfo, fetchOutlet, retryCounter);
 };
 
-var createCustomer = function(body, connectionInfo, retryCounter) {
+var createCustomer = function (body, connectionInfo, retryCounter) {
   log.debug('inside createCustomer()');
   if (!retryCounter) {
     retryCounter = 0;
-  } else {
+  }else {
     log.debug('retry # ' + retryCounter);
   }
 
@@ -1001,14 +1034,14 @@ var createCustomer = function(body, connectionInfo, retryCounter) {
   return utils.sendRequest(options, body, connectionInfo, createCustomer, retryCounter);
 };
 
-var fetchRegisterSalesById  = function(args, connectionInfo, retryCounter) {
-  if ( !(args && utils.argsAreValid(args)) ) {
+var fetchRegisterSalesById = function (args, connectionInfo, retryCounter) {
+  if (!(args && utils.argsAreValid(args))) {
     return Promise.reject('missing required arguments for fetchRegisterSalesById()');
   }
 
   if (!retryCounter) {
     retryCounter = 0;
-  } else {
+  }else {
     log.debug('retry # ' + retryCounter);
   }
 
@@ -1039,11 +1072,11 @@ var fetchRegisterSalesById  = function(args, connectionInfo, retryCounter) {
   return utils.sendRequest(options, args, connectionInfo, fetchRegisterSalesById, retryCounter);
 };
 
-var createRegisterSale = function(body, connectionInfo, retryCounter) {
+var createRegisterSale = function (body, connectionInfo, retryCounter) {
   log.debug('inside createRegisterSale()');
   if (!retryCounter) {
     retryCounter = 0;
-  } else {
+  }else {
     log.debug('retry # ' + retryCounter);
   }
 
@@ -1055,7 +1088,7 @@ var createRegisterSale = function(body, connectionInfo, retryCounter) {
   try {
     body = _.isObject(body) ? body : JSON.parse(body);
   }
-  catch(exception) {
+  catch (exception) {
     log.error('createRegisterSale', exception);
     return Promise.reject('inside createRegisterSale() - failed to parse the sale body');
   }
@@ -1074,10 +1107,10 @@ var createRegisterSale = function(body, connectionInfo, retryCounter) {
   return utils.sendRequest(options, body, connectionInfo, createRegisterSale, retryCounter);
 };
 
-var replacer = function(key, value) {
-  if(value !== undefined  && value !== null) {
-    if(typeof value === 'string') {
-      if(value.trim().length>0) {
+var replacer = function (key, value) {
+  if (value !== undefined && value !== null) {
+    if (typeof value === 'string') {
+      if (value.trim().length>0) {
         return value;
       }
       else {
@@ -1089,7 +1122,7 @@ var replacer = function(key, value) {
   return undefined; // returning this removes properties
 };
 
-module.exports = function(dependencies) {
+module.exports = function (dependencies) {
   // (1) initialize dependencies such that code can be reused both on client and server side
   _ = dependencies.underscore || require('underscore');
   moment = dependencies.moment || require('moment');
@@ -1128,7 +1161,7 @@ module.exports = function(dependencies) {
         });
       }
     }
-    catch(err) {
+    catch (err) {
       // Using the same/cached winston instance multiple times, will give errors such as:
       //   - Transport console not attached to this instance
       //   - Transport already attached
@@ -1137,11 +1170,21 @@ module.exports = function(dependencies) {
   }
 
   // (1.5) add missing dependencies that had to be initialized
-  if (!dependencies.underscore) {dependencies.underscore = _;}
-  if (!dependencies.moment) {dependencies.moment = moment;}
-  if (!dependencies.bluebird) {dependencies.bluebird = Promise;}
-  if (!dependencies['request-promise']) {dependencies['request-promise'] = request;}
-  if (!dependencies.winston) {dependencies.winston = log;}
+  if (!dependencies.underscore) {
+    dependencies.underscore = _;
+  }
+  if (!dependencies.moment) {
+    dependencies.moment = moment;
+  }
+  if (!dependencies.bluebird) {
+    dependencies.bluebird = Promise;
+  }
+  if (!dependencies['request-promise']) {
+    dependencies['request-promise'] = request;
+  }
+  if (!dependencies.winston) {
+    dependencies.winston = log;
+  }
 
   // (2) initialize any module-scoped variables which need the dependencies
   utils = require('./lib/utils.js')(dependencies);
@@ -1205,10 +1248,13 @@ module.exports = function(dependencies) {
       fetchAll: fetchAllCustomers,
       fetchByEmail: fetchCustomerByEmail
     },
-    outlets:{
+    outlets: {
       fetchAll: fetchAllOutlets,
       fetch: fetchOutlets, // no need for fetchAll since hardly any Vend customers have more than 200 outlets
       fetchById: fetchOutlet
+    },
+    versions: {
+      fetchAll: fetchAllVersions
     },
     hasAccessTokenExpired: utils.hasAccessTokenExpired,
     getInitialAccessToken: utils.getInitialAccessToken,
