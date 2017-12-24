@@ -44,10 +44,18 @@ Roadmap
 
 Usage
 =====
-```
-// this module isn't published to NPM yet, so you have to clone it to the node_modules folder in your machine, beforehand
-var vendSdk = require('vend-nodejs-sdk')({}); 
 
+First, install the npm module [vend-nodejs-sdk](https://www.npmjs.com/package/vend-nodejs-sdk) into your project directory:
+
+`npm install vend-nodejs-sdk`
+
+Reference the package in your application file:
+
+`var vendSdk = require('vend-nodejs-sdk')({});`
+
+Start using the SDK:
+
+```
 var args = vendSdk.args.products.fetch();
 args.orderBy.value = 'id';
 args.page.value = 1;
