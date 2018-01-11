@@ -511,7 +511,6 @@ var fetchStockOrdersForSuppliers = function(args, connectionInfo, retryCounter) 
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
   log.debug('GET ' + vendUrl);
-  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   var options = {
     method: 'GET',
@@ -565,7 +564,6 @@ var fetchProductsByConsignment  = function(args, connectionInfo, retryCounter) {
   log.debug('Requesting vend product ' + vendUrl);
   var authString = 'Bearer ' + connectionInfo.accessToken;
   log.debug('GET ' + vendUrl);
-  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   var options = {
     url: vendUrl,
@@ -597,7 +595,7 @@ var defaultMethod_ForProcessingPagedResults_ForConsignmentProducts = function(pa
       pagedData.consignment_products = previousData;
     }
   }
-  //log.silly('finalData: ', pagedData.consignment_products);
+  //log.trace( { message: 'finalData', data: pagedData.consignment_products } );
   log.debug('finalData.length: ', pagedData.consignment_products.length);
       return Promise.resolve(pagedData.consignment_products);
 };
@@ -648,8 +646,8 @@ var fetchAllProductsByConsignments = function(args, connectionInfo, processPaged
     args,
     function mergeStrategy(newData, previousData){
       log.debug('inside mergeStrategy()');
-      //log.silly('newData ', newData);
-      //log.silly('previousData ', previousData);
+      //log.trace( { message: 'newData', data: newData } );
+      //log.trace( { message: 'previousData', data: previousData } );
       if (previousData && previousData.length>0) {
         if (newData.length>0) {
         log.debug('previousData.length: ', previousData.length);
@@ -660,7 +658,7 @@ var fetchAllProductsByConsignments = function(args, connectionInfo, processPaged
           newData = previousData;
         }
       }
-      //log.silly('finalData ', newData);
+      //log.trace( { message: 'finalData', data: newData } );
       log.debug('finalData.length ', newData.length);
       return Promise.resolve(newData); // why do we need a promise?
     },
@@ -678,7 +676,7 @@ var fetchAllProductsByConsignments = function(args, connectionInfo, processPaged
     },
     function executeNext(updatedArgs){
       log.debug('executing for consignmentId: ' + updatedArgs.consignmentId.value);
-      //log.silly('updatedArgs: ', updatedArgs);
+      //log.trace( { message: 'updatedArgs', data: updatedArgs } );
       return fetchAllProductsByConsignment(updatedArgs, connectionInfo, processPagedResults);
     }
   );
@@ -704,8 +702,8 @@ var resolveMissingSuppliers = function(args, connectionInfo) {
     function mergeStrategy(newData, previousData, args){/*jshint camelcase: false */
       log.debug('resolveMissingSuppliers - inside mergeStrategy()');
       var product = newData.products[0];
-      //log.silly('newData: ', newData);
-      //log.silly('product: ', product);
+      //log.trace( { message: 'newData', data: newData } );
+      //log.trace( { message: 'product', data: product } );
       var updateMe = args.getArray()[args.getArrayIndex()];
       updateMe.supplier = product.supplier_name || product.supplier_code;
       log.debug('updated consignmentIdToProductIdMap: ', args.getArray()[args.getArrayIndex()]);
@@ -729,7 +727,7 @@ var resolveMissingSuppliers = function(args, connectionInfo) {
     function executeNext(updatedArgs){
       log.debug('resolveMissingSuppliers - inside executeNext()');
       log.debug('resolveMissingSuppliers - executing for consignmentProductId: ' + updatedArgs.consignmentProductId.value);
-      //log.silly('updatedArgs: ', updatedArgs);
+      //log.trace( { message: 'updatedArgs', data: updatedArgs } );
       var args = argsForInput.products.fetchById();
       args.apiId.value = updatedArgs.consignmentProductId.value;
       return product.fetchProduct(args, connectionInfo);
@@ -749,7 +747,6 @@ var fetchCustomers = function(args, connectionInfo, retryCounter) {
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
   log.debug('GET ' + vendUrl);
-  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   var options = {
     method: 'GET',
@@ -781,7 +778,6 @@ var fetchCustomers2 = function(args, connectionInfo, retryCounter) {
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
   log.debug('GET ' + vendUrl);
-  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   var options = {
     method: 'GET',
@@ -851,7 +847,6 @@ var fetchRegisters = function(args, connectionInfo, retryCounter) {
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
   log.debug('GET ' + vendUrl);
-  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   var options = {
     method: 'GET',
@@ -909,7 +904,6 @@ var fetchRegister  = function(args, connectionInfo, retryCounter) {
   log.debug('Requesting vend product ' + vendUrl);
   var authString = 'Bearer ' + connectionInfo.accessToken;
   log.debug('GET ' + vendUrl);
-  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   var options = {
     url: vendUrl,
@@ -934,7 +928,6 @@ var fetchPaymentTypes = function(args, connectionInfo, retryCounter) {
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
   log.debug('GET ' + vendUrl);
-  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   var options = {
     method: 'GET',
@@ -960,7 +953,6 @@ var fetchProductTypes = function(args, connectionInfo, retryCounter) {
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
   log.debug('GET ' + vendUrl);
-  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   var options = {
     method: 'GET',
@@ -995,7 +987,6 @@ var createProductTypes = function(args, connectionInfo, retryCounter) {
   var path = '/api/2.0/product_types';
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
-  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
   var body = args.body.value;
 
   var options = {
@@ -1025,7 +1016,6 @@ var fetchTaxes = function(args, connectionInfo, retryCounter) {
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
   log.debug('GET ' + vendUrl);
-  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   var options = {
     method: 'GET',
@@ -1053,7 +1043,6 @@ var createTax = function(args, connectionInfo, retryCounter) {
   var path = '/api/taxes';
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
-  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
   var body = args.body.value;
 
   var options = {
@@ -1083,7 +1072,6 @@ var fetchBrands = function(args, connectionInfo, retryCounter) {
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
   log.debug('GET ' + vendUrl);
-  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   var options = {
     method: 'GET',
@@ -1118,7 +1106,6 @@ var createBrand = function(args, connectionInfo, retryCounter) {
   var path = '/api/2.0/brands';
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
-  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
   var body = args.body.value;
 
   var options = {
@@ -1148,7 +1135,6 @@ var fetchTags = function(args, connectionInfo, retryCounter) {
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
   log.debug('GET ' + vendUrl);
-  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   var options = {
     method: 'GET',
@@ -1219,7 +1205,6 @@ var createTag = function(args, connectionInfo, retryCounter) {
   var path = '/api/2.0/tags';
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
-  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
   var body = args.body.value;
 
   var options = {
@@ -1249,7 +1234,6 @@ var fetchRegisterSales = function(args, connectionInfo, retryCounter) {
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
   log.debug('GET ' + vendUrl);
-  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   var options = {
     method: 'GET',
@@ -1314,7 +1298,6 @@ var fetchOutlets = function(args, connectionInfo, retryCounter) {
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
   log.debug('GET ' + vendUrl);
-  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   var options = {
     method: 'GET',
@@ -1384,7 +1367,6 @@ var fetchOutlet = function(args, connectionInfo, retryCounter) {
   log.debug('Requesting vend outlet ' + vendUrl);
   var authString = 'Bearer ' + connectionInfo.accessToken;
   log.debug('GET ' + vendUrl);
-  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   var options = {
     url: vendUrl,
@@ -1409,7 +1391,6 @@ var fetchSupplier = function(args, connectionInfo, retryCounter) {
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
   log.debug('GET ' + vendUrl);
-  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   var options = {
     method: 'GET',
@@ -1435,7 +1416,6 @@ var fetchSuppliers = function(args, connectionInfo, retryCounter) {
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
   log.debug('GET ' + vendUrl);
-  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   var options = {
     method: 'GET',
@@ -1485,7 +1465,6 @@ var createSupplier = function(args, connectionInfo, retryCounter) {
   var path = '/api/supplier';
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
-  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
   var body = args.body.value;
 
   var options = {
@@ -1515,7 +1494,6 @@ var fetchConsignment  = function(args, connectionInfo, retryCounter) {
   log.debug('Requesting vend consignment ' + vendUrl);
   var authString = 'Bearer ' + connectionInfo.accessToken;
   log.debug('GET ' + vendUrl);
-  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   var options = {
     url: vendUrl,
@@ -1540,7 +1518,6 @@ var fetchConsignmentProductById  = function(args, connectionInfo, retryCounter) 
   log.debug('Requesting vend consignment product ' + vendUrl);
   var authString = 'Bearer ' + connectionInfo.accessToken;
   log.debug('GET ' + vendUrl);
-  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   var options = {
     url: vendUrl,
@@ -1584,7 +1561,6 @@ var createConsignmentProduct = function(args, connectionInfo, retryCounter) {
   var path = '/api/consignment_product';
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
-  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   var options = {
     method: 'POST',
@@ -1617,7 +1593,6 @@ var createStockOrder = function(args, connectionInfo, retryCounter) {
   var path = '/api/consignment';
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
-  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   var body = {
     'type': 'SUPPLIER',
@@ -1654,7 +1629,6 @@ var createCustomer = function(body, connectionInfo, retryCounter) {
   var path = '/api/customers';
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
-  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   var options = {
     method: 'POST',
@@ -1687,7 +1661,6 @@ var fetchRegisterSalesById  = function(args, connectionInfo, retryCounter) {
   log.debug('Requesting sale by ID ' + vendUrl);
   var authString = 'Bearer ' + connectionInfo.accessToken;
   log.debug('GET ' + vendUrl);
-  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   var options = {
     url: vendUrl,
@@ -1711,7 +1684,6 @@ var createRegisterSale = function(body, connectionInfo, retryCounter) {
   var path = '/api/register_sales';
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
-  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   try {
     body = _.isObject(body) ? body : JSON.parse(body);
@@ -1751,7 +1723,6 @@ var updateConsignmentProduct = function(args, connectionInfo, retryCounter) {
   var path = '/api/consignment_product/' + args.apiId.value;
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
-  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
   var body = args.body.value;
 
   var options = {
@@ -1786,7 +1757,6 @@ var markStockOrderAsSent = function(args, connectionInfo, retryCounter) {
   var path = '/api/consignment/' + args.apiId.value;
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
-  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
   var body = args.body.value;
   body.status = 'SENT';
 
@@ -1822,7 +1792,6 @@ var markStockOrderAsReceived = function(args, connectionInfo, retryCounter) {
   var path = '/api/consignment/' + args.apiId.value;
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
-  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
   var body = args.body.value;
   body.status = 'RECEIVED';
 
@@ -1860,7 +1829,6 @@ var deleteStockOrder = function(args, connectionInfo, retryCounter) {
   log.debug(path);
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
-  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   var options = {
     method: 'DELETE',
@@ -1894,7 +1862,6 @@ var deleteConsignmentProduct = function(args, connectionInfo, retryCounter) {
   var path = '/api/consignment_product/' + args.apiId.value;
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
-  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   var options = {
     method: 'DELETE',
