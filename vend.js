@@ -1111,43 +1111,13 @@ module.exports = function (dependencies) {
   request = dependencies['request-promise'] || require('request-promise');
   request.debug = dependencies.debugRequests;
 
-  /**
-   * Using winston can SUCK because it formats and positions things differently
-   * than what we are used to with console.log()
-   * > for ex: 1. json data is not made part of the message
-   * >         2. arrays are formatted and printed in a fashion that
-   * >            will make you think that you have the wrong data structure!
-   * >         3. prettyPrint option doesn't work for file logging
-   * >         4. error objects can run into problems and not get logged:
-   * >            https://github.com/winstonjs/winston/issues/600
-   */
-  log = dependencies.winston || require('winston');
-  if (!dependencies.winston) { // if winston is being instantiated within this method then take these actions
-    try {
-      log.remove(log.transports.Console);
-      if (process.env.NODE_ENV !== 'test') { // TODO: we want the ability to turn off these logs in production/staging too
-        log.add(log.transports.Console, {
-          colorize: true,
-          timestamp: false,
-          prettyPrint: true,
-          level: process.env.LOG_LEVEL_FOR_VEND_NODEJS_SDK || 'debug'
-        });
-      }
-      else {
-        // while testing, log only to file, leaving stdout free for unit test status messages
-        log.add(log.transports.File, {
-          filename: 'vend-nodejs-sdk.log',
-          level: process.env.LOG_LEVEL_FOR_VEND_NODEJS_SDK || 'debug'
-        });
-      }
-    }
-    catch (err) {
-      // Using the same/cached winston instance multiple times, will give errors such as:
-      //   - Transport console not attached to this instance
-      //   - Transport already attached
-      // but we choose to ignore/eat these.
-    }
-  }
+  // NOTE: The authors have decided on an out-of-box logger that is best suited for aggregatign logs in ELK-based production environments.
+  //       Due to the logger's interface, and a lack of any kind of facade or wrapper (like logtown) ... this change is not backward compatible.
+  //       Users should not upgrade to this version of `vend-nodejs-sdk`
+  //       without accounting for:
+  //       - how they used to capture logs in the past, and
+  //       - how to accommodate this within their infrastructure going forward.
+  log = dependencies.logger || require('sp-json-logger');
 
   // (1.5) add missing dependencies that had to be initialized
   if (!dependencies.underscore) {
@@ -1162,8 +1132,8 @@ module.exports = function (dependencies) {
   if (!dependencies['request-promise']) {
     dependencies['request-promise'] = request;
   }
-  if (!dependencies.winston) {
-    dependencies.winston = log;
+  if (!dependencies.logger) {
+    dependencies.logger = log;
   }
 
   // (2) initialize any module-scoped variables which need the dependencies
