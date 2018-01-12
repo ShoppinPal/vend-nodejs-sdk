@@ -390,9 +390,9 @@ var fetchAllCustomers = function (args, connectionInfo, processPagedResults) {
       if (previousData && previousData.length>0) {
         //log.trace( { message: 'pagedData.products', data: JSON.stringify(pagedData.products,replacer,2) } );
         if (pagedData.data && pagedData.data.length>0) {
-          log.debug('previousData: ', previousData.length);
+          log.debug('previousData: ' + previousData.length);
           pagedData.data = pagedData.data.concat(previousData);
-          log.debug('combined: ', pagedData.data.length);
+          log.debug('combined: ' + pagedData.data.length);
         }
         else {
           pagedData.data = previousData;
@@ -456,9 +456,9 @@ var fetchAllRegisters = function (args, connectionInfo, processPagedResults) {
       if (previousData && previousData.length>0) {
         //log.trace( { message: 'pagedData.products', data: JSON.stringify(pagedData.products,replacer,2) } );
         if (pagedData.registers && pagedData.registers.length>0) {
-          log.debug('previousData: ', previousData.length);
+          log.debug('previousData: ' + previousData.length);
           pagedData.registers = pagedData.registers.concat(previousData);
-          log.debug('combined: ', pagedData.registers.length);
+          log.debug('combined: ' + pagedData.registers.length);
         }
         else {
           pagedData.registers = previousData;
@@ -787,9 +787,9 @@ var fetchAllTags = function (args, connectionInfo, processPagedResults) {
       if (previousData && previousData.length>0) {
         //log.trace( { message: 'pagedData.data', data: JSON.stringify(pagedData.data,replacer,2) } );
         if (pagedData.data && pagedData.data.length>0) {
-          log.debug('previousData: ', previousData.length);
+          log.debug('previousData: ' + previousData.length);
           pagedData.data = pagedData.data.concat(previousData);
-          log.debug('combined: ', pagedData.data.length);
+          log.debug('combined: ' + pagedData.data.length);
         }
         else {
           pagedData.data = previousData;
@@ -879,9 +879,9 @@ var fetchAllRegisterSales = function (args, connectionInfo, processPagedResults)
       if (previousData && previousData.length>0) {
         //log.trace( { message: 'pagedData.products', data: JSON.stringify(pagedData.products,replacer,2) } );
         if (pagedData.register_sales && pagedData.register_sales.length>0) {
-          log.debug('previousData: ', previousData.length);
+          log.debug('previousData: ' + previousData.length);
           pagedData.register_sales = pagedData.register_sales.concat(previousData); // eslint-disable-line camelcase
-          log.debug('combined: ', pagedData.register_sales.length);
+          log.debug('combined: ' + pagedData.register_sales.length);
         }
         else {
           pagedData.register_sales = previousData; // eslint-disable-line camelcase
@@ -951,9 +951,9 @@ var fetchAllOutlets = function (args, connectionInfo, processPagedResults) {
       if (previousData && previousData.length>0) {
         //log.trace( { message: 'pagedData.data', data: JSON.stringify(pagedData.data,replacer,2) } );
         if (pagedData.data && pagedData.data.length>0) {
-          log.debug('previousData: ', previousData.length);
+          log.debug('previousData: ' + previousData.length);
           pagedData.data = pagedData.data.concat(previousData);
-          log.debug('combined: ', pagedData.data.length);
+          log.debug('combined: ' + pagedData.data.length);
         }
         else {
           pagedData.data = previousData;
