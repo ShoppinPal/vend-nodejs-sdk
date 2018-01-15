@@ -57,7 +57,7 @@
     "moment": "2.9.0",
     "nconf": "0.7.1",
     "request-promise": "0.3.2",
-    "sp-json-logger": "2.0.0",
+    "sp-json-logger": "2.0.1",
     "underscore": "1.7.0"
   },
   "devDependencies": {
