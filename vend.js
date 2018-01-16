@@ -325,7 +325,6 @@ var fetchCustomers = function (args, connectionInfo, retryCounter) {
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
   log.debug('GET ' + vendUrl);
-  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   var options = {
     method: 'GET',
@@ -357,7 +356,6 @@ var fetchCustomers2 = function (args, connectionInfo, retryCounter) {
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
   log.debug('GET ' + vendUrl);
-  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   var options = {
     method: 'GET',
@@ -390,11 +388,11 @@ var fetchAllCustomers = function (args, connectionInfo, processPagedResults) {
     processPagedResults = function processPagedResults(pagedData, previousData) {
       log.debug('fetchAllProducts - default processPagedResults()');
       if (previousData && previousData.length>0) {
-        //log.verbose(JSON.stringify(pagedData.products,replacer,2));
+        //log.trace( { message: 'pagedData.products', data: JSON.stringify(pagedData.products,replacer,2) } );
         if (pagedData.data && pagedData.data.length>0) {
-          log.debug('previousData: ', previousData.length);
+          log.debug('previousData: ' + previousData.length);
           pagedData.data = pagedData.data.concat(previousData);
-          log.debug('combined: ', pagedData.data.length);
+          log.debug('combined: ' + pagedData.data.length);
         }
         else {
           pagedData.data = previousData;
@@ -427,7 +425,6 @@ var fetchRegisters = function (args, connectionInfo, retryCounter) {
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
   log.debug('GET ' + vendUrl);
-  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   var options = {
     method: 'GET',
@@ -457,11 +454,11 @@ var fetchAllRegisters = function (args, connectionInfo, processPagedResults) {
     processPagedResults = function processPagedResults(pagedData, previousData) {
       log.debug('fetchAllRegisters - default processPagedResults()');
       if (previousData && previousData.length>0) {
-        //log.verbose(JSON.stringify(pagedData.products,replacer,2));
+        //log.trace( { message: 'pagedData.products', data: JSON.stringify(pagedData.products,replacer,2) } );
         if (pagedData.registers && pagedData.registers.length>0) {
-          log.debug('previousData: ', previousData.length);
+          log.debug('previousData: ' + previousData.length);
           pagedData.registers = pagedData.registers.concat(previousData);
-          log.debug('combined: ', pagedData.registers.length);
+          log.debug('combined: ' + pagedData.registers.length);
         }
         else {
           pagedData.registers = previousData;
@@ -485,7 +482,6 @@ var fetchRegister = function (args, connectionInfo, retryCounter) {
   log.debug('Requesting vend product ' + vendUrl);
   var authString = 'Bearer ' + connectionInfo.accessToken;
   log.debug('GET ' + vendUrl);
-  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   var options = {
     url: vendUrl,
@@ -510,7 +506,6 @@ var fetchPaymentTypes = function (args, connectionInfo, retryCounter) {
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
   log.debug('GET ' + vendUrl);
-  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   var options = {
     method: 'GET',
@@ -544,7 +539,6 @@ var fetchAllVersions = function (args, connectionInfo, retryCounter) {
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
   log.debug('GET ' + vendUrl);
-  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   var options = {
     method: 'GET',
@@ -569,7 +563,6 @@ var fetchProductTypes = function (args, connectionInfo, retryCounter) {
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
   log.debug('GET ' + vendUrl);
-  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   var options = {
     method: 'GET',
@@ -604,7 +597,6 @@ var createProductTypes = function (args, connectionInfo, retryCounter) {
   var path = '/api/2.0/product_types';
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
-  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
   var body = args.body.value;
 
   var options = {
@@ -634,7 +626,6 @@ var fetchTaxes = function (args, connectionInfo, retryCounter) {
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
   log.debug('GET ' + vendUrl);
-  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   var options = {
     method: 'GET',
@@ -662,7 +653,6 @@ var createTax = function (args, connectionInfo, retryCounter) {
   var path = '/api/taxes';
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
-  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
   var body = args.body.value;
 
   var options = {
@@ -692,7 +682,6 @@ var fetchBrands = function (args, connectionInfo, retryCounter) {
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
   log.debug('GET ' + vendUrl);
-  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   var options = {
     method: 'GET',
@@ -727,7 +716,6 @@ var createBrand = function (args, connectionInfo, retryCounter) {
   var path = '/api/2.0/brands';
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
-  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
   var body = args.body.value;
 
   var options = {
@@ -757,7 +745,6 @@ var fetchTags = function (args, connectionInfo, retryCounter) {
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
   log.debug('GET ' + vendUrl);
-  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   var options = {
     method: 'GET',
@@ -798,11 +785,11 @@ var fetchAllTags = function (args, connectionInfo, processPagedResults) {
     processPagedResults = function processPagedResults(pagedData, previousData) {
       log.debug('fetchAllTags - default processPagedResults()');
       if (previousData && previousData.length>0) {
-        //log.verbose(JSON.stringify(pagedData.data,replacer,2));
+        //log.trace( { message: 'pagedData.data', data: JSON.stringify(pagedData.data,replacer,2) } );
         if (pagedData.data && pagedData.data.length>0) {
-          log.debug('previousData: ', previousData.length);
+          log.debug('previousData: ' + previousData.length);
           pagedData.data = pagedData.data.concat(previousData);
-          log.debug('combined: ', pagedData.data.length);
+          log.debug('combined: ' + pagedData.data.length);
         }
         else {
           pagedData.data = previousData;
@@ -828,7 +815,6 @@ var createTag = function (args, connectionInfo, retryCounter) {
   var path = '/api/2.0/tags';
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
-  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
   var body = args.body.value;
 
   var options = {
@@ -858,7 +844,6 @@ var fetchRegisterSales = function (args, connectionInfo, retryCounter) {
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
   log.debug('GET ' + vendUrl);
-  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   var options = {
     method: 'GET',
@@ -892,11 +877,11 @@ var fetchAllRegisterSales = function (args, connectionInfo, processPagedResults)
     processPagedResults = function processPagedResults(pagedData, previousData) {
       log.debug('fetchAllRegisterSales - default processPagedResults()');
       if (previousData && previousData.length>0) {
-        //log.verbose(JSON.stringify(pagedData.products,replacer,2));
+        //log.trace( { message: 'pagedData.products', data: JSON.stringify(pagedData.products,replacer,2) } );
         if (pagedData.register_sales && pagedData.register_sales.length>0) {
-          log.debug('previousData: ', previousData.length);
+          log.debug('previousData: ' + previousData.length);
           pagedData.register_sales = pagedData.register_sales.concat(previousData); // eslint-disable-line camelcase
-          log.debug('combined: ', pagedData.register_sales.length);
+          log.debug('combined: ' + pagedData.register_sales.length);
         }
         else {
           pagedData.register_sales = previousData; // eslint-disable-line camelcase
@@ -923,7 +908,6 @@ var fetchOutlets = function (args, connectionInfo, retryCounter) {
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
   log.debug('GET ' + vendUrl);
-  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   var options = {
     method: 'GET',
@@ -965,11 +949,11 @@ var fetchAllOutlets = function (args, connectionInfo, processPagedResults) {
     processPagedResults = function processPagedResults(pagedData, previousData) {
       log.debug('fetchAllOutlets - default processPagedResults()');
       if (previousData && previousData.length>0) {
-        //log.verbose(JSON.stringify(pagedData.data,replacer,2));
+        //log.trace( { message: 'pagedData.data', data: JSON.stringify(pagedData.data,replacer,2) } );
         if (pagedData.data && pagedData.data.length>0) {
-          log.debug('previousData: ', previousData.length);
+          log.debug('previousData: ' + previousData.length);
           pagedData.data = pagedData.data.concat(previousData);
-          log.debug('combined: ', pagedData.data.length);
+          log.debug('combined: ' + pagedData.data.length);
         }
         else {
           pagedData.data = previousData;
@@ -993,7 +977,6 @@ var fetchOutlet = function (args, connectionInfo, retryCounter) {
   log.debug('Requesting vend outlet ' + vendUrl);
   var authString = 'Bearer ' + connectionInfo.accessToken;
   log.debug('GET ' + vendUrl);
-  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   var options = {
     url: vendUrl,
@@ -1017,7 +1000,6 @@ var createCustomer = function (body, connectionInfo, retryCounter) {
   var path = '/api/customers';
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
-  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   var options = {
     method: 'POST',
@@ -1059,7 +1041,6 @@ var fetchRegisterSalesById = function (args, connectionInfo, retryCounter) {
   log.debug('Requesting sale by ID ' + vendUrl);
   var authString = 'Bearer ' + connectionInfo.accessToken;
   log.debug('GET ' + vendUrl);
-  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   var options = {
     url: vendUrl,
@@ -1083,13 +1064,12 @@ var createRegisterSale = function (body, connectionInfo, retryCounter) {
   var path = '/api/register_sales';
   var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
   var authString = 'Bearer ' + connectionInfo.accessToken;
-  log.silly('Authorization: ' + authString); // TODO: sensitive data ... do not log?
 
   try {
     body = _.isObject(body) ? body : JSON.parse(body);
   }
   catch (exception) {
-    log.error('createRegisterSale', exception);
+    log.tag('createRegisterSale').error( { message: 'createRegisterSale', error:exception } );
     return Promise.reject('inside createRegisterSale() - failed to parse the sale body');
   }
 
@@ -1131,43 +1111,13 @@ module.exports = function (dependencies) {
   request = dependencies['request-promise'] || require('request-promise');
   request.debug = dependencies.debugRequests;
 
-  /**
-   * Using winston can SUCK because it formats and positions things differently
-   * than what we are used to with console.log()
-   * > for ex: 1. json data is not made part of the message
-   * >         2. arrays are formatted and printed in a fashion that
-   * >            will make you think that you have the wrong data structure!
-   * >         3. prettyPrint option doesn't work for file logging
-   * >         4. error objects can run into problems and not get logged:
-   * >            https://github.com/winstonjs/winston/issues/600
-   */
-  log = dependencies.winston || require('winston');
-  if (!dependencies.winston) { // if winston is being instantiated within this method then take these actions
-    try {
-      log.remove(log.transports.Console);
-      if (process.env.NODE_ENV !== 'test') { // TODO: we want the ability to turn off these logs in production/staging too
-        log.add(log.transports.Console, {
-          colorize: true,
-          timestamp: false,
-          prettyPrint: true,
-          level: process.env.LOG_LEVEL_FOR_VEND_NODEJS_SDK || 'debug'
-        });
-      }
-      else {
-        // while testing, log only to file, leaving stdout free for unit test status messages
-        log.add(log.transports.File, {
-          filename: 'vend-nodejs-sdk.log',
-          level: process.env.LOG_LEVEL_FOR_VEND_NODEJS_SDK || 'debug'
-        });
-      }
-    }
-    catch (err) {
-      // Using the same/cached winston instance multiple times, will give errors such as:
-      //   - Transport console not attached to this instance
-      //   - Transport already attached
-      // but we choose to ignore/eat these.
-    }
-  }
+  // NOTE: The authors have decided on an out-of-box logger that is best suited for aggregatign logs in ELK-based production environments.
+  //       Due to the logger's interface, and a lack of any kind of facade or wrapper (like logtown) ... this change is not backward compatible.
+  //       Users should not upgrade to this version of `vend-nodejs-sdk`
+  //       without accounting for:
+  //       - how they used to capture logs in the past, and
+  //       - how to accommodate this within their infrastructure going forward.
+  log = dependencies.logger || require('sp-json-logger');
 
   // (1.5) add missing dependencies that had to be initialized
   if (!dependencies.underscore) {
@@ -1182,8 +1132,8 @@ module.exports = function (dependencies) {
   if (!dependencies['request-promise']) {
     dependencies['request-promise'] = request;
   }
-  if (!dependencies.winston) {
-    dependencies.winston = log;
+  if (!dependencies.logger) {
+    dependencies.logger = log;
   }
 
   // (2) initialize any module-scoped variables which need the dependencies
