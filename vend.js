@@ -1689,7 +1689,7 @@ var createRegisterSale = function(body, connectionInfo, retryCounter) {
     body = _.isObject(body) ? body : JSON.parse(body);
   }
   catch(exception) {
-    log.error('createRegisterSale', exception);
+    log.tag('createRegisterSale').error( { message: 'createRegisterSale', error:exception } );
     return Promise.reject('inside createRegisterSale() - failed to parse the sale body');
   }
 
