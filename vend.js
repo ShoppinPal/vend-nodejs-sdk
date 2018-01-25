@@ -538,9 +538,9 @@ var fetchAllStockOrdersForSuppliers = function(connectionInfo, processPagedResul
     processPagedResults = function(pagedData, previousData){
       if (previousData && previousData.length>0) {
         if (pagedData.consignments.length>0) {
-        log.debug('previousData: ', previousData.length);
+        log.debug('previousData: ' + previousData.length);
         pagedData.consignments = pagedData.consignments.concat(previousData);
-        log.debug('combined: ', pagedData.consignments.length);
+        log.debug('combined: ' + pagedData.consignments.length);
       }
         else {
           pagedData.consignments = previousData;
@@ -587,16 +587,16 @@ var defaultMethod_ForProcessingPagedResults_ForConsignmentProducts = function(pa
   if (previousData && previousData.length>0) {
     //log.trace( { message: 'pagedData.consignment_products', data: JSON.stringify(pagedData.consignment_products,replacer,2) } );
     if (pagedData.consignment_products && pagedData.consignment_products.length>0) {
-      log.debug('previousData: ', previousData.length);
+      log.debug('previousData: ' + previousData.length);
         pagedData.consignment_products = pagedData.consignment_products.concat(previousData);
-      log.debug('combined: ', pagedData.consignment_products.length);
+      log.debug('combined: ' + pagedData.consignment_products.length);
       }
     else {
       pagedData.consignment_products = previousData;
     }
   }
   //log.trace( { message: 'finalData', data: pagedData.consignment_products } );
-  log.debug('finalData.length: ', pagedData.consignment_products.length);
+  log.debug('finalData.length: ' + pagedData.consignment_products.length);
       return Promise.resolve(pagedData.consignment_products);
 };
 
@@ -605,9 +605,9 @@ var defaultMethod_ForProcessingPagedResults_ForSuppliers = function processPaged
   if (previousData && previousData.length>0) {
     //log.trace( { message: 'pagedData.suppliers', data: JSON.stringify(pagedData.suppliers,replacer,2) } );
     if (pagedData.suppliers && pagedData.suppliers.length>0) {
-      log.debug('previousData: ', previousData.length);
+      log.debug('previousData: ' + previousData.length);
       pagedData.suppliers = pagedData.suppliers.concat(previousData);
-      log.debug('combined: ', pagedData.suppliers.length);
+      log.debug('combined: ' + pagedData.suppliers.length);
     }
     else {
       pagedData.suppliers = previousData;
@@ -650,16 +650,16 @@ var fetchAllProductsByConsignments = function(args, connectionInfo, processPaged
       //log.trace( { message: 'previousData', data: previousData } );
       if (previousData && previousData.length>0) {
         if (newData.length>0) {
-        log.debug('previousData.length: ', previousData.length);
+        log.debug('previousData.length: ' + previousData.length);
         newData = newData.concat(previousData);
-        log.debug('combinedData.length: ', newData.length);
+        log.debug('combinedData.length: ' + newData.length);
       }
         else {
           newData = previousData;
         }
       }
       //log.trace( { message: 'finalData', data: newData } );
-      log.debug('finalData.length ', newData.length);
+      log.debug('finalData.length ' + newData.length);
       return Promise.resolve(newData); // why do we need a promise?
     },
     function setupNext(updateArgs){
@@ -812,9 +812,9 @@ var fetchAllCustomers = function(args, connectionInfo, processPagedResults) {
       if(previousData && previousData.length>0) {
         //log.trace( { message: 'pagedData.products', data: JSON.stringify(pagedData.products,replacer,2) } );
         if(pagedData.data && pagedData.data.length>0) {
-          log.debug('previousData: ', previousData.length);
+          log.debug('previousData: ' + previousData.length);
           pagedData.data = pagedData.data.concat(previousData);
-          log.debug('combined: ', pagedData.data.length);
+          log.debug('combined: ' + pagedData.data.length);
         }
         else {
           pagedData.data = previousData;
@@ -878,9 +878,9 @@ var fetchAllRegisters = function(args, connectionInfo, processPagedResults) {
       if (previousData && previousData.length>0) {
         //log.trace( { message: 'pagedData.registers', data: JSON.stringify(pagedData.registers,replacer,2) } );
         if (pagedData.registers && pagedData.registers.length>0) {
-          log.debug('previousData: ', previousData.length);
+          log.debug('previousData: ' + previousData.length);
           pagedData.registers = pagedData.registers.concat(previousData);
-          log.debug('combined: ', pagedData.registers.length);
+          log.debug('combined: ' + pagedData.registers.length);
         }
         else {
           pagedData.registers = previousData;
@@ -1177,9 +1177,9 @@ var fetchAllTags = function(args, connectionInfo, processPagedResults) {
       if (previousData && previousData.length>0) {
         //log.trace( { message: 'pagedData.data', data: JSON.stringify(pagedData.data,replacer,2) } );
         if (pagedData.data && pagedData.data.length>0) {
-          log.debug('previousData: ', previousData.length);
+          log.debug('previousData: ' + previousData.length);
           pagedData.data = pagedData.data.concat(previousData);
-          log.debug('combined: ', pagedData.data.length);
+          log.debug('combined: ' + pagedData.data.length);
         }
         else {
           pagedData.data = previousData;
@@ -1269,9 +1269,9 @@ var fetchAllRegisterSales = function(args, connectionInfo, processPagedResults) 
       if (previousData && previousData.length>0) {
         //log.trace( { message: 'pagedData.register_sales', data: JSON.stringify(pagedData.register_sales,replacer,2) } );
         if (pagedData.register_sales && pagedData.register_sales.length>0) {
-          log.debug('previousData: ', previousData.length);
+          log.debug('previousData: ' + previousData.length);
           pagedData.register_sales = pagedData.register_sales.concat(previousData);
-          log.debug('combined: ', pagedData.register_sales.length);
+          log.debug('combined: ' + pagedData.register_sales.length);
         }
         else {
           pagedData.register_sales = previousData;
@@ -1341,9 +1341,9 @@ var fetchAllOutlets = function(args, connectionInfo, processPagedResults) {
       if (previousData && previousData.length>0) {
         //log.trace( { message: 'pagedData.data ', data: JSON.stringify(pagedData.data ,replacer,2) } );
         if (pagedData.data && pagedData.data.length>0) {
-          log.debug('previousData: ', previousData.length);
+          log.debug('previousData: ' + previousData.length);
           pagedData.data = pagedData.data.concat(previousData);
-          log.debug('combined: ', pagedData.data.length);
+          log.debug('combined: ' + pagedData.data.length);
         }
         else {
           pagedData.data = previousData;
@@ -1735,7 +1735,7 @@ var updateConsignmentProduct = function(args, connectionInfo, retryCounter) {
     },
     json: body
   };
-  log.debug(options.method, options.url);
+  log.debug(options.method + ' ' + options.url);
   log.debug('body:', options.json);
 
   return utils.sendRequest(options, args, connectionInfo, updateConsignmentProduct, retryCounter);
@@ -1770,7 +1770,7 @@ var markStockOrderAsSent = function(args, connectionInfo, retryCounter) {
     },
     json: body
   };
-  log.debug(options.method, options.url);
+  log.debug(options.method + ' ' + options.url);
   log.debug('body:', options.json);
 
   return utils.sendRequest(options, args, connectionInfo, markStockOrderAsSent, retryCounter);
@@ -1805,7 +1805,7 @@ var markStockOrderAsReceived = function(args, connectionInfo, retryCounter) {
     },
     json: body
   };
-  log.debug(options.method, options.url);
+  log.debug(options.method + ' ' + options.url);
   log.debug('body:', options.json);
 
   return utils.sendRequest(options, args, connectionInfo, markStockOrderAsReceived, retryCounter);
