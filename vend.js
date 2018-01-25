@@ -706,7 +706,7 @@ var resolveMissingSuppliers = function(args, connectionInfo) {
       //log.trace( { message: 'product', data: product } );
       var updateMe = args.getArray()[args.getArrayIndex()];
       updateMe.supplier = product.supplier_name || product.supplier_code;
-      log.debug('updated consignmentIdToProductIdMap: ', args.getArray()[args.getArrayIndex()]);
+      log.debug( { message: 'updated consignmentIdToProductIdMap', data: args.getArray()[args.getArrayIndex()] } );
 
       previousData = args.getArray();
       return Promise.resolve(previousData); // why do we need a promise?
@@ -1708,7 +1708,7 @@ var createRegisterSale = function(body, connectionInfo, retryCounter) {
 };
 
 var updateConsignmentProduct = function(args, connectionInfo, retryCounter) {
-  log.debug('inside updateConsignmentProduct()', args);
+  log.tag('updateConsignmentProduct').debug( { message: 'inside updateConsignmentProduct()', args: args } );
 
   if ( !(args && utils.argsAreValid(args)) ) {
     return Promise.reject('missing required arguments for updateConsignmentProduct()');
@@ -1736,13 +1736,13 @@ var updateConsignmentProduct = function(args, connectionInfo, retryCounter) {
     json: body
   };
   log.debug(options.method + ' ' + options.url);
-  log.debug('body:', options.json);
+  log.debug( { message: 'body', body: options.json } );
 
   return utils.sendRequest(options, args, connectionInfo, updateConsignmentProduct, retryCounter);
 };
 
 var markStockOrderAsSent = function(args, connectionInfo, retryCounter) {
-  log.debug('inside markStockOrderAsSent()', args);
+  log.tag('markStockOrderAsSent').debug( { message: 'inside markStockOrderAsSent()', args: args } );
 
   if ( !(args && utils.argsAreValid(args)) ) {
     return Promise.reject('missing required arguments for markStockOrderAsSent()');
@@ -1771,13 +1771,13 @@ var markStockOrderAsSent = function(args, connectionInfo, retryCounter) {
     json: body
   };
   log.debug(options.method + ' ' + options.url);
-  log.debug('body:', options.json);
+  log.debug( { message: 'body', body: options.json } );
 
   return utils.sendRequest(options, args, connectionInfo, markStockOrderAsSent, retryCounter);
 };
 
 var markStockOrderAsReceived = function(args, connectionInfo, retryCounter) {
-  log.debug('inside markStockOrderAsReceived()', args);
+  log.tag('markStockOrderAsReceived').debug( { message: 'inside markStockOrderAsReceived()', args: args } );
 
   if ( !(args && utils.argsAreValid(args)) ) {
     return Promise.reject('missing required arguments for markStockOrderAsReceived()');
@@ -1806,7 +1806,7 @@ var markStockOrderAsReceived = function(args, connectionInfo, retryCounter) {
     json: body
   };
   log.debug(options.method + ' ' + options.url);
-  log.debug('body:', options.json);
+  log.debug( { message: 'body', body: options.json } );
 
   return utils.sendRequest(options, args, connectionInfo, markStockOrderAsReceived, retryCounter);
 };
