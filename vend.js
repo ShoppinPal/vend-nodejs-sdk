@@ -585,7 +585,7 @@ var defaultMethod_ForProcessingPagedResults_ForConsignmentProducts = function(pa
   /*jshint camelcase: false */
   log.debug('defaultMethod_ForProcessingPagedResults_ForConsignmentProducts');
   if (previousData && previousData.length>0) {
-    //log.verbose(JSON.stringify(pagedData.consignment_products,replacer,2));
+    //log.trace( { message: 'pagedData.consignment_products', data: JSON.stringify(pagedData.consignment_products,replacer,2) } );
     if (pagedData.consignment_products && pagedData.consignment_products.length>0) {
       log.debug('previousData: ', previousData.length);
         pagedData.consignment_products = pagedData.consignment_products.concat(previousData);
@@ -603,7 +603,7 @@ var defaultMethod_ForProcessingPagedResults_ForConsignmentProducts = function(pa
 var defaultMethod_ForProcessingPagedResults_ForSuppliers = function processPagedResults(pagedData, previousData){// jshint ignore:line
   log.debug('defaultMethod_ForProcessingPagedResults_ForSuppliers');
   if (previousData && previousData.length>0) {
-    //log.verbose(JSON.stringify(pagedData.suppliers,replacer,2));
+    //log.trace( { message: 'pagedData.suppliers', data: JSON.stringify(pagedData.suppliers,replacer,2) } );
     if (pagedData.suppliers && pagedData.suppliers.length>0) {
       log.debug('previousData: ', previousData.length);
       pagedData.suppliers = pagedData.suppliers.concat(previousData);
@@ -810,7 +810,7 @@ var fetchAllCustomers = function(args, connectionInfo, processPagedResults) {
     processPagedResults = function processPagedResults(pagedData, previousData) {
       log.debug('fetchAllProducts - default processPagedResults()');
       if(previousData && previousData.length>0) {
-        //log.verbose(JSON.stringify(pagedData.products,replacer,2));
+        //log.trace( { message: 'pagedData.products', data: JSON.stringify(pagedData.products,replacer,2) } );
         if(pagedData.data && pagedData.data.length>0) {
           log.debug('previousData: ', previousData.length);
           pagedData.data = pagedData.data.concat(previousData);
@@ -876,7 +876,7 @@ var fetchAllRegisters = function(args, connectionInfo, processPagedResults) {
     processPagedResults = function processPagedResults(pagedData, previousData){
       log.debug('fetchAllRegisters - default processPagedResults()');
       if (previousData && previousData.length>0) {
-        //log.verbose(JSON.stringify(pagedData.products,replacer,2));
+        //log.trace( { message: 'pagedData.registers', data: JSON.stringify(pagedData.registers,replacer,2) } );
         if (pagedData.registers && pagedData.registers.length>0) {
           log.debug('previousData: ', previousData.length);
           pagedData.registers = pagedData.registers.concat(previousData);
@@ -1175,7 +1175,7 @@ var fetchAllTags = function(args, connectionInfo, processPagedResults) {
     processPagedResults = function processPagedResults(pagedData, previousData){
       log.debug('fetchAllTags - default processPagedResults()');
       if (previousData && previousData.length>0) {
-        //log.verbose(JSON.stringify(pagedData.data,replacer,2));
+        //log.trace( { message: 'pagedData.data', data: JSON.stringify(pagedData.data,replacer,2) } );
         if (pagedData.data && pagedData.data.length>0) {
           log.debug('previousData: ', previousData.length);
           pagedData.data = pagedData.data.concat(previousData);
@@ -1267,7 +1267,7 @@ var fetchAllRegisterSales = function(args, connectionInfo, processPagedResults) 
     processPagedResults = function processPagedResults(pagedData, previousData){/*jshint camelcase: false */
       log.debug('fetchAllRegisterSales - default processPagedResults()');
       if (previousData && previousData.length>0) {
-        //log.verbose(JSON.stringify(pagedData.products,replacer,2));
+        //log.trace( { message: 'pagedData.register_sales', data: JSON.stringify(pagedData.register_sales,replacer,2) } );
         if (pagedData.register_sales && pagedData.register_sales.length>0) {
           log.debug('previousData: ', previousData.length);
           pagedData.register_sales = pagedData.register_sales.concat(previousData);
@@ -1339,7 +1339,7 @@ var fetchAllOutlets = function(args, connectionInfo, processPagedResults) {
     processPagedResults = function processPagedResults(pagedData, previousData){
       log.debug('fetchAllOutlets - default processPagedResults()');
       if (previousData && previousData.length>0) {
-        //log.verbose(JSON.stringify(pagedData.data,replacer,2));
+        //log.trace( { message: 'pagedData.data ', data: JSON.stringify(pagedData.data ,replacer,2) } );
         if (pagedData.data && pagedData.data.length>0) {
           log.debug('previousData: ', previousData.length);
           pagedData.data = pagedData.data.concat(previousData);
