@@ -1,3 +1,6 @@
+v1.1.2 - Feb 07, 2018
+- Bug fix - Bad response from Vend API consumed all memory and crashed nodejs process
+
 v1.1.1 - Oct 09,2016
 - Bug fix - retry request on ETIMEDOUT
 

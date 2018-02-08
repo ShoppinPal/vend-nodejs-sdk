@@ -198,7 +198,8 @@ var sendRequest = function(options, args, connectionInfo, callback, retryCounter
       return Promise.reject(e.statusCode + ' ' + e.response.body); // TODO: throw unknown errors but reject well known errors?
     })
     .catch(function(e) {
-      log.error('vend.js - sendRequest - An unexpected error occurred: ', e);
+      log.error('vend.js - sendRequest - An unexpected error occurred.');
+      console.log(e); //DO NOT print e with log.error, it crashes
       throw e; // TODO: throw unknown errors but reject well known errors?
     });
 };
