@@ -509,6 +509,92 @@ describe('vend-nodejs-sdk', function () {/*jshint expr: true*/
             });
         });
       });
+      describe('usecase three', function() {
+        var randomProduct, supplier, consignmentId;
+        it('by preparing a product with a supplier and an outlet', function () {
+          return getRandomProduct()
+            .then(function(result){
+              randomProduct = result;
+              expect(randomProduct).to.exist;
+              return getSupplierIdByName(randomProduct['supplier_name']);// jshint ignore:line
+            })
+            .then(function(result){
+              supplier = result;
+              expect(supplier).to.exist;
+              expect(supplier.name).to.equal(randomProduct['supplier_name']);// jshint ignore:line
+              //console.log('randomProduct', randomProduct);
+              //console.log('randomSupplier', supplier);
+            });
+        });
+        it('by preparing a new consignment', function () {
+          var consignmentArgs = vendSdk.args.consignments.stockOrders.create();
+          consignmentArgs.name.value = faker.lorem.word(10);
+          consignmentArgs.outletId.value = randomProduct.inventory[0].outlet_id;// jshint ignore:line
+          consignmentArgs.supplierId.value = supplier.id;
+          return vendSdk.consignments.stockOrders.create(consignmentArgs, getConnectionInfo())
+            .tap(function (consignmentResponse) {
+              // validate the response after a consignment was created
+              expect(consignmentResponse).to.exist;
+              expect(consignmentResponse.id).to.exist;
+              expect(consignmentResponse.type).to.exist;
+              expect(consignmentResponse.type).to.be.a('string');
+              expect(consignmentResponse.type).to.equal('SUPPLIER');
+              expect(consignmentResponse.status).to.exist;
+              expect(consignmentResponse.status).to.be.a('string');
+              expect(consignmentResponse.status).to.equal('OPEN');
+              consignmentId = consignmentResponse.id;
+
+              // double check if the consignment really exists or not, try to fetch it explicitly
+              var args = vendSdk.args.consignments.fetchById();
+              args.apiId.value = consignmentId;
+              return vendSdk.consignments.fetchById(args, getConnectionInfo());
+            })
+            .tap(function (consignmentResponse) {
+              //log.debug('consignmentResponse', consignmentResponse);
+
+              // validate if the consignment really exists or not based on the attempt fetch it explicitly
+              expect(consignmentResponse).to.exist;
+              expect(consignmentResponse.id).to.exist;
+              expect(consignmentResponse.type).to.exist;
+              expect(consignmentResponse.type).to.be.a('string');
+              expect(consignmentResponse.type).to.equal('SUPPLIER');
+              expect(consignmentResponse.status).to.exist;
+              expect(consignmentResponse.status).to.be.a('string');
+              expect(consignmentResponse.status).to.equal('OPEN');
+            });
+        });
+        it('by deleting a consignment', function () {
+          var deleteConsignmentArgs = vendSdk.args.consignments.stockOrders.remove();
+          deleteConsignmentArgs.apiId.value = consignmentId;
+          return vendSdk.consignments.stockOrders.remove(deleteConsignmentArgs, getConnectionInfo())
+            .then(function (deletedConsignmentResponse) {
+              //log.debug('deletedConsignmentResponse', deletedConsignmentResponse);
+              expect(deletedConsignmentResponse).to.exist;
+              expect(deletedConsignmentResponse.status).to.exist;
+              expect(deletedConsignmentResponse.status).to.be.a('string');
+              expect(deletedConsignmentResponse.status).to.equal('success');
+            });
+        });
+        it('by confirming that creating a consignmentProduct on an already deleted consignment, does not crash the SDK', function () {
+          var args = vendSdk.args.consignments.products.create();
+          args.consignmentId.value = consignmentId;
+          args.productId.value = randomProduct.id;
+          args.cost.value = faker.random.number(4);
+          args.count.value = faker.random.number();
+          args.received.value = faker.random.boolean();
+          args.sequenceNumber.value = faker.random.number();
+          return vendSdk.consignments.products.create(args, getConnectionInfo())
+            .then(function () {
+              expect(true).to.equal(
+                false,
+                'should not receive a successful response when creating a consignmentProduct on an already deleted consignment'
+              );
+            })
+            .catch(function (error) {
+              expect(error).to.exist; // Vend returns a huge response with an entire HTML page instead of a specific error message
+            });
+        });
+      });
     });
 
     it('can fetch a product by ID', function () {
