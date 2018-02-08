@@ -1,3 +1,11 @@
+v2.0.0 - Feb 08, 2018
+- Breaking change: winston is no longer used
+- Added test - Bad response from Vend API should not crash nodejs process
+- Advice: Do NOT switch to 2.x unless you need the new features
+          and have performed proper testing to account for breaking changes.
+- Advice: Lock down your `package.json` properly. Do not use regular expressions
+          that bump you up from 1.x to 2.x without your knowledge.
+
 v1.1.2 - Feb 07, 2018
 - Bug fix - Bad response from Vend API consumed all memory and crashed nodejs process
 
