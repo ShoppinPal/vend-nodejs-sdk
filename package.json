@@ -1,6 +1,6 @@
 {
   "name": "vend-nodejs-sdk",
-  "version": "1.1.2",
+  "version": "2.0.0",
   "description": "Aims to provides a rich set of client-side functionality for Vend's public APIs",
   "license": "Apache-2.0",
   "author": "Pulkit Singhal",
@@ -20,6 +20,7 @@
   ],
   "main": "vend.js",
   "scripts": {
+    "eslint": "eslint",
     "commit": "commit-wizard",
     "test": "jshint . && NODE_ENV=test mocha"
   },
@@ -52,18 +53,20 @@
   "homepage": "https://github.com/ShoppinPal/vend-nodejs-sdk",
   "dependencies": {
     "bluebird": "2.6.0",
-    "moment": "2.9.0",
+    "moment": "2.11.2",
     "nconf": "0.7.1",
     "request-promise": "0.3.2",
-    "underscore": "1.7.0",
-    "winston": "0.9.0"
+    "sp-json-logger": "2.0.1",
+    "underscore": "1.7.0"
   },
   "devDependencies": {
     "chai": "3.5.0",
     "chai-as-promised": "5.3.0",
+    "eslint": "4.3.0",
     "faker": "3.1.0",
     "jshint": "2.9.3",
     "mocha": "3.0.2",
-    "pre-git": "3.7.0"
+    "pre-git": "3.7.0",
+    "winston": "0.9.0"
   }
 }

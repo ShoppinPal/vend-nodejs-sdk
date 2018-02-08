@@ -1,3 +1,7 @@
 .idea/
 node_modules/
 prod.json
+npm-debug.log
+test.log
+vend-nodejs-sdk.log
+config/*
