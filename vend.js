@@ -496,6 +496,46 @@ var argsForInput = {
         }
       };
     }
+  },
+  users: {
+    fetch: function () {
+      return {
+        pageSize: {
+          required: false,
+          key: 'page_size',
+          value: undefined
+        },
+        after: {
+          required: false,
+          key: 'after',
+          value: undefined
+        },
+        before: {
+          required: false,
+          key: 'after',
+          value: undefined
+        },
+      };
+    },
+    fetchAll: function () {
+      return {
+        page: {
+          required: false,
+          key: 'page',
+          value: undefined
+        },
+        pageSize: {
+          required: false,
+          key: 'page_size',
+          value: undefined
+        },
+        after: {
+          required: false,
+          key: 'deleted',
+          value: undefined
+        }
+      };
+    },
   }
 };
 
@@ -1877,6 +1917,133 @@ var deleteConsignmentProduct = function(args, connectionInfo, retryCounter) {
   return utils.sendRequest(options, args, connectionInfo, deleteConsignmentProduct, retryCounter);
 };
 
+
+var fetchUser = function (args, connectionInfo, retryCounter) {
+  log.debug('inside fetchUser()');
+  if (!retryCounter) {
+    retryCounter = 0;
+  }else {
+    log.debug('retry # ' + retryCounter);
+  }
+
+  var path = '/api/2.0/users/' + args.apiId.value;
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.debug('GET ' + vendUrl);
+
+  var options = {
+    method: 'GET',
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Accept': 'application/json'
+    }
+  };
+
+  return utils.sendRequest(options, args, connectionInfo, fetchUser, retryCounter);
+};
+
+var fetchUsers = function (args, connectionInfo, retryCounter) {
+  log.debug('inside fetchUsers()');
+  if (!retryCounter) {
+    retryCounter = 0;
+  }else {
+    log.debug('retry # ' + retryCounter);
+  }
+
+  var path = '/api/2.0/users';
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.debug('GET ' + vendUrl);
+
+  var options = {
+    method: 'GET',
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Accept': 'application/json'
+    }
+  };
+
+  if (args.page && args.pageSize) {
+    // NOTE: page and page_size work! For ex: page=1,page_size=1 return just one result in response.users
+    options.qs = {
+      page: args.page.value,
+      page_size: args.pageSize.value // eslint-disable-line camelcase
+    };
+    // NOTE: BUT for this endpoint, the paging properties in the response are part of the immediate response,
+    //       instead of being nested one-level-down under the response.pagination structure!
+  }
+  if (args.after) {
+    options.qs.after = args.after.value;
+  }
+  if (args.before) {
+    options.qs.before = args.before.value;
+  }
+  log.debug(options);
+
+  return utils.sendRequest(options, args, connectionInfo, fetchUsers, retryCounter);
+};
+
+var fetchAllUsers = function (args, connectionInfo, processPagedResults) {
+  debugger;
+  args.page = {value: 1};
+  args.pageSize = {value: 200};
+  // set a default function if none is provided
+  if (!processPagedResults) {
+    processPagedResults = defaultMethod_ForProcessingPagedResults_ForUsers; // eslint-disable-line camelcase
+  }
+  return utils.processPagesRecursively(args, connectionInfo, fetchUsers, processPagedResults);
+};
+
+var defaultMethod_ForProcessingPagedResults_ForUsers = function processPagedResults(pagedData, previousData) { // eslint-disable-line camelcase
+  log.debug('defaultMethod_ForProcessingPagedResults_ForUsers');
+  if (previousData && previousData.length>0) {
+    //log.trace( { message: 'pagedData.users', data: JSON.stringify(pagedData.users,replacer,2) } );
+    if (pagedData.data && pagedData.data.length>0) {
+      log.debug('previousData: ' + previousData.length);
+      pagedData.data = pagedData.data.concat(previousData);
+      log.debug('combined: ' + pagedData.data.length);
+    }
+    else {
+      pagedData.data = previousData;
+    }
+  }
+  return Promise.resolve(pagedData.data);
+};
+
+var createUser = function (args, connectionInfo, retryCounter) {
+  if (!(args && utils.argsAreValid(args))) {
+    return Promise.reject('missing required arguments for createUser()');
+  }
+
+  if (!retryCounter) {
+    retryCounter = 0;
+  }else {
+    log.debug('retry # ' + retryCounter);
+  }
+
+  var path = '/api/user';
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  var body = args.body.value;
+
+  var options = {
+    method: 'POST',
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    },
+    json: body
+  };
+  log.debug(options.method + ' ' + options.url);
+
+  return utils.sendRequest(options, args, connectionInfo, createUser, retryCounter);
+};
+
+
 /**
  * @param expiresAt - time unit from Vend is in unix epoch format
  * @returns {*} true if the the token will be considered as expired in 2 mins from now
@@ -2005,6 +2172,11 @@ module.exports = function(dependencies) {
       fetch: fetchSuppliers,
       fetchAll: fetchAllSuppliers,
       create: createSupplier
+    },
+    users: {
+      fetchById: fetchUser,
+      fetch: fetchUsers,
+      fetchAll: fetchAllUsers
     },
     hasAccessTokenExpired: hasAccessTokenExpired,
     getInitialAccessToken: utils.getInitialAccessToken,
