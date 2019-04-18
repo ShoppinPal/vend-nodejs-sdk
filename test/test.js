@@ -1191,6 +1191,87 @@ describe('vend-nodejs-sdk', function () {
       });
     });
 
+    describe('with users API for v2.0', function () {
+      this.timeout(300000);
+      var productsAcquiredFromVanillaCall, productsAcquiredFromExoticCall;
+      it('can fetch ALL users', function () { // NOTE: default page size is 1000 based on passive observation
+
+        var args = vendSdk.args.users.fetchAll();
+        return vendSdk.users.fetchAll(args, getConnectionInfo()) // NOTE: 3rd (optional) argument can be a custom method to processPagedResults
+          .then(function (allUsers) {
+            //log.debug('can fetch ALL products', 'allProducts:', allProducts);
+            expect(allUsers).to.exist;
+            expect(allUsers).to.be.instanceof(Array);
+            productsAcquiredFromVanillaCall = allUsers.length;
+            //log.debug('can fetch ALL products', 'allProducts.length:', allProducts.length);
+          });
+      });
+
+      it('can fetch ALL products w/ custom page size', function () {
+        var args = vendSdk.args.users.fetchAll();
+        args.pageSize.value = 10;
+        return vendSdk.users.fetchAll(args, getConnectionInfo()) // NOTE: 3rd (optional) argument can be a custom method to processPagedResults
+          .then(function (allUsers) {
+            //log.debug('can fetch ALL products w/ custom page size', 'allProducts:', allProducts);
+            expect(allUsers).to.exist;
+            expect(allUsers).to.be.instanceof(Array);
+            productsAcquiredFromExoticCall = allUsers.length;
+            expect(productsAcquiredFromExoticCall).to.be.equal(productsAcquiredFromVanillaCall);
+            //log.debug('can fetch ALL products w/ custom page size', 'allProducts.length:', allProducts.length);
+          });
+      });
+
+      it('can fetch users', function () {
+
+        var args = vendSdk.args.users.fetch();
+        args.page.value = 1;
+        args.pageSize.value = 5;
+
+        return vendSdk.users.fetch(args, getConnectionInfo())
+          .then(function (response) {
+            expect(response).to.exist;
+            expect(response.users).to.exist;
+            expect(response.users).to.be.instanceof(Array);
+            expect(response.users).to.have.length.of.at.least(1);
+            expect(response.users).to.have.length.of.at.most(5);
+            if (response.pagination) {/*jshint camelcase: false */
+              expect(response.pagination.results).to.exist;
+              expect(response.pagination.results).to.be.above(0);
+              expect(response.pagination.page).to.exist;
+              expect(response.pagination.page).to.be.equal(1);
+              expect(response.pagination.page_size).to.exist;
+              expect(response.pagination.page_size).to.be.equal(args.pageSize.value);
+              expect(response.pagination.pages).to.exist;
+              expect(response.pagination.pages).to.be.above(0);
+            }
+          })
+          .catch(TypeError, function (error) {
+            expect(error).to.equal(
+              undefined,
+              'the refresh token might be invalid' +
+              ' \n\t\t look inside vend-nodejs-sdk.log file to confirm' +
+              ' \n\t\t or turn on console logging by using `NODE_ENV=testing ./node_modules/.bin/mocha`' +
+              ' \n\t\t to run the tests and confirm' +
+              ' \n\t\t'
+            );
+          });
+
+      });
+
+      it('can paginate when fetching users', function () {
+        var args = vendSdk.args.users.fetch();
+        args.page.value = 1;
+        args.pageSize.value = 1;
+        return vendSdk.users.fetch(args, getConnectionInfo())
+          .then(function (response) {
+            expect(response).to.exist;
+            expect(response.users).to.exist;
+            expect(response.users).to.be.instanceof(Array);
+            expect(response.users.length).to.equal(1);
+          });
+      });
+    });
+
   });
 
 });
