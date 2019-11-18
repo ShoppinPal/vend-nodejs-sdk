@@ -309,6 +309,62 @@ var argsForInput = {
           value: undefined
         }
       };
+    },
+    fetchV2: function () {
+      return {
+        after: {
+          required: false,
+          key: 'after',
+          value: undefined,
+          description: 'The lower limit for the version numbers to be included in the response.'
+        },
+        before: {
+          required: false,
+          key: 'before',
+          value: undefined,
+          description: 'The upper limit for the version numbers to be included in the response.'
+        },
+        pageSize: {
+          required: false,
+          key: 'page_size',
+          value: undefined,
+          description: 'The maximum number of items to be returned in the response.'
+        },
+        page: {
+          required: false,
+          key: 'page',
+          value: undefined,
+          description: 'The page number of response. Not supported by Vend API, just for informational logs.'
+        }
+      };
+    },
+    fetchAllV2: function () {
+      return {
+        after: {
+          required: false,
+          key: 'after',
+          value: undefined,
+          description: 'The lower limit for the version numbers to be included in the response.'
+        },
+        before: {
+          required: false,
+          key: 'before',
+          value: undefined,
+          description: 'The upper limit for the version numbers to be included in the response.'
+        },
+        pageSize: {
+          required: false,
+          key: 'page_size',
+          value: undefined,
+          description: 'The maximum number of items to be returned in the response.'
+        },
+        page: {
+          required: false,
+          key: 'page',
+          value: undefined,
+          description: 'The page number of response. Not supported by Vend API, just for informational logs.'
+        }
+      };
     }
   },
   users: {
@@ -1096,17 +1152,6 @@ var fetchUsers = function (args, connectionInfo, retryCounter) {
   return utils.sendRequest(options, args, connectionInfo, fetchUsers, retryCounter);
 };
 
-var fetchAllUsers = function (args, connectionInfo, processPagedResults) {
-  debugger;
-  args.page = {value: 1};
-  args.pageSize = {value: 200};
-  // set a default function if none is provided
-  if (!processPagedResults) {
-    processPagedResults = defaultMethod_ForProcessingPagedResults_ForUsers; // eslint-disable-line camelcase
-  }
-  return utils.processPagesRecursively(args, connectionInfo, fetchUsers, processPagedResults);
-};
-
 var defaultMethod_ForProcessingPagedResults_ForUsers = function processPagedResults(pagedData, previousData) { // eslint-disable-line camelcase
   log.debug('defaultMethod_ForProcessingPagedResults_ForUsers');
   if (previousData && previousData.length>0) {
@@ -1121,6 +1166,17 @@ var defaultMethod_ForProcessingPagedResults_ForUsers = function processPagedResu
     }
   }
   return Promise.resolve(pagedData.data);
+};
+
+var fetchAllUsers = function (args, connectionInfo, processPagedResults) {
+  debugger;
+  args.page = {value: 1};
+  args.pageSize = {value: 200};
+  // set a default function if none is provided
+  if (!processPagedResults) {
+    processPagedResults = defaultMethod_ForProcessingPagedResults_ForUsers; // eslint-disable-line camelcase
+  }
+  return utils.processPagesRecursively(args, connectionInfo, fetchUsers, processPagedResults);
 };
 
 var createUser = function (args, connectionInfo, retryCounter) {
@@ -1153,7 +1209,6 @@ var createUser = function (args, connectionInfo, retryCounter) {
 
   return utils.sendRequest(options, args, connectionInfo, createUser, retryCounter);
 };
-
 
 var createCustomer = function (body, connectionInfo, retryCounter) {
   log.debug('inside createCustomer()');
@@ -1251,6 +1306,75 @@ var createRegisterSale = function (body, connectionInfo, retryCounter) {
   };
   log.debug(options.method + ' ' + options.url);
   return utils.sendRequest(options, body, connectionInfo, createRegisterSale, retryCounter);
+};
+
+var fetchSale = function (args, connectionInfo, retryCounter) {
+  if ( !(args && utils.argsAreValid(args)) ) {
+    return Promise.reject('missing required arguments for fetchSale()');
+  }
+  if(!args.page.value) {
+    args.page.value = 1; // default
+  }
+
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    log.debug('retry # ' + retryCounter);
+  }
+
+  var path = '/api/2.0/sales';
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.vendhq.com' + path;
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.debug('GET ' + vendUrl);
+
+  //var domainPrefix = this.domainPrefix;
+
+  var options = {
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Accept': 'application/json'
+    },
+    qs: {
+      after: args.after.value,
+      before: args.before.value,
+      page_size: args.pageSize.value // eslint-disable-line camelcase
+    }
+  };
+  if (args.page.value) {
+    log.debug('Requesting sales page ' + args.page.value);
+  }
+
+  return utils.sendRequest(options, args, connectionInfo, fetchSale, retryCounter);
+};
+
+var fetchSales = function (args, connectionInfo, processPagedResults) {
+  if ( !(args && utils.argsAreValid(args)) ) {
+    return Promise.reject('missing required arguments for fetchSales()');
+  }
+  if (!args.page.value) {
+    args.page.value = 1; // set a default if its missing
+  }
+
+  // set a default function if none is provided
+  if(!processPagedResults) {
+    processPagedResults = function processPagedResults(pagedData, previousData) {
+      log.debug('fetchSales - default processPagedResults()');
+      if(previousData && previousData.length>0) {
+        //log.trace( { message: 'pagedData.data', data: JSON.stringify(pagedData.data,replacer,2) } );
+        if(pagedData.data && pagedData.data.length>0) {
+          log.debug('previousData: ' + previousData.length);
+          pagedData.data = pagedData.data.concat(previousData);
+          log.debug('combined: ' + pagedData.data.length);
+        }
+        else {
+          pagedData.data = previousData;
+        }
+      }
+      return Promise.resolve(pagedData.data);
+    };
+  }
+  return utils.processPagesRecursively(args, connectionInfo, fetchSale, processPagedResults);
 };
 
 var replacer = function (key, value) {
@@ -1356,6 +1480,8 @@ module.exports = function (dependencies) {
       create: createRegisterSale,
       fetch: fetchRegisterSales,
       fetchAll: fetchAllRegisterSales,
+      fetchV2: fetchSale,
+      fetchAllV2: fetchSales,
       fetchById: fetchRegisterSalesById
     },
     customers: {

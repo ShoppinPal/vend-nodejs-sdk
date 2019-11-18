@@ -1207,7 +1207,7 @@ describe('vend-nodejs-sdk', function () {
           });
       });
 
-      it('can fetch ALL products w/ custom page size', function () {
+      it('can fetch ALL users w/ custom page size', function () {
         var args = vendSdk.args.users.fetchAll();
         args.pageSize.value = 10;
         return vendSdk.users.fetchAll(args, getConnectionInfo()) // NOTE: 3rd (optional) argument can be a custom method to processPagedResults
