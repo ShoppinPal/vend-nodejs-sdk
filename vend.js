@@ -151,7 +151,13 @@ var argsForInput = {
           required: false,
           key: 'page_size',
           value: undefined
-        }
+        },
+        deleted: {
+          required: false,
+          key: 'deleted',
+          value: undefined,
+          description: 'Indicates whether deleted items should be included in the response.'
+        },
       };
     },
     create: function () {
@@ -672,7 +678,8 @@ var fetchProductTypes = function (args, connectionInfo, retryCounter) {
     //       Server side no longer limits you to pages of size 200 and it can handle north of 10000 easy
     qs: {
       after: args.after.value,
-      page_size: args.pageSize.value // eslint-disable-line camelcase
+      page_size: args.pageSize.value, // eslint-disable-line camelcase
+      deleted: args.deleted.value
     }
   };
 
