@@ -134,6 +134,32 @@ var argsForInput = {
       };
     }
   },
+  productCategories: {
+    fetch: function () {
+      return {
+        after: {
+          required: false,
+          key: 'after',
+          value: undefined
+        },
+        pageSize: {
+          required: false,
+          key: 'page_size',
+          value: undefined
+        },
+        parent: {
+          required: false,
+          key: 'parent',
+          value: undefined
+        },
+        include: {
+          required: false,
+          key: 'include',
+          value: undefined
+        }
+      };
+    }
+  },
   productTypes: {
     fetch: function () {
       return {
@@ -651,6 +677,37 @@ var fetchAllVersions = function (args, connectionInfo, retryCounter) {
     }
   };
   return utils.sendRequest(options, args, connectionInfo, fetchAllVersions, retryCounter);
+};
+
+var fetchProductCategories = function (args, connectionInfo, retryCounter) {
+  log.debug('inside fetchProductCategories()');
+  if (!retryCounter) {
+    retryCounter = 0;
+  } else {
+    log.debug('retry # ' + retryCounter);
+  }
+
+  var path = '/api/2026-04/product_categories';
+  var vendUrl = 'https://' + connectionInfo.domainPrefix + '.retail.lightspeed.app' + path;
+  var authString = 'Bearer ' + connectionInfo.accessToken;
+  log.debug('GET ' + vendUrl);
+
+  var options = {
+    method: 'GET',
+    url: vendUrl,
+    headers: {
+      'Authorization': authString,
+      'Accept': 'application/json'
+    },
+    qs: {
+      after: args.after.value,
+      page_size: args.pageSize.value, // eslint-disable-line camelcase
+      parent: args.parent.value,
+      include: args.include.value
+    }
+  };
+
+  return utils.sendRequest(options, args, connectionInfo, fetchProductCategories, retryCounter);
 };
 
 var fetchProductTypes = function (args, connectionInfo, retryCounter) {
@@ -1465,6 +1522,9 @@ module.exports = function (dependencies) {
     },
     paymentTypes: {
       fetch: fetchPaymentTypes
+    },
+    productCategories: {
+      fetch: fetchProductCategories
     },
     productTypes: {
       fetch: fetchProductTypes,
